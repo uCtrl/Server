@@ -12,6 +12,7 @@ DIR="$( cd -P "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
 [[ -t 1 ]] && piped=0 || piped=1
 
 # Check if Homebrew is installed
+echo Homebrew
 which -s brew
 if [[ $? != 0 ]] ; then
     # Install Homebrew
@@ -22,9 +23,11 @@ else
 fi
 
 # Check if Node is installed
+echo node.js
 which -s node || brew install node
 
 # Check if MongoDB is installed 
+echo MongoDB
 which -s mongod || { 
     brew install mongodb; 
     ln -sfv /usr/local/opt/mongodb/*.plist ~/Library/LaunchAgents;
@@ -32,4 +35,9 @@ which -s mongod || {
 }
 
 cd $DIR/..
+
+echo Gulp
+which -s gulp || npm install -g gulp
+
+echo NPM dependencies
 npm install
