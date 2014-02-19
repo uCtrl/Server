@@ -1,0 +1,35 @@
+#!/bin/bash
+#
+# Bootstrap script to set-up mac environment
+
+# Exit immediately on error
+set -e
+
+# Save script's current directory
+DIR="$( cd -P "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
+
+# Detect whether output is piped or not.
+[[ -t 1 ]] && piped=0 || piped=1
+
+# Check if Homebrew is installed
+which -s brew
+if [[ $? != 0 ]] ; then
+    # Install Homebrew
+    # https://github.com/mxcl/homebrew/wiki/installation
+    /usr/bin/ruby -e "$(curl -fsSL https://raw.github.com/gist/323731)"
+else
+    brew update
+fi
+
+# Check if Node is installed
+which -s node || brew install node
+
+# Check if MongoDB is installed 
+which -s mongod || { 
+    brew install mongodb; 
+    ln -sfv /usr/local/opt/mongodb/*.plist ~/Library/LaunchAgents;
+    launchctl load ~/Library/LaunchAgents/homebrew.mxcl.mongodb.plist;
+}
+
+cd $DIR/..
+npm install
