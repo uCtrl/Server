@@ -3,20 +3,28 @@
 /**
  * Module dependencies.
  */
-var express = require('express'),
-    config = require('./config');
+ var express = require('express'),
+ bodyParser = require('body-parser'),
+ compression = require('compression'),
+ cookieParser = require('cookie-parser'),
+ methodOverride = require('method-override'),
+ favicon = require('serve-favicon'),
+ morgan = require('morgan'),
+ config = require('./config'),
+ multer = require('multer');
 
-module.exports = function(app, db) {
+ module.exports = function(app, db) {
     app.set('showStackError', true);
 
     // Prettify HTML
     app.locals.pretty = true;
-		// cache=memory
-		app.locals.cache = 'memory';
-		
+
+    // cache=memory
+    app.locals.cache = 'memory';
+
     // Should be placed before express.static
     // To ensure that all assets and data are compressed (utilize bandwidth)
-    app.use(express.compress({
+    app.use(compression({
         filter: function(req, res) {
             return (/json|text|javascript|css/).test(res.getHeader('Content-Type'));
         },
@@ -27,7 +35,7 @@ module.exports = function(app, db) {
 
     // Only use logger for development environment
     if (process.env.NODE_ENV === 'development') {
-        app.use(express.logger('dev'));
+        app.use(morgan('dev'));
     }
 
     // set .html as the default extension
@@ -39,45 +47,20 @@ module.exports = function(app, db) {
     // Enable jsonp
     app.enable('jsonp callback');
 
-    app.configure(function() {
-        // The cookieParser should be above session
-        app.use(express.cookieParser());
+    // The cookieParser should be above session
+    app.use(cookieParser());
 
-        // Request body parsing middleware should be above methodOverride
-        app.use(express.urlencoded());
-        app.use(express.json());
-        app.use(express.methodOverride());
+    // Request body parsing middleware should be above methodOverride
+    app.use(bodyParser.urlencoded({ extended: true }));
+    app.use(bodyParser.json());
+    app.use(methodOverride());
+    app.use(multer());
 
-        // Routes should be at the last
-        app.use(app.router);
+    // Routes should be at the last
+    //app.use(express.Router());
 
-        // Setting the fav icon and static folder
-        app.use(express.favicon());
-        app.use(express.static(config.root + '/public'));
-
-        // Assume "not found" in the error msgs is a 404. this is somewhat
-        // silly, but valid, you can do whatever you like, set properties,
-        // use instanceof etc.
-        app.use(function(err, req, res, next) {
-            // Treat as 404
-            if (~err.message.indexOf('not found')) return next();
-
-            // Log it
-            console.error(err.stack);
-
-            // Error page
-            res.status(500).render('500', {
-                error: err.stack
-            });
-        });
-
-        // Assume 404 since no middleware responded
-        app.use(function(req, res) {
-            res.status(404).render('404', {
-                url: req.originalUrl,
-                error: 'Not found'
-            });
-        });
-
-    });
+    // Setting the fav icon and static folder
+    //app.use(favicon(config.root + '/public/favicon.ico'));
+    app.use(express.static(config.root + '/public'));
+    
 };
