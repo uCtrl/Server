@@ -56,11 +56,7 @@
     app.use(methodOverride());
     app.use(multer());
 
-    // Routes should be at the last
-    //app.use(express.Router());
-
     // Setting the fav icon and static folder
-    //app.use(favicon(config.root + '/public/favicon.ico'));
     app.use(express.static(config.root + '/public'));
     
 };
