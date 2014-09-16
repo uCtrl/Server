@@ -10,4 +10,9 @@ module.exports = function(app) {
     app.get('/logs', logs.read);
     app.get('/logs/:deviceId', logs.read);
     app.post('/logs', logs.create);
+
+    var stats = require('../controllers/stats.js');
+    app.get('/stats', stats.read);
+    app.get('/stats/:deviceId', stats.read);
+    app.post('/stats', stats.create);
 };

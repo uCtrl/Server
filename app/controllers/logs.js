@@ -26,10 +26,10 @@ exports.create = function(req, res) {
 	log.save( function( err ) {
 		if( !err ) {
 			console.log( 'created' );
-			return res.send( log );
+			return res.status(200).send( log );
 		} else {
 			console.log( err );
-			return res.send('ERROR');
+			return res.status(500).send('ERROR');
 		}
 	});
 };
