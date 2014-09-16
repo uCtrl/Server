@@ -18,12 +18,13 @@ exports.read = function(req, res) {
 exports.create = function(req, res) {
 	var stat = new Stats({
 
-		/* TODO: CHANGE THE STATS DEPENDING ON COMING SCHEMA */
+	deviceId: { type: Number, required: true},
+	deviceType: { type: String, required:true},
+	timestamp: { type: Number, required: true},
+	ampere: { type: Number, required: true},
+	data: { type: Number, required: true},
+	value: { type: Object, required:true}
 
-		// type: req.body.type,
-		// deviceId: req.body.deviceId,
-		// value: req.body.value,
-		// timestamp: Date.now()
 	});
 
 	stat.save( function( err ) {
@@ -34,5 +35,11 @@ exports.create = function(req, res) {
 			console.log( err );
 			return res.status(500).send('ERROR');
 		}
+	});
+};
+
+exports.render = function(req, res) {
+	Stats.find(function (err, Stats) {
+		res.json(Stats);
 	});
 };
