@@ -43,7 +43,7 @@ Stats.find(function (err, stats) {
 			deviceId: 34567,
 			timestamp: Date.now(),
 			ampere: 5,
-			date: 5,
+			data: 5,
 			value: 25,
 		}).save(); 
  	}
