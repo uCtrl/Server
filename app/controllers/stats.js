@@ -17,12 +17,13 @@ exports.read = function(req, res) {
 
 exports.create = function(req, res) {
 	var stats = new Stats({
-		deviceId: { type: Number, required: true},
-		deviceType: { type: String, required:true},
-		timestamp: { type: Number, required: true},
-		ampere: { type: Number, required: true},
-		data: { type: Number, required: true},
-		value: { type: Object, required:true}
+		deviceId: req.body.deviceId,
+		deviceType: req.body.deviceType,
+		timestamp: Date.now(),
+		ampere: req.body.ampere,
+		data: req.body.data,
+		value: req.body.value
+
 	});
 
 	stats.save( function( err ) {
