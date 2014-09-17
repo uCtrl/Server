@@ -1,7 +1,7 @@
 'use strict';
 
 var mongoose = require('mongoose');
-var Stats = mongoose.model('Stat');
+var Stats = mongoose.model('Stats');
 
 exports.read = function(req, res) {
 	if (!req.params.deviceId) {
@@ -16,30 +16,22 @@ exports.read = function(req, res) {
 };
 
 exports.create = function(req, res) {
-	var stat = new Stats({
-
-	deviceId: { type: Number, required: true},
-	deviceType: { type: String, required:true},
-	timestamp: { type: Number, required: true},
-	ampere: { type: Number, required: true},
-	data: { type: Number, required: true},
-	value: { type: Object, required:true}
-
+	var stats = new Stats({
+		deviceId: { type: Number, required: true},
+		deviceType: { type: String, required:true},
+		timestamp: { type: Number, required: true},
+		ampere: { type: Number, required: true},
+		data: { type: Number, required: true},
+		value: { type: Object, required:true}
 	});
 
-	stat.save( function( err ) {
+	stats.save( function( err ) {
 		if( !err ) {
 			console.log( 'created' );
-			return res.status(200).send( stat );
+			return res.status(200).send( stats );
 		} else {
 			console.log( err );
 			return res.status(500).send('ERROR');
 		}
-	});
-};
-
-exports.render = function(req, res) {
-	Stats.find(function (err, Stats) {
-		res.json(Stats);
 	});
 };

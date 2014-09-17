@@ -9,7 +9,6 @@ var Schema = mongoose.Schema;
 
 
 var StatSchema = new Schema({
-
 	deviceId: { type: Number, required: true},
 	deviceType: { type: String, required:true},
 	timestamp: { type: Number, required: true},
@@ -19,10 +18,10 @@ var StatSchema = new Schema({
 });
 
 // Model creation
-var Stats = mongoose.model('Stat', StatSchema);
+var Stats = mongoose.model('Stats', StatSchema);
 
-Stats.find(function (err, Stat) {
-	if (Stats.length == 0) {
+Stats.find(function (err, stats) {
+	if (stats.length == 0) {
 		new Stats ({
 			deviceType: "Ligth",
 			deviceId: 12345,
@@ -34,18 +33,18 @@ Stats.find(function (err, Stat) {
 		new Stats ({
 			deviceType: "RF sensor",
 			deviceId: 56783,
-			//timestamp: Date.now(),
+			timestamp: Date.now(),
 			ampere: 10,
 			data: 10,
 			value: "OFF",
-		}).save
+		}).save();
 		new Stats ({
 			deviceType: "Thermometer",
 			deviceId: 34567,
-			//timestamp: Date.now(),
+			timestamp: Date.now(),
 			ampere: 5,
 			date: 5,
 			value: 25,
-		}).save();
+		}).save(); 
  	}
 });
