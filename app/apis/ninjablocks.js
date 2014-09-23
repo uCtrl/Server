@@ -120,7 +120,7 @@ function ninjaBlocks(options) {
 
   	/**
 	 * Base definition for device.
-	 * @param  {String}   nodeId   Id of the device
+	 * @param  {String}   guid   Id of the device
 	 * @param  {Function} callback   Callback when request finished or error found
 	 */
   	this.device = function(guid, callback) {
