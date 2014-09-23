@@ -1,7 +1,7 @@
 'use strict';
-var _ = require('underscore');
-var ninjaBlocks = require('ninja-blocks');
-var ninja = ninjaBlocks.app({user_access_token:"107f6f460bed2dbb10f0a93b994deea7fe07dad5"});
+var _ = require('lodash');
+var NinjaBlocks = require('../apis/ninjablocks.js');
+var ninja = new NinjaBlocks({userAccessToken:"107f6f460bed2dbb10f0a93b994deea7fe07dad5"});
 
 var UECONDITIONTYPE = {
     None : -1,
@@ -33,10 +33,11 @@ exports.get = function(req, res) {
 			"size": 0,
 			"conditions" : []
 		};
-		
-		ninja.rule(req.params.taskId).get(function(err, result){
+
+		ninja.rule(req.params.taskId, function(err, result){
+			console.log(result);
 			//res.json(result.preconditions);
-			var size = 0;
+			/*var size = 0;
 			_.each(result.preconditions, function(el){
 				size++;
 				output.conditions.push({
@@ -50,7 +51,7 @@ exports.get = function(req, res) {
 				});
 			});
 			output.size = size;
-			res.json(output);
+			res.json(output);*/
 		});
 	}
 };

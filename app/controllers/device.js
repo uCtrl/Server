@@ -1,7 +1,7 @@
 'use strict';
-var _ = require('underscore');
-var ninjaBlocks = require('ninja-blocks');
-var ninja = ninjaBlocks.app({user_access_token:"107f6f460bed2dbb10f0a93b994deea7fe07dad5"});
+var _ = require('lodash');
+var NinjaBlocks = require('../apis/ninjablocks.js');
+var ninja = new NinjaBlocks({userAccessToken:"107f6f460bed2dbb10f0a93b994deea7fe07dad5"});
 
 exports.get = function(req, res) {
 	var output = {
@@ -12,7 +12,7 @@ exports.get = function(req, res) {
 		"devices": []
 	};
 	
-	ninja.devices(null, function(err, result){
+	ninja.devices(function(err, result){
 		var size = 0;
 		console.log(result);
 		_.each(result, function(el, index){

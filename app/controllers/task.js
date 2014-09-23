@@ -1,10 +1,10 @@
 'use strict';
-var _ = require('underscore');
-var ninjaBlocks = require('ninja-blocks');
-var ninja = ninjaBlocks.app({user_access_token:"107f6f460bed2dbb10f0a93b994deea7fe07dad5"});
+var _ = require('lodash');
+var NinjaBlocks = require('../apis/ninjablocks.js');
+var ninja = new NinjaBlocks({userAccessToken:"107f6f460bed2dbb10f0a93b994deea7fe07dad5"});
 
 exports.get = function(req, res) {
-	if (!req.params.scenarioId) {
+	if (req.params.scenarioId) {
 		res.json(null);
 	} 
 	else {
@@ -16,8 +16,8 @@ exports.get = function(req, res) {
 			"size": 0,
 			"tasks": []
 		};
-		
-		ninja.rules().get(function(err, result){
+		ninja.rules(function(err, result){
+			console.log(err);
 			var size = 0;
 			_.each(result, function(el){
 				size++;
@@ -27,7 +27,7 @@ exports.get = function(req, res) {
 				});
 			});
 			output.size = size;
-			res.json(output);
+			res.json(result);
 		});
 	}
 };
