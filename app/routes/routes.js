@@ -1,59 +1,71 @@
 'use strict';
 
+var index = require(__base + 'app/controllers/index');
+var logs = require(__base + 'app/controllers/logs.js');
+var platforms = require(__base + 'app/controllers/platforms.js');
+var devices = require(__base + 'app/controllers/devices.js');
+var scenarios = require(__base + 'app/controllers/scenarios.js');
+var tasks = require(__base + 'app/controllers/tasks.js');
+var conditions = require(__base + 'app/controllers/conditions.js');
+
 module.exports = function(app) {
-    // Home route
-    var index = require('../controllers/index');
+    
     app.get('/', index.render);
 
-
-    var logs = require('../controllers/logs.js');
     app.get('/logs', logs.read);
     app.get('/logs/:deviceId', logs.read);
     app.post('/logs', logs.create);
 
-	//System
-	//Platform
-    var platform = require('../controllers/platform.js');
-        // Route to get Block informations (ID)
-        app.get('/platform', platform.get); 
+    app.route('/platforms')
+        .get(platforms.all)
+        .post(platforms.create);
+
+    app.route('/platforms/:platformId')
+        .get(platforms.show)
+        .put(platforms.update)
+        .delete(platforms.destroy);
+
+    app.route('/platforms/:platformId/devices')    
+        .get(devices.all)
+        .post(devices.create);
+
+    app.route('/platforms/:platformId/devices/:deviceId')
+        .get(devices.show)
+        .put(devices.update)
+        .delete(devices.destroy);    
+
+    app.route('/platforms/:platformId/devices/:deviceId/scenarios')
+	    .get(scenarios.all)
+        .post(scenarios.create);
+
+    app.route('/platforms/:platformId/devices/:deviceId/scenarios/:scenarioId')
+        .get(scenarios.show)
+        .put(scenarios.update)
+        .delete(scenarios.destroy); 
     
-	
-    //Device
-    var device = require('../controllers/device.js');
-        // Route to get all the devices connected (ID + Name + type)
-        app.get('/device', device.get);
-        // Route to get the temperature device informations
-        app.get('/device/temperature', device.getTemperature); 
-        // Route to get the ninja eyes informations
-        app.get('/device/ninjaEyes', device.getNinjaEyes);
-        // Route to get the humidity device informations
-     /* app.get('/device/humidity', device.getHumidity); 
-        // Route to get the statuslight  informations
-        app.get('/device/statuslight', device.getStatuslight);  
-        // Route to get the on board led  informations
-        app.get('/device/onBoardLed', device.getOnBoardLed);  
-        app.get('/device/rfdevices', device.getRfDevices); 
-        */
+    app.route('/platforms/:platformId/devices/:deviceId/scenarios/:scenarioId/tasks')
+	    .get(tasks.all)
+        .post(tasks.create);
 
-	    
+    app.route('/platforms/:platformId/devices/:deviceId/scenarios/:scenarioId/tasks/:taskId')
+        .get(tasks.show)
+        .put(tasks.update)
+        .delete(tasks.destroy);
 
+    app.route('/platforms/:platformId/devices/:deviceId/scenarios/:scenarioId/tasks/:taskId/conditions')
+        .get(conditions.all)
+        .post(conditions.create);
 
-    //Scenario
-	var scenario = require('../controllers/scenario.js');
-    app.get('/scenario', scenario.get);
-    app.get('/scenario/:deviceId', scenario.get);
-	
+    app.route('/platforms/:platformId/devices/:deviceId/scenarios/:scenarioId/tasks/:taskId/conditions/:conditionId')
+        .get(conditions.show)
+        .put(conditions.update)
+        .delete(conditions.destroy);
 
-    //Task
-	var task = require('../controllers/task.js');
-    app.get('/task', task.get);
-    app.get('/task/:scenarioId', task.get);
-	
-
-    //Condition
-	var condition = require('../controllers/condition.js');
-    app.get('/condition', condition.get);
-    app.get('/condition/:taskId', condition.get);
-
-
+    /*  Params will be useful when we have a DB, but for now, it will do a new request each time...
+    app.param('platformId', platforms.platform);
+    app.param('deviceId', devices.device);
+    app.param('scenarioId', scenarios.scenario);
+    app.param('taskId', tasks.task);
+    app.param('conditionId', conditions.condition);
+    */
 };
