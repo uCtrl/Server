@@ -2,8 +2,7 @@
 
 var _ = require('lodash'),
     ninjaBlocks = require(__base + 'app/apis/ninjablocks.js'),
-    ninja = new ninjaBlocks( {userAccessToken:"107f6f460bed2dbb10f0a93b994deea7fe07dad5"} );
-
+    ninja = new ninjaBlocks( {userAccessToken:global.uctrl.ninja.userAccessToken} );
 
 exports.all = function(req, res) {
 	// We'll use DB later. For now, let's return the rules or a Default scenario when mapping will be done
@@ -54,5 +53,9 @@ exports.show = function(req, res) {
       		});
     	}   	
     	res.json(data);
+
+		//TODO Get scenarios from mongoDB
+		//output.size = size;
+		res.json(output);
 	});	
 };

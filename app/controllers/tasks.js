@@ -2,13 +2,41 @@
 
 var _ = require('lodash'),
     ninjaBlocks = require(__base + 'app/apis/ninjablocks.js'),
-    ninja = new ninjaBlocks( {userAccessToken:"107f6f460bed2dbb10f0a93b994deea7fe07dad5"} );
+    ninja = new ninjaBlocks( {userAccessToken:global.uctrl.ninja.userAccessToken} );
 
-
+/*
+var msg = {
+	"messageType": 8,
+	"status": true,
+	"error" : null,
+	"scenarioId": req.params.scenarioId,
+	"size": 0,
+	"tasks": []
+};
+*/
+		
 exports.all = function(req, res) {
 	// We'll use DB later. For now, let's return the rules
+	var platformId = req.params["platformId"];
+	var deviceId = req.params["deviceId"];
+	var scenarioId = req.params["scenarioId"];
+	
 	ninja.rules(function(err, data){
-		res.json(data);
+		//res.json(data);
+		var out = [];
+		_.each(data, function(el){
+			//filter actions for the device. We will use only one action by task (action[0])
+			if(el.actions[0].params.guid == deviceId)
+			{
+				out.push({
+					id : el.rid,
+					type : "TODO: " + el.actions[0].handler,
+					name : "TODO: " + el.shortName,
+					status : el.actions[0].params.da,
+				});
+			}
+		});
+		res.json(out);
 	});
 };
 
@@ -51,6 +79,9 @@ exports.destroy = function(req, res) {
 };
 
 exports.show = function(req, res) {
+	var platformId = req.params["platformId"];
+	var deviceId = req.params["deviceId"];
+	var scenarioId = req.params["scenarioId"];
 	var taskId = req.params["taskId"];
 
 	ninja.rule(taskId, function(err, data) {
@@ -58,7 +89,6 @@ exports.show = function(req, res) {
       		return res.json(500, {
        			error: 'Cannot find the task ' + taskId
       		});
-    	}   	
-    	res.json(data);
+    	}
 	});	
 };

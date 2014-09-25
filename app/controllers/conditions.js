@@ -2,7 +2,7 @@
 
 var _ = require('lodash'),
     ninjaBlocks = require(__base + 'app/apis/ninjablocks.js'),
-    ninja = new ninjaBlocks( {userAccessToken:"107f6f460bed2dbb10f0a93b994deea7fe07dad5"} );
+    ninja = new ninjaBlocks( {userAccessToken:global.uctrl.ninja.userAccessToken} );
 
 var UECONDITIONTYPE = {
     None : -1,
@@ -20,6 +20,31 @@ var UECOMPARISONTYPE = {
 	InBetween : 0x8,
 	Not : 0x16
 };
+
+/*
+var output = {
+	"messageType": 10,
+	"status": true,
+	"error" : null,
+	"taskId": req.params.taskId,
+	"size": 0,
+	"conditions" : []
+};
+_.each(result.preconditions, function(el){
+	size++;
+	output.conditions.push({
+		id : '',
+		type : UECONDITIONTYPE.Device,	//TODO translate
+		comparisonType : UECOMPARISONTYPE.GreaterThan,	//TODO translate
+		deviceType : '',
+		deviceId : el.params.guid,
+		beginValue : el.value,
+		endValue : el.value
+	});
+});
+output.size = size;
+res.json(output);
+*/
 
 exports.all = function(req, res) {
 	// We'll use DB later. For now, let's return the rules
@@ -78,3 +103,5 @@ exports.show = function(req, res) {
     	res.json(data);
 	});	
 };
+
+

@@ -2,9 +2,35 @@
 
 var _ = require('lodash'),
     ninjaBlocks = require(__base + 'app/apis/ninjablocks.js'),
-    ninja = new ninjaBlocks( {userAccessToken:"107f6f460bed2dbb10f0a93b994deea7fe07dad5"} );
+    ninja = new ninjaBlocks( {userAccessToken:global.uctrl.ninja.userAccessToken} );
 
 /* We'll need to think about the subdevices and what to do exactly with them */
+
+/*
+var output = {
+	"messageType": 4,
+	"status": true,
+	"error" : null,
+	"size": 0,
+	"devices": []
+};
+
+_.each(result, function(el, index){
+	size++;
+	output.devices.push({
+		"id": index,
+		"maxValue": 0,
+		"minValue": 0,
+		"name": el.default_name,
+		"precision": 0,			//TODO
+		"type": el.device_type,	//TODO : translate
+		"unitLabel": el.unit,	//TODO : translate
+		"isTriggerValue": false	//TODO : ?
+	});
+});
+output.size = size;
+res.json(output);	
+*/
 
 exports.all = function(req, res) {
 	ninja.devices(function(err, data){
@@ -61,3 +87,4 @@ exports.show = function(req, res) {
     	res.json(data);
 	});	
 };
+

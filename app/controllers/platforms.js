@@ -2,7 +2,7 @@
 
 var _ = require('lodash'),
     ninjaBlocks = require(__base + 'app/apis/ninjablocks.js'),
-    ninja = new ninjaBlocks( {userAccessToken:"107f6f460bed2dbb10f0a93b994deea7fe07dad5"} );
+    ninja = new ninjaBlocks( {userAccessToken:global.uctrl.ninja.userAccessToken} );
 
 exports.all = function(req, res) {
 	ninja.blocks(function(err, data){
@@ -39,7 +39,7 @@ exports.show = function(req, res) {
 
 	ninja.block(platformId, function(err, data) {
 		if (err) 
-			return next(new Error("Failed to find block " + id));
+			return next(new Error("Failed to find block " + platformId));
 		res.json(data);
 	});
 };
