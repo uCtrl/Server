@@ -30,8 +30,8 @@ exports.all = function(req, res) {
 			{
 				out.push({
 					id : el.rid,
-					type : "TODO: " + el.actions[0].handler,
-					name : "TODO: " + el.shortName,
+					type : "TODO: " + el.actions[0].handler,	//ninjaSendCommand
+					name : "TODO: " + el.shortName,				//name the task
 					status : el.actions[0].params.da,
 				});
 			}

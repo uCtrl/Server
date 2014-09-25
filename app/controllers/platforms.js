@@ -6,7 +6,23 @@ var _ = require('lodash'),
 
 exports.all = function(req, res) {
 	ninja.blocks(function(err, data){
-		res.json(data);
+		//res.json(data);
+		var out = [];
+		_.each(data, function(el, index){
+			//filter actions for the device. We will use only one action by task (action[0])
+			out.push({
+				id : index,
+				firmwareVersion: "TODO",
+				name: el.short_name,
+				port: "TODO",
+				room: "TODO",
+				enabled: "TODO",
+				ip: "TODO",
+				date_created : 'TODO : ' + el.date_created,	//date_created
+				last_active : "TODO: " + el.last_active,	//last_active
+			});
+		});
+		res.json(out);
 	});
 };
 
@@ -40,6 +56,20 @@ exports.show = function(req, res) {
 	ninja.block(platformId, function(err, data) {
 		if (err) 
 			return next(new Error("Failed to find block " + platformId));
-		res.json(data);
+		//res.json(data);
+		var out = [];
+		//filter actions for the device. We will use only one action by task (action[0])
+		out.push({
+			id : platformId,
+			firmwareVersion: "TODO",
+			name: data.short_name,
+			port: "TODO",
+			room: "TODO",
+			enabled: "TODO",
+			ip: "TODO",
+			date_created : 'TODO : ' + data.date_created,	//date_created
+			last_active : "TODO: " + data.last_active,	//last_active
+		});
+		res.json(out);
 	});
 };
