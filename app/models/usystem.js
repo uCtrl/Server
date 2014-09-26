@@ -76,7 +76,7 @@ mongoose.model('UCondition', UConditionSchema);
 var UConditionModel = mongoose.model('UCondition');
 
 
-USystem.find({}, function(err, result){
+USystemModel.find({}, function(err, result){
 	console.log(result);
 });
 
