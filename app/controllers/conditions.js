@@ -1,8 +1,9 @@
 'use strict';
 
-var _ = require('lodash'),
-    ninjaBlocks = require(__base + 'app/apis/ninjablocks.js'),
-    ninja = new ninjaBlocks( {userAccessToken:global.uctrl.ninja.userAccessToken} );
+var _ = require('lodash');
+var ninjaBlocks = require(__base + 'app/apis/ninjablocks.js');
+var ninja = new ninjaBlocks( {userAccessToken:global.uctrl.ninja.userAccessToken} );
+var ucondition = require('../models/ucondition.js');
 
 var UECONDITIONTYPE = {
     None : -1,

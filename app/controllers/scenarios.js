@@ -1,8 +1,9 @@
 'use strict';
 
-var _ = require('lodash'),
-    ninjaBlocks = require(__base + 'app/apis/ninjablocks.js'),
-    ninja = new ninjaBlocks( {userAccessToken:global.uctrl.ninja.userAccessToken} );
+var _ = require('lodash');
+var ninjaBlocks = require(__base + 'app/apis/ninjablocks.js');
+var ninja = new ninjaBlocks( {userAccessToken:global.uctrl.ninja.userAccessToken} );
+var uscenario = require('../models/uscenario.js');
 
 exports.all = function(req, res) {
 	// We'll use DB later. For now, let's return the rules or a Default scenario when mapping will be done
