@@ -7,8 +7,6 @@
 var _ = require('lodash');
 var mongoose = require('mongoose');
 var schema = mongoose.Schema;
-//var udevice = require('../models/udevice.js');
-var udevice  = mongoose.model('UDevice').schema;
 
 /*UPlatform*/
 var uplatformSchema	= new schema({
@@ -19,10 +17,6 @@ var uplatformSchema	= new schema({
 	room			: String,
 	enabled			: String,
 	ip				: String,
-	devices			: [udevice],
+	devices			: [mongoose.model('UDevice').schema],
 });
 mongoose.model('UPlatform', uplatformSchema);
-/*
-var uplatform = mongoose.model('UPlatform');
-module.exports = uplatform;
-*/

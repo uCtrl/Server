@@ -7,8 +7,6 @@
 var _ = require('lodash');
 var mongoose = require('mongoose');
 var schema = mongoose.Schema;
-//var uscenario = require('../models/uscenario.js');
-var uscenario  = mongoose.model('UScenario').schema;
 
 /*UDevice*/
 var UDeviceSchema 	= new schema({
@@ -23,6 +21,6 @@ var UDeviceSchema 	= new schema({
 	status			: Number,
 	type			: Number,
 	unitLabel		: String,
-	scenarios		: [uscenario],
+	scenarios		: [mongoose.model('UScenario').schema],
 });
 mongoose.model('UDevice', UDeviceSchema);

@@ -42,7 +42,7 @@ var walk = function(path) {
 };
 walk(models_path);
 */
-//BOB STYLE
+//Problem : models need to be retrieved in order (voir Bob).
 require(models_path + '/ucondition.js');
 require(models_path + '/utask.js');
 require(models_path + '/uscenario.js');

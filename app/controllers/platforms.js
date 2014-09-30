@@ -10,7 +10,6 @@ exports.all = function(req, res) {
 	uplatform.find(function(err, all){
 		res.json(all);
 	});
-	console.log(uplatform.schema);
 
 	/*
 	ninja.blocks(function(err, data){
@@ -43,29 +42,25 @@ exports.create = function(req, res) {
 };
 
 exports.update = function(req, res) {
-    // Can't update needs testing
 	uplatform.findOne({id : req.params.platformId}, function(err, obj){
-		if(!err){
-			//obj.id			= req.body.id,
-			obj.firmwareVersion	= req.body.firmwareVersion,
-			obj.name			= req.body.name,
-			obj.port			= req.body.port,
-			obj.room			= req.body.room,
-			obj.enabled			= req.body.enabled,
-			obj.ip				= req.body.ip,
-			obj.save();
-		}
+		//obj.id			= req.body.id,
+		obj.firmwareVersion	= req.body.firmwareVersion,
+		obj.name			= req.body.name,
+		obj.port			= req.body.port,
+		obj.room			= req.body.room,
+		obj.enabled			= req.body.enabled,
+		obj.ip				= req.body.ip,
+		obj.save();
 	});	
     res.json("updated");
 };
 
 exports.destroy = function(req, res) {
 	uplatform.findOne({id : req.params.platformId}, function(err, obj){
-		if(!err){
-			obj.remove();
-		}
+		obj.remove();
+		res.json("destroyed");
 	});
-    res.json("destroyed");
+    
 	/*
 	ninja.block(platformId).delete(function(err, data) {
 		if (err) {

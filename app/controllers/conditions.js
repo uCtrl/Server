@@ -3,7 +3,9 @@
 var _ = require('lodash');
 var ninjaBlocks = require(__base + 'app/apis/ninjablocks.js');
 var ninja = new ninjaBlocks( {userAccessToken:global.uctrl.ninja.userAccessToken} );
-var ucondition = require('../models/ucondition.js');
+var mongoose = require('mongoose');
+var uplatform = mongoose.model('UPlatform');
+var ucondition = mongoose.model('UCondition');
 
 var UECONDITIONTYPE = {
     None : -1,
@@ -49,12 +51,54 @@ res.json(output);
 
 exports.all = function(req, res) {
 	// We'll use DB later. For now, let's return the rules
+	uplatform.findOne({id : req.params.platformId}, function(err, platformObj){
+		platformObj.devices.forEach(function(deviceObj, deviceIndex){
+			if(deviceObj.id == req.params.deviceId){
+				deviceObj.scenarios.forEach(function(scenarioObj, scenarioIndex){
+					if(scenarioObj.id == req.params.scenarioId){
+						scenarioObj.tasks.forEach(function(taskObj, taskIndex){
+							if(taskObj.id == req.params.taskId){
+								res.json(taskObj.conditions);
+							}
+						});
+					}
+				});
+			}
+		});
+	});
+	
+	/*
 	ninja.rules(function(err, data){
 		res.json(data);
 	});
+	
+	*/
 };
 
 exports.create = function(req, res) {
+	uplatform.findOne({id : req.params.platformId}, function(err, platformObj){
+		platformObj.devices.forEach(function(deviceObj, deviceIndex){
+			if(deviceObj.id == req.params.deviceId){
+				deviceObj.scenarios.forEach(function(scenarioObj, scenarioIndex){
+					if(scenarioObj.id == req.params.scenarioId){
+						deviceObj.scenarios.forEach(function(scenarioObj, scenarioIndex){
+							if(scenarioObj.id == req.params.scenarioId){
+								scenarioObj.tasks.forEach(function(taskObj, taskIndex){
+									if(taskObj.id == req.params.taskId){
+										var obj = new ucondition(req.body);
+										platformObj.devices[deviceIndex].scenarios[scenarioIndex].tasks[taskIndex].conditions.push(obj);
+										platformObj.save();
+										res.json("created");
+									}
+								});
+							}
+						});
+					}
+				});
+			}
+		});
+	});
+	/*
 	ninja.rule().create(req.body, function(err, data){
 		if (err) {
       		return res.json(500, {
@@ -63,6 +107,7 @@ exports.create = function(req, res) {
     	} 
 		res.json(data);
 	});
+	*/
 };
 
 exports.update = function(req, res) {
@@ -80,8 +125,28 @@ exports.update = function(req, res) {
 
 
 exports.destroy = function(req, res) {
-	var conditionId = req.params["conditionId"];
-
+	uplatform.findOne({id : req.params.platformId}, function(err, platformObj){
+		platformObj.devices.forEach(function(deviceObj, deviceIndex){
+			if(deviceObj.id == req.params.deviceId){
+				deviceObj.scenarios.forEach(function(scenarioObj, scenarioIndex){
+					if(scenarioObj.id == req.params.scenarioId){
+						scenarioObj.tasks.forEach(function(taskObj, taskIndex){
+							if(taskObj.id == req.params.taskId){
+								taskObj.conditions.forEach(function(conditionObj, conditionIndex){
+									if(conditionObj.id == req.params.conditionId){
+										platformObj.devices[deviceIndex].scenarios[scenarioIndex].tasks[taskIndex].conditions.remove(conditionObj._id.toString());
+										platformObj.save();
+										res.json("destroyed");
+									}
+								});
+							}
+						});
+					}
+				});
+			}
+		});
+	});
+/*
 	ninja.rule(conditionId).delete(function(err, data) {
 		if (err) {
       		return res.json(500, {
@@ -90,11 +155,32 @@ exports.destroy = function(req, res) {
     	}   	
     	res.json(data);
 	});	
+	
+	*/
 };
 
 exports.show = function(req, res) {
-	var conditionId = req.params["conditionId"];
+	uplatform.findOne({id : req.params.platformId}, function(err, platformObj){
+		platformObj.devices.forEach(function(deviceObj, deviceIndex){
+			if(deviceObj.id == req.params.deviceId){
+				deviceObj.scenarios.forEach(function(scenarioObj, scenarioIndex){
+					if(scenarioObj.id == req.params.scenarioId){
+						scenarioObj.tasks.forEach(function(taskObj, taskIndex){
+							if(taskObj.id == req.params.taskId){
+								taskObj.conditions.forEach(function(conditionObj, conditionIndex){
+									if(conditionObj.id == req.params.conditionId){
+										res.json(conditionObj);
+									}
+								});
+							}
+						});
+					}
+				});
+			}
+		});
+	});
 
+	/*
 	ninja.rule(conditionId, function(err, data) {
 		if (err) {
       		return res.json(500, {
@@ -103,6 +189,7 @@ exports.show = function(req, res) {
     	}   	
     	res.json(data);
 	});	
+	*/
 };
 
 

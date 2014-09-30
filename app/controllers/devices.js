@@ -4,8 +4,8 @@ var _ = require('lodash');
 var ninjaBlocks = require(__base + 'app/apis/ninjablocks.js');
 var ninja = new ninjaBlocks( {userAccessToken:global.uctrl.ninja.userAccessToken} );
 var mongoose = require('mongoose');
-var udevice = mongoose.model('UDevice');
 var uplatform = mongoose.model('UPlatform');
+var udevice = mongoose.model('UDevice');
 
 
 /* We'll need to think about the subdevices and what to do exactly with them */
@@ -40,7 +40,6 @@ exports.all = function(req, res) {
 	uplatform.findOne({id : req.params.platformId}, function(err, platformObj){
 		res.json(platformObj.devices);
 	});
-	console.log(udevice.schema);
 	/*
 	ninja.devices(function(err, data){
 		if (err) {
@@ -55,27 +54,23 @@ exports.all = function(req, res) {
 
 exports.create = function(req, res) {
 	// (FRY) Not sure if it's possible, may be for subdevices
-	var obj = new udevice(req.body);
 	uplatform.findOne({id : req.params.platformId}, function(err, platformObj){
-		if(!err){
-			platformObj.devices.push(obj);
-			platformObj.save();
-			res.json("created");
-		}
+		var obj = new udevice(req.body);
+		platformObj.devices.push(obj);
+		platformObj.save();
+		res.json("created");
 	});
 };
 
 exports.update = function(req, res) {
 	uplatform.findOne({id : req.params.platformId}, function(err, platformObj){
-		if(!err){
-			_.each(platformObj.devices, function(obj, index){
-				if(obj.id == req.params.deviceId){
-					platformObj.devices[index] = req.body;
-					platformObj.save();
-					res.json("updated");
-				}
-			});
-		}
+		_.each(platformObj.devices, function(obj, index){
+			if(obj.id == req.params.deviceId){
+				platformObj.devices[index] = req.body;
+				platformObj.save();
+				res.json("updated");
+			}
+		});
 	});	
     
 	/*
@@ -93,18 +88,27 @@ exports.update = function(req, res) {
 
 exports.destroy = function(req, res) {
 	uplatform.findOne({id : req.params.platformId}, function(err, platformObj){
+		platformObj.devices.forEach(function(deviceObj, deviceIndex){
+			if(deviceObj.id == req.params.deviceId){
+				platformObj.devices.remove(deviceObj._id.toString());
+				platformObj.save();
+				res.json("destroyed");
+			}
+		});
+	});
+	/*
+	uplatform.findOne({id : req.params.platformId}, function(err, platformObj){
 		if(!err){
-			//BOB HERE
-			//_.each(platformObj.devices, function(obj, index){
-			//	if(obj.id == req.params.deviceId){
-					platformObj.devices.id("5429bf3810a916842063a6b6").remove();
+			_.each(platformObj.devices, function(obj, index){
+				if(obj.id == req.params.deviceId){
+					platformObj.devices.id(obj._id).remove();
 					platformObj.save();
 					res.json("destroyed");
-			//	}
-			//});
+				}
+			});
 		}
 	});	
-    
+    */
 	/*
 	ninja.device(deviceId).delete(function(err, data) {
 		if (err) {
@@ -119,13 +123,11 @@ exports.destroy = function(req, res) {
 
 exports.show = function(req, res) {
 	uplatform.findOne({id : req.params.platformId}, function(err, platformObj){
-		if(!err){
-			_.each(platformObj.devices, function(obj, index){
-				if(obj.id == req.params.deviceId){
-					res.json(obj);
-				}
-			});
-		}
+		platformObj.devices.forEach(function(deviceObj, deviceIndex){
+			if(deviceObj.id == req.params.deviceId){
+				res.json(deviceObj);
+			}
+		});
 	});
 /*
 	ninja.device(req.params.deviceId, function(err, data) {
