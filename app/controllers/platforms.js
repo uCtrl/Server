@@ -7,8 +7,8 @@ var mongoose = require('mongoose');
 var uplatform = mongoose.model('UPlatform');
 
 exports.all = function(req, res) {
-	uplatform.find(function(err, all){
-		res.json(all);
+	uplatform.all(req, function(data){
+		res.json(data);
 	});
 
 	/*
@@ -36,29 +36,22 @@ exports.all = function(req, res) {
 
 exports.create = function(req, res) {
 	// Pair + activate is enough? Needs testing
-	var obj = new uplatform(req.body);
-	obj.save();
-	res.json("created");
+	uplatform.create(req, function(data){
+		res.json(data);
+	});
+	
 };
 
 exports.update = function(req, res) {
-	uplatform.findOne({id : req.params.platformId}, function(err, obj){
-		//obj.id			= req.body.id,
-		obj.firmwareVersion	= req.body.firmwareVersion,
-		obj.name			= req.body.name,
-		obj.port			= req.body.port,
-		obj.room			= req.body.room,
-		obj.enabled			= req.body.enabled,
-		obj.ip				= req.body.ip,
-		obj.save();
-	});	
-    res.json("updated");
+	uplatform.update(req, function(data){
+		res.json(data);
+	});
+	
 };
 
 exports.destroy = function(req, res) {
-	uplatform.findOne({id : req.params.platformId}, function(err, obj){
-		obj.remove();
-		res.json("destroyed");
+	uplatform.destroy(req, function(data){
+		res.json(data);
 	});
     
 	/*
@@ -74,18 +67,19 @@ exports.destroy = function(req, res) {
 };
 
 exports.show = function(req, res) {
-	uplatform.findOne({id : req.params.platformId}, function(err, obj){
-		res.json(obj);
+	uplatform.show(req, function(data){
+		res.json(data);
 	});
+	
 	/*
-	ninja.block(req.params.platformId, function(err, data) {
+	ninja.block(req.platformId, function(err, data) {
 		if (err) 
-			return next(new Error("Failed to find block " + req.params.platformId));
+			return next(new Error("Failed to find block " + req.platformId));
 		//res.json(data);
 		var out = [];
 		//filter actions for the device. We will use only one action by task (action[0])
 		out.push({
-			id : req.params.platformId,
+			id : req.platformId,
 			firmwareVersion: "TODO",
 			name: data.short_name,
 			port: "TODO",

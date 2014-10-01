@@ -8,9 +8,6 @@ var scenarios = require(__base + 'app/controllers/scenarios.js');
 var tasks = require(__base + 'app/controllers/tasks.js');
 var conditions = require(__base + 'app/controllers/conditions.js');
 
-//For tests purposes
-var tests = require(__base + 'app/controllers/tests.js');
-
 module.exports = function(app) {
     
     app.get('/', index.render);
@@ -18,9 +15,6 @@ module.exports = function(app) {
     app.get('/logs', logs.read);
     app.get('/logs/:deviceId', logs.read);
     app.post('/logs', logs.create);
-	
-	//For tests purposes
-	app.get('/tests', tests.read);
 
     app.route('/platforms')
         .get(platforms.all)

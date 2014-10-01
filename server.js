@@ -26,7 +26,6 @@ var db = mongoose.connect(config.db);
 // Bootstrap models
 
 var models_path = __dirname + '/app/models';
-/*
 var walk = function(path) {
     fs.readdirSync(path).forEach(function(file) {
         var newPath = path + '/' + file;
@@ -41,14 +40,6 @@ var walk = function(path) {
     });
 };
 walk(models_path);
-*/
-//Problem : models need to be retrieved in order (voir Bob).
-require(models_path + '/ucondition.js');
-require(models_path + '/utask.js');
-require(models_path + '/uscenario.js');
-require(models_path + '/udevice.js');
-require(models_path + '/uplatform.js');
-require(models_path + '/logs.js');
 
 var app = express();
 
