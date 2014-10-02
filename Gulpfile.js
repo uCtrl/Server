@@ -10,8 +10,11 @@ gulp.task('jshint', function() {
 });
 
 gulp.task('test', function() {
+	process.env.NODE_ENV = 'test';
     gulp.src('test/**/*.js')
-        .pipe(mocha({ reporter: 'spec' }));
+        .pipe(mocha({
+			reporter: 'spec'
+		}));
 });
 
 gulp.task('default', function () {

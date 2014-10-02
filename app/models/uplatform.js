@@ -1,110 +1,75 @@
 'use strict';
 
-require(__dirname + '/udevice.js');
-var _ = require('lodash');
-var mongoose = require('mongoose');
-var ninjaBlocks = require(__base + 'app/apis/ninjablocks.js');
-var ninja = new ninjaBlocks( {userAccessToken:global.uctrl.ninja.userAccessToken} );
+var mongoose = require('mongoose'),
+	Schema   = mongoose.Schema,
+	_ 		 = require('lodash');
 
 /**
- * uplatform Schema
+ * UPlatform Schema
  */
-var UPlatformSchema	= new mongoose.Schema({
-	firmwareVersion	: String,
-	id				: Number,
-	name			: String,
-	port			: Number,
-	room			: String,
-	enabled			: String,
-	ip				: String,
-	devices			: [mongoose.model('UDevice').schema],
+var UPlatformSchema	= new Schema({
+	name: { 
+		type: String,
+		required: true
+	},
+	id: {
+		type: String,
+		required: true,
+		unique: true
+	},
+	firmwareVersion: String,
+	port: Number,
+	room: String,
+	enabled: Boolean,
+	ip: String,
+	_devices : [{
+		type: Schema.Types.ObjectId, 
+		ref: 'UDevice'
+	}] 
 });
 
-/**
- * Statics
- */
-UPlatformSchema.statics = {
+UPlatformSchema.post('remove', function (platform) {
+	var UDevice = mongoose.model('UDevice');
+	UDevice.find({ _id: { $in: platform._devices } }, function(err, devices) {
+		if (err) {
+			console.log("Error: ", err);
+			return;
+		}
+		_(devices).forEach(function(device) { device.remove() } );
+	});
+})
 
-	/**
-	* All
-	*
-	* @param {Object} req
-	* @param {Function} cb callback
-	*/
-	all: function (req, cb) {
-		this.find(function(err, all){
-			return cb(all);
-		});
-	},
-	
-	/**
-	* Show
-	*
-	* @param {Object} req
-	* @param {Function} cb callback
-	*/
-	show: function (req, cb) {
-		this.findOne({id : req.params.platformId}, function(err, obj){
-			return cb(obj);
-		});
-	},
-	
-	/**
-	* Create
-	*
-	* @param {Object} req
-	* @param {Function} cb callback
-	*/
-	create: function (req, cb) {
-		var obj = new this(req.body);
-		obj.save();
-		return cb("created");
-	},
-	
-	/**
-	* Update
-	*
-	* @param {Object} req
-	* @param {Function} cb callback
-	*/
-	update: function (req, cb) {
-		this.findOne({id : req.params.platformId}, function(err, obj){
-			//obj.id			= req.body.id,
-			obj.firmwareVersion	= req.body.firmwareVersion,
-			obj.name			= req.body.name,
-			obj.port			= req.body.port,
-			obj.room			= req.body.room,
-			obj.enabled			= req.body.enabled,
-			obj.ip				= req.body.ip,
-			obj.save();
-		});	
-		return cb("updated");
-	},
-	
-	/**
-	* Destroy
-	*
-	* @param {Object} req
-	* @param {Function} cb callback
-	*/
-	destroy: function (req, cb) {
-		this.findOne({id : req.params.platformId}, function(err, obj){
-			obj.remove();
-			return cb("destroyed");
-		});
-	},
-	
-	/**
-	* fromNinjaBlocks
-	* 
-	*/
-	fromNinjaBlocks: {
-		/**
-		 * all
-		 *
-		 * @param {Function} cb
-		 * @api public
-		 */
+/*
+ * Receives the block (from NB) and will call the cb when mapped.
+ * To logic here is only to do the mapping
+ */
+UPlatformSchema.methods.fromNinjaBlocks = function (ninjaBlock, cb) {
+	var UPlatform = mongoose.model('UPlatform');
+
+	var platform = new UPlatform({});
+	// Mapping Ninja to uCtrl
+	// platform.id = block.guid
+	// ... 
+	cb(platform);
+}
+
+/*
+ * Receives the platform (from MongoDB) and will call the cb when mapped
+ * To logic here is only to do the mapping
+ */
+UPlatformSchema.methods.toNinjaBlocks = function (platform, cb) {
+	var block = {
+		// NinjaBlocks' block json
+		//...
+	}
+	// Mapping uCtrl to NinjaBlocks
+	// block.id = platform.guid
+	// ... 
+	cb(block);
+}
+
+/*
+fromNinjaBlocks: {
 		all: function(req, cb) {
 			var uplatform = mongoose.model('UPlatform');
 			ninja.blocks(function(err, arrBlocks){
@@ -125,12 +90,6 @@ UPlatformSchema.statics = {
 			});
 		},
 		
-		/**
-		 * show
-		 *
-		 * @param {Function} cb
-		 * @api public
-		 */
 		show: function(req, cb) {
 			var uplatform = mongoose.model('UPlatform');
 			ninja.block(req.params.platformId, function(err, blockObj){
@@ -146,7 +105,7 @@ UPlatformSchema.statics = {
 				return cb(obj);
 			});
 		},
-    },
-}
+    }
+    */
 
 mongoose.model('UPlatform', UPlatformSchema);
