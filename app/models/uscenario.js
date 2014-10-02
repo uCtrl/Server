@@ -1,7 +1,10 @@
 'use strict';
 
 require(__dirname + '/utask.js');
+var _ = require('lodash');
 var mongoose = require('mongoose');
+var ninjaBlocks = require(__base + 'app/apis/ninjablocks.js');
+var ninja = new ninjaBlocks( {userAccessToken:global.uctrl.ninja.userAccessToken} );
 
 /**
  * UScenario Schema

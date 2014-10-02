@@ -1,7 +1,10 @@
 'use strict';
 
 require(__dirname + '/ucondition.js');
+var _ = require('lodash');
 var mongoose = require('mongoose');
+var ninjaBlocks = require(__base + 'app/apis/ninjablocks.js');
+var ninja = new ninjaBlocks( {userAccessToken:global.uctrl.ninja.userAccessToken} );
 
 /**
  * UTask Schema
@@ -10,6 +13,10 @@ var UTaskSchema 	= new mongoose.Schema({
 	id				: Number,
 	status			: String,
 	conditions		: [mongoose.model('UCondition').schema],
+	/*TODO*/
+	handler			: String,
+	timeout			: Number,
+	suspended		: Boolean,
 });
 
 /**
@@ -125,6 +132,60 @@ UTaskSchema.statics = {
 			});
 		});
 	},
+
+	/**
+	* fromNinjaBlocks
+	* https://github.com/ninjablocks/ninjablocks.github.com/wiki/Rules-Engine-Documentation
+	*/
+	fromNinjaBlocks: {
+		/**
+		 * all
+		 *
+		 * @param {Function} cb
+		 * @api public
+		 */
+		all: function(req, cb) {
+			var utask = mongoose.model('UTask');
+			ninja.rules(function(err, arrRules){
+				var out = [];
+				arrRules.forEach(function(ruleObj, ruleIndex){
+					if(ruleObj.actions[0].params.guid == req.params.deviceId){
+						var obj = new utask({
+							id				: ruleObj.rid,
+							status			: ruleObj.actions[0].da,
+							/*TODO*/
+							handler			: ruleObj.actions[0].handler,
+							timeout			: ruleObj.timeout,
+							suspended		: ruleObj.suspended,
+						});
+						out.push(obj);
+					}
+				});
+				return cb(out);
+			});
+		},
+		
+		/**
+		 * show
+		 *
+		 * @param {Function} cb
+		 * @api public
+		 */
+		show: function(req, cb) {
+			var utask = mongoose.model('UTask');
+			ninja.rule(req.params.taskId, function(err, ruleObj){
+				var obj = new utask({
+					id			: ruleObj.rid,
+					status		: ruleObj.actions[0].da,
+					/*TODO*/
+					handler		: ruleObj.actions[0].handler,
+					timeout		: ruleObj.timeout,
+					suspended	: ruleObj.suspended,
+				});
+				return cb(obj);
+			});
+		},
+    },
 }
 
 mongoose.model('UTask', UTaskSchema);

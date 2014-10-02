@@ -1,7 +1,10 @@
 'use strict';
 
 require(__dirname + '/udevice.js');
+var _ = require('lodash');
 var mongoose = require('mongoose');
+var ninjaBlocks = require(__base + 'app/apis/ninjablocks.js');
+var ninja = new ninjaBlocks( {userAccessToken:global.uctrl.ninja.userAccessToken} );
 
 /**
  * uplatform Schema
@@ -90,6 +93,60 @@ UPlatformSchema.statics = {
 			return cb("destroyed");
 		});
 	},
+	
+	/**
+	* fromNinjaBlocks
+	* 
+	*/
+	fromNinjaBlocks: {
+		/**
+		 * all
+		 *
+		 * @param {Function} cb
+		 * @api public
+		 */
+		all: function(req, cb) {
+			var uplatform = mongoose.model('UPlatform');
+			ninja.blocks(function(err, arrBlocks){
+				var out = [];
+				_.each(arrBlocks, function(blockObj, blockIndex){
+					var obj = new uplatform({
+						firmwareVersion	: null,
+						id				: blockIndex,
+						name			: blockObj.short_name,
+						port			: null,
+						room			: null,
+						enabled			: null,
+						ip				: null,
+					});
+					out.push(obj);
+				});
+				return cb(out);
+			});
+		},
+		
+		/**
+		 * show
+		 *
+		 * @param {Function} cb
+		 * @api public
+		 */
+		show: function(req, cb) {
+			var uplatform = mongoose.model('UPlatform');
+			ninja.block(req.params.platformId, function(err, blockObj){
+				var obj = new uplatform({
+					firmwareVersion	: null,
+					id				: req.params.platformId,
+					name			: blockObj.short_name,
+					port			: null,
+					room			: null,
+					enabled			: null,
+					ip				: null,
+				});
+				return cb(obj);
+			});
+		},
+    },
 }
 
 mongoose.model('UPlatform', UPlatformSchema);

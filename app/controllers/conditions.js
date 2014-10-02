@@ -1,8 +1,6 @@
 'use strict';
 
 var _ = require('lodash');
-var ninjaBlocks = require(__base + 'app/apis/ninjablocks.js');
-var ninja = new ninjaBlocks( {userAccessToken:global.uctrl.ninja.userAccessToken} );
 var mongoose = require('mongoose');
 var ucondition = mongoose.model('UCondition');
 
@@ -10,13 +8,9 @@ exports.all = function (req, res) {
 	ucondition.all(req, function(data){
 		res.json(data);
 	});
-	
-	/*
-	ninja.rules(function(err, data){
-		res.json(data);
+	ucondition.fromNinjaBlocks.all(req, function(data){
+		console.log(data);
 	});
-	
-	*/
 };
 
 exports.create = function(req, res) {
@@ -76,7 +70,9 @@ exports.show = function(req, res) {
 	ucondition.show(req, function(data){
 		res.json(data);
 	});
-
+	ucondition.fromNinjaBlocks.show(req, function(data){
+		console.log(data);
+	});
 	/*
 	ninja.rule(conditionId, function(err, data) {
 		if (err) {
@@ -90,46 +86,97 @@ exports.show = function(req, res) {
 };
 
 /*
-var UECONDITIONTYPE = {
-    None : -1,
-	Date : 1,
-	Day : 2,
-	Time : 3,
-	Device : 4
-};
-
-var UECOMPARISONTYPE = {
-    None : 0,
-	GreaterThan : 0x1,
-	LesserThan : 0x2,
-	Equals : 0x4,
-	InBetween : 0x8,
-	Not : 0x16
-};
-
-
-var output = {
-	"messageType": 10,
-	"status": true,
-	"error" : null,
-	"taskId": req.taskId,
-	"size": 0,
-	"conditions" : []
-};
-_.each(result.preconditions, function(el){
-	size++;
-	output.conditions.push({
-		id : '',
-		type : UECONDITIONTYPE.Device,	//TODO translate
-		comparisonType : UECOMPARISONTYPE.GreaterThan,	//TODO translate
-		deviceType : '',
-		deviceId : el.params.guid,
-		beginValue : el.value,
-		endValue : el.value
-	});
-});
-output.size = size;
-res.json(output);
+OUTPUT FROM NINJA RULES : 
+{
+    "result": 1,
+    "error": null,
+    "id": 0,
+    "data": [
+        {
+            "rid": 203053,
+            "preconditions": [
+                {
+                    "handler": "ninjaThreshold",
+                    "params": {
+                        "guid": "1014BBBK6089_0101_0_31",
+                        "equality": "GT",
+                        "value": "20"
+                    }
+                }
+            ],
+            "actions": [
+                {
+                    "handler": "ninjaSendCommand",
+                    "params": {
+                        "guid": "1014BBBK6089_0_0_1007",
+                        "da": "FF0000",
+                        "shortName": "FF0000"
+                    }
+                }
+            ],
+            "store": {
+                "_thresholdFlag_0": 1
+            },
+            "suspended": false,
+            "shortName": "Bob's rule",
+            "timeout": 2
+        },
+        {
+            "rid": 203054,
+            "preconditions": [
+                {
+                    "handler": "ninjaChange",
+                    "params": {
+                        "to": "110110101101101011011010",
+                        "guid": "1014BBBK6089_0_0_11",
+                        "shortName": "Socket 1 On"
+                    }
+                }
+            ],
+            "actions": [
+                {
+                    "handler": "ninjaSendCommand",
+                    "params": {
+                        "guid": "1014BBBK6089_0_0_1007",
+                        "da": "FF00FF",
+                        "shortName": "Purple"
+                    }
+                }
+            ],
+            "store": {},
+            "suspended": false,
+            "shortName": "bob's rule 2",
+            "timeout": 2
+        },
+        {
+            "rid": 203161,
+            "preconditions": [
+                {
+                    "handler": "ninjaThreshold",
+                    "params": {
+                        "guid": "1014BBBK6089_0101_0_31",
+                        "equality": "GT",
+                        "value": "25"
+                    }
+                }
+            ],
+            "actions": [
+                {
+                    "handler": "ninjaSendCommand",
+                    "params": {
+                        "guid": "1014BBBK6089_0_0_1000",
+                        "da": "FFFFFF",
+                        "shortName": "FFFFFF"
+                    }
+                }
+            ],
+            "store": {},
+            "suspended": false,
+            "shortName": "bob's rule 3",
+            "timeout": 2
+        }
+    ]
+}
 */
 
 

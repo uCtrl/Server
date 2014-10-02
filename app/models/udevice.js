@@ -1,7 +1,10 @@
 'use strict';
 
 require(__dirname + '/uscenario.js');
+var _ = require('lodash');
 var mongoose = require('mongoose');
+var ninjaBlocks = require(__base + 'app/apis/ninjablocks.js');
+var ninja = new ninjaBlocks( {userAccessToken:global.uctrl.ninja.userAccessToken} );
 
 /**
  * UDevice Schema
@@ -113,6 +116,72 @@ UDeviceSchema.statics = {
 			});
 		});
 	},
+	
+	/**
+	* fromNinjaBlocks
+	* 
+	*/
+	fromNinjaBlocks: {
+		/**
+		 * all
+		 *
+		 * @param {Function} cb
+		 * @api public
+		 */
+		all: function(req, cb) {
+			var udevice = mongoose.model('UDevice');
+			ninja.devices(function(err, arrDevices){
+				var out = [];
+				_.each(arrDevices, function(deviceObj, deviceIndex){
+					var obj = new udevice({
+						description		: deviceObj.default_name,
+						enabled			: null,
+						id				: deviceIndex,
+						isTriggerValue	: null,
+						maxValue		: null,
+						minValue		: null,
+						name			: deviceObj.default_name,
+						precision		: null,
+						status			: null,
+						type			: null,
+						unitLabel		: deviceObj.unit,
+						/*TODO*/
+						deviceType		: deviceObj.device_type,
+					});
+					out.push(obj);
+				});
+				return cb(out);
+			});
+		},
+		
+		/**
+		 * show
+		 *
+		 * @param {Function} cb
+		 * @api public
+		 */
+		show: function(req, cb) {
+			var udevice = mongoose.model('UDevice');
+			ninja.device(req.params.deviceId, function(err, deviceObj){
+				var obj = new udevice({
+					description		: deviceObj.default_name,
+					enabled			: null,
+					id				: deviceObj.guid,
+					isTriggerValue	: null,
+					maxValue		: null,
+					minValue		: null,
+					name			: deviceObj.default_name,
+					precision		: null,
+					status			: null,
+					type			: null,
+					unitLabel		: deviceObj.unit,
+					/*TODO*/
+					deviceType		: deviceObj.device_type,
+				});
+				return cb(obj);
+			});
+		},
+    },
 }
 
 mongoose.model('UDevice', UDeviceSchema);

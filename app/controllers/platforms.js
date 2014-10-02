@@ -1,8 +1,6 @@
 'use strict';
 
 var _ = require('lodash');
-var ninjaBlocks = require(__base + 'app/apis/ninjablocks.js');
-var ninja = new ninjaBlocks( {userAccessToken:global.uctrl.ninja.userAccessToken} );
 var mongoose = require('mongoose');
 var uplatform = mongoose.model('UPlatform');
 
@@ -10,7 +8,9 @@ exports.all = function(req, res) {
 	uplatform.all(req, function(data){
 		res.json(data);
 	});
-
+	uplatform.fromNinjaBlocks.all(req, function(data){
+		console.log(data);
+	});
 	/*
 	ninja.blocks(function(err, data){
 		//res.json(data);
@@ -70,7 +70,9 @@ exports.show = function(req, res) {
 	uplatform.show(req, function(data){
 		res.json(data);
 	});
-	
+	uplatform.fromNinjaBlocks.show(req, function(data){
+		console.log(data);
+	});
 	/*
 	ninja.block(req.platformId, function(err, data) {
 		if (err) 
@@ -93,3 +95,19 @@ exports.show = function(req, res) {
 	});
 	*/
 };
+
+/*
+FROM NINJA BLOCKS
+{
+    "result": 1,
+    "error": null,
+    "id": 0,
+    "data": {
+        "1014BBBK6089": {
+            "short_name": "Ninja Block",
+            "date_created": 1411493487000,
+            "last_active": 1412178089253
+        }
+    }
+}
+*/
