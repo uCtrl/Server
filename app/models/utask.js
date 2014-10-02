@@ -1,130 +1,59 @@
 'use strict';
 
-require(__dirname + '/ucondition.js');
-var mongoose = require('mongoose');
+var mongoose = require('mongoose'),
+	Schema   = mongoose.Schema,
+	_ 		 = require('lodash');
 
 /**
  * UTask Schema
  */
-var UTaskSchema 	= new mongoose.Schema({
-	id				: Number,
-	status			: String,
-	conditions		: [mongoose.model('UCondition').schema],
+var UTaskSchema = new Schema({
+	id: {
+		type: String,
+		required: true,
+		unique: true
+	},
+	status: Boolean,
+	_scenario: {
+		type: Schema.Types.ObjectId, 
+		ref: 'UScenario',
+		required: true
+	},
+	_conditions: [{
+		type: Schema.Types.ObjectId, 
+		ref: 'UCondition'
+	}] 
 });
 
-/**
- * Statics
+/** 
+ * Middlewares
  */
-UTaskSchema.statics = {
+UTaskSchema.post('save', function (task) {
+	var UScenario = mongoose.model('UScenario');
+	UScenario.update(
+		{ _id: task._scenario }, 
+		{ $addToSet: { _tasks: task._id } }, 
+		{ safe: true },
+		function(err, num) { if (err) console.log("Error: ", err) });
+})
 
-	/**
-	* All
-	*
-	* @param {Object} req
-	* @param {Function} cb callback
-	*/
-	all: function (req, cb) {
-		var uplatform = mongoose.model('UPlatform');
-		uplatform.findOne({id : req.params.platformId}, function(err, platformObj){
-			platformObj.devices.forEach(function(deviceObj, deviceIndex){
-				if(deviceObj.id == req.params.deviceId){
-					deviceObj.scenarios.forEach(function(scenarioObj, scenarioIndex){
-						if(scenarioObj.id == req.params.scenarioId){
-							return cb(scenarioObj.tasks);
-						}
-					});
-				}
-			});
-		});
-	},
-	
-	/**
-	* Show
-	*
-	* @param {Object} req
-	* @param {Function} cb callback
-	*/
-	show: function (req, cb) {
-		var uplatform = mongoose.model('UPlatform');
-		uplatform.findOne({id : req.params.platformId}, function(err, platformObj){
-			platformObj.devices.forEach(function(deviceObj, deviceIndex){
-				if(deviceObj.id == req.params.deviceId){
-					deviceObj.scenarios.forEach(function(scenarioObj, scenarioIndex){
-						if(scenarioObj.id == req.params.scenarioId){
-							scenarioObj.tasks.forEach(function(taskObj, taskIndex){
-								if(taskObj.id == req.params.taskId){
-									return cb(taskObj);
-								}
-							});
-						}
-					});
-				}
-			});
-		});
-	},
-	
-	/**
-	* Create
-	*
-	* @param {Object} req
-	* @param {Function} cb callback
-	*/
-	create: function (req, cb) {
-		var utask = this;
-		var uplatform = mongoose.model('UPlatform');
-		uplatform.findOne({id : req.params.platformId}, function(err, platformObj){
-			platformObj.devices.forEach(function(deviceObj, deviceIndex){
-				if(deviceObj.id == req.params.deviceId){
-					deviceObj.scenarios.forEach(function(scenarioObj, scenarioIndex){
-						if(scenarioObj.id == req.params.scenarioId){
-							var obj = new utask(req.body);
-							platformObj.devices[deviceIndex].scenarios[scenarioIndex].tasks.push(obj);
-							platformObj.save();
-							return cb("created");
-						}
-					});
-				}
-			});
-		});
-	},
-	
-	/**
-	* Update
-	*
-	* @param {Object} req
-	* @param {Function} cb callback
-	*/
-	update: function (req, cb) {
-		var uplatform = mongoose.model('UPlatform');
-		return cb("TODO");
-	},
-	
-	/**
-	* Destroy
-	*
-	* @param {Object} req
-	* @param {Function} cb callback
-	*/
-	destroy: function (req, cb) {
-		var uplatform = mongoose.model('UPlatform');
-		uplatform.findOne({id : req.params.platformId}, function(err, platformObj){
-			platformObj.devices.forEach(function(deviceObj, deviceIndex){
-				if(deviceObj.id == req.params.deviceId){
-					deviceObj.scenarios.forEach(function(scenarioObj, scenarioIndex){
-						if(scenarioObj.id == req.params.scenarioId){
-							scenarioObj.tasks.forEach(function(taskObj, taskIndex){
-								if(taskObj.id == req.params.taskId){
-									platformObj.devices[deviceIndex].scenarios[scenarioIndex].tasks.remove(taskObj._id.toString());
-									platformObj.save();
-									return cb("destroyed");
-								}
-							});
-						}
-					});
-				}
-			});
-		});
-	},
-}
+UTaskSchema.post('remove', function (task) {
+	var UScenario = mongoose.model('UScenario');
+	var UCondition = mongoose.model('UCondition');
+
+	UScenario.update(
+		{ _id: task._scenario }, 
+		{ $pull: { _tasks: task._id } }, 
+		{ safe: true },
+		function (err, num) { if (err) console.log("Error: ", err) });
+
+	UCondition.find({ _id: { $in: task._conditions } }, function(err, conditions) {
+		if (err) {
+			console.log("Error: ", err);
+			return;
+		}
+		_(conditions).forEach(function(condition) { condition.remove() } );
+	});
+})
 
 mongoose.model('UTask', UTaskSchema);

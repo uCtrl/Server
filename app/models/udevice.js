@@ -1,118 +1,71 @@
 'use strict';
 
-require(__dirname + '/uscenario.js');
-var mongoose = require('mongoose');
+var mongoose = require('mongoose'),
+	Schema   = mongoose.Schema,
+	_ 		 = require('lodash');
 
 /**
  * UDevice Schema
  */
-var UDeviceSchema 	= new mongoose.Schema({
-	description		: String,
-	enabled			: String,
-	id				: Number,
-	isTriggerValue	: Boolean,
-	maxValue		: Number,
-	minValue		: Number,
-	name			: String,
-	precision		: Number,
-	status			: Number,
-	type			: Number,
-	unitLabel		: String,
-	scenarios		: [mongoose.model('UScenario').schema],
+var UDeviceSchema = new Schema({
+	id: {
+		type: String,
+		required: true,
+		unique: true
+	},
+	type: { 
+		type: Number,
+		required: true
+	},
+	name: {
+		type: String,
+		required: true
+	},
+	description: String,
+	enabled: Boolean,
+	isTriggerValue: Boolean,
+	maxValue: Number,
+	minValue: Number,
+	precision: Number,
+	status: Number,
+	unitLabel: String,
+	_platform: {
+		type: Schema.Types.ObjectId, 
+		ref: 'UPlatform',
+		required: true
+	},
+	_scenarios: [{
+		type: Schema.Types.ObjectId, 
+		ref: 'UScenario'
+	}] 
 });
 
-/**
- * Statics
- */
-UDeviceSchema.statics = {
+UDeviceSchema.post('save', function (device) {
+	var UPlatform = mongoose.model('UPlatform');
+	UPlatform.update(
+		{ _id: device._platform }, 
+		{ $addToSet: { _devices: device._id } }, 
+		{ safe: true },
+		function (err, num) { if (err) console.log("Error: ", err) });
+})
 
-	/**
-	* All
-	*
-	* @param {Object} req
-	* @param {Function} cb callback
-	*/
-	all: function (req, cb) {
-		var uplatform = mongoose.model('UPlatform');
-		uplatform.findOne({id : req.params.platformId}, function(err, platformObj){
-			return cb(platformObj.devices);
-		});
-	},
-	
-	/**
-	* Show
-	*
-	* @param {Object} req
-	* @param {Function} cb callback
-	*/
-	show: function (req, cb) {
-		var uplatform = mongoose.model('UPlatform');
-		uplatform.findOne({id : req.params.platformId}, function(err, platformObj){
-			platformObj.devices.forEach(function(deviceObj, deviceIndex){
-				if(deviceObj.id == req.params.deviceId){
-					return cb(deviceObj);
-				}
-			});
-		});
-	},
-	
-	/**
-	* Create
-	*
-	* @param {Object} req
-	* @param {Function} cb callback
-	*/
-	create: function (req, cb) {
-		var udevice = this;
-		var uplatform = mongoose.model('UPlatform');
-		uplatform.findOne({id : req.params.platformId}, function(err, platformObj){
-			var obj = new udevice(req.body);
-			platformObj.devices.push(obj);
-			platformObj.save();
-			return cb("created");
-		});
-	},
-	
-	/**
-	* Update
-	*
-	* @param {Object} req
-	* @param {Function} cb callback
-	*/
-	update: function (req, cb) {
-		var uplatform = mongoose.model('UPlatform');
-		return cb("TODO");
-		/*
-		uplatform.findOne({id : req.params.platformId}, function(err, platformObj){
-			_.each(platformObj.devices, function(obj, index){
-				if(obj.id == req.params.deviceId){
-					platformObj.devices[index] = req.body;
-					platformObj.save();
-					return cb("updated");
-				}
-			});
-		});	
-		*/
-	},
-	
-	/**
-	* Destroy
-	*
-	* @param {Object} req
-	* @param {Function} cb callback
-	*/
-	destroy: function (req, cb) {
-		var uplatform = mongoose.model('UPlatform');
-		uplatform.findOne({id : req.params.platformId}, function(err, platformObj){
-			platformObj.devices.forEach(function(deviceObj, deviceIndex){
-				if(deviceObj.id == req.params.deviceId){
-					platformObj.devices.remove(deviceObj._id.toString());
-					platformObj.save();
-					return cb("destroyed");
-				}
-			});
-		});
-	},
-}
+UDeviceSchema.post('remove', function (device) {
+	var UPlatform = mongoose.model('UPlatform');
+	var UScenario = mongoose.model('UScenario');
+
+	UPlatform.update(
+		{ _id: device._platform }, 
+		{ $pull: { _devices: device._id } }, 
+		{ safe: true },
+		function (err, num) { if (err) console.log("Error: ", err) });
+
+	UScenario.find({ _id: { $in: device._scenarios } }, function(err, scenarios) {
+		if (err) {
+			console.log("Error: ", err);
+			return;
+		}
+		_(scenarios).forEach(function(scenario) { scenario.remove() } );
+	});
+})
 
 mongoose.model('UDevice', UDeviceSchema);

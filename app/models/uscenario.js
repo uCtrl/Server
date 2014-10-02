@@ -1,114 +1,59 @@
 'use strict';
 
-require(__dirname + '/utask.js');
-var mongoose = require('mongoose');
+var mongoose = require('mongoose'),
+	Schema   = mongoose.Schema,
+	_ 		 = require('lodash');
 
 /**
  * UScenario Schema
  */
-var UScenarioSchema = new mongoose.Schema({
-	id				: Number,
-	name			: String,
-	tasks			: [mongoose.model('UTask').schema],
+var UScenarioSchema = new Schema({
+	id: {
+		type: String,
+		required: true,
+		unique: true
+	},
+	name: {
+		type: String,
+		required: true
+	},
+	_device: {
+		type: Schema.Types.ObjectId, 
+		ref: 'UDevice',
+		required: true
+	},
+	_tasks: [{
+		type: Schema.Types.ObjectId, 
+		ref: 'UTask'
+	}] 
 });
 
-/**
- * Statics
- */
-UScenarioSchema.statics = {
+UScenarioSchema.post('save', function (scenario) {
+	var UDevice = mongoose.model('UDevice');
+	UDevice.update(
+		{ _id: scenario._device }, 
+		{ $addToSet: { _scenarios: scenario._id } }, 
+		{ safe: true },
+		function (err, num) { if (err) console.log("Error: ", err) });
+})
 
-	/**
-	* All
-	*
-	* @param {Object} req
-	* @param {Function} cb callback
-	*/
-	all: function (req, cb) {
-		var uplatform = mongoose.model('UPlatform');
-		uplatform.findOne({id : req.params.platformId}, function(err, platformObj){
-			platformObj.devices.forEach(function(deviceObj){
-				if(deviceObj.id == req.params.deviceId){
-					return cb(deviceObj.scenarios);
-				}
-			});
-		});
-	},
-	
-	/**
-	* Show
-	*
-	* @param {Object} req
-	* @param {Function} cb callback
-	*/
-	show: function (req, cb) {
-		var uplatform = mongoose.model('UPlatform');
-		uplatform.findOne({id : req.params.platformId}, function(err, platformObj){
-			platformObj.devices.forEach(function(deviceObj, deviceIndex){
-				if(deviceObj.id == req.params.deviceId){
-					deviceObj.scenarios.forEach(function(scenarioObj, scenarioIndex){
-						if(scenarioObj.id == req.params.scenarioId){
-							return cb(scenarioObj);
-						}
-					});
-				}
-			});
-		});
-	},
-	
-	/**
-	* Create
-	*
-	* @param {Object} req
-	* @param {Function} cb callback
-	*/
-	create: function (req, cb) {
-		var uscenario = this;
-		var uplatform = mongoose.model('UPlatform');
-		uplatform.findOne({id : req.params.platformId}, function(err, platformObj){
-			platformObj.devices.forEach(function(deviceObj, deviceIndex){
-				if(deviceObj.id == req.params.deviceId){
-					var obj = new uscenario(req.body);
-					platformObj.devices[deviceIndex].scenarios.push(obj);
-					platformObj.save();
-					return cb("created");
-				}
-			});
-		});
-	},
-	
-	/**
-	* Update
-	*
-	* @param {Object} req
-	* @param {Function} cb callback
-	*/
-	update: function (req, cb) {
-		var uplatform = mongoose.model('UPlatform');
-		return cb("TODO");
-	},
-	
-	/**
-	* Destroy
-	*
-	* @param {Object} req
-	* @param {Function} cb callback
-	*/
-	destroy: function (req, cb) {
-		var uplatform = mongoose.model('UPlatform');
-		uplatform.findOne({id : req.params.platformId}, function(err, platformObj){
-			platformObj.devices.forEach(function(deviceObj, deviceIndex){
-				if(deviceObj.id == req.params.deviceId){
-					deviceObj.scenarios.forEach(function(scenarioObj, scenarioIndex){
-						if(scenarioObj.id == req.params.scenarioId){
-							platformObj.devices[deviceIndex].scenarios.remove(scenarioObj._id.toString());
-							platformObj.save();
-							return cb("destroyed");
-						}
-					});
-				}
-			});
-		});
-	},
-}
+UScenarioSchema.post('remove', function (scenario) {
+	var UDevice = mongoose.model('UDevice');
+	var UTask = mongoose.model('UTask');
+
+	UDevice.update(
+		{ _id: scenario._device }, 
+		{ $pull: { _scenarios: scenario._id } }, 
+		{ safe: true },
+		function (err, num) { if (err) console.log("Error: ", err) });
+
+	UTask.find({ _id: { $in: scenario._tasks } }, function(err, tasks) {
+		if (err) {
+			console.log("Error: ", err);
+			return;
+		}
+		_(tasks).forEach(function(task) { task.remove() } );
+	});
+})
 
 mongoose.model('UScenario', UScenarioSchema);

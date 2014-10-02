@@ -1,135 +1,89 @@
 'use strict';
 
-var _ = require('lodash');
-var ninjaBlocks = require(__base + 'app/apis/ninjablocks.js');
-var ninja = new ninjaBlocks( {userAccessToken:global.uctrl.ninja.userAccessToken} );
-var mongoose = require('mongoose');
-var ucondition = mongoose.model('UCondition');
+var _ = require('lodash'),
+	mongoose = require('mongoose'),
+	UTask = mongoose.model('UTask'),
+	UCondition = mongoose.model('UCondition');
 
 exports.all = function (req, res) {
-	ucondition.all(req, function(data){
-		res.json(data);
+	var taskId = req.params.taskId;
+
+	UCondition.find({ _task: taskId }).sort('id').exec(function(err, conditions) {
+		if (err) {
+			return res.json(500, {
+				error: err//"Can't list the tasks for task " + taskId
+			});
+	    }
+		res.json(conditions);
 	});
-	
-	/*
-	ninja.rules(function(err, data){
-		res.json(data);
-	});
-	
-	*/
 };
 
 exports.create = function(req, res) {
-	ucondition.create(req, function(data){
-		res.json(data);
-	});
-	
-	/*
-	ninja.rule().create(req.body, function(err, data){
+	var taskId = req.params.taskId;
+	var condition = new UCondition(req.body);
+
+	UTask.findOne({ id: taskId }).exec(function(err, task) {
 		if (err) {
-      		return res.json(500, {
-       			error: 'Cannot create the condition'
-      		});
-    	} 
-		res.json(data);
+			return res.json(500, {
+				error: err//"Can't find the associated task " + taskId
+			});
+	    }		
+		condition["_task"] = task._id;
+		condition.save(function(err) {
+			if (err) {
+				return res.json(500, {
+					error: err//"Can't create the condition"
+				});
+			}
+			res.json(condition);
+		});
 	});
-	*/
 };
 
 exports.update = function(req, res) {
-	ucondition.update(req, function(data){
-		res.json(data);
-	});
+	var conditionId = req.params.conditionId;
 
-	/*
-	ninja.rule(conditionId).update(req.body, function(err, data){
+	UCondition.findOne({ id: conditionId }, function(err, condition) { 
 		if (err) {
-      		return res.json(500, {
-       			error: 'Cannot update the condition ' + conditionId
-      		});
-    	}   	
-    	res.json(data);
+			return res.json(500, {
+				error: err//"Can't find condition " + conditionId + " to update"
+			});
+		}
+		condition = _.extend(condition, req.body);
+		condition.save(function(err) {
+			if (err) {
+				return res.json(500, {
+					error: err//"Can't update condition " + conditionId
+				});
+			}
+			res.json(condition);
+		});
 	});
-	*/
 };
 
 
 exports.destroy = function(req, res) {
-	ucondition.destroy(req, function(data){
-		res.json(data);
-	});
-	
-	/*
-	ninja.rule(conditionId).delete(function(err, data) {
+	var conditionId = req.params.conditionId;
+
+	UCondition.findOne({ id: conditionId }, function(err, condition) {
 		if (err) {
-      		return res.json(500, {
-       			error: 'Cannot delete the condition ' + conditionId
-      		});
-    	}   	
-    	res.json(data);
-	});	
-	
-	*/
+			return res.json(500, {
+				error: err//"Can't delete condition " + conditionId
+			});
+		}
+		res.json(condition.remove());
+	});
 };
 
 exports.show = function(req, res) {
-	ucondition.show(req, function(data){
-		res.json(data);
+	var conditionId = req.params.conditionId;
+
+	UCondition.findOne({ id: conditionId }, function(err, condition) {
+	    if (err) {
+			return res.json(500, {
+				error: err//"Can't retrieve condition " + conditionId
+			});
+		}
+	    res.json(condition);
 	});
-
-	/*
-	ninja.rule(conditionId, function(err, data) {
-		if (err) {
-      		return res.json(500, {
-       			error: 'Cannot find the condition ' + conditionId
-      		});
-    	}   	
-    	res.json(data);
-	});	
-	*/
 };
-
-/*
-var UECONDITIONTYPE = {
-    None : -1,
-	Date : 1,
-	Day : 2,
-	Time : 3,
-	Device : 4
-};
-
-var UECOMPARISONTYPE = {
-    None : 0,
-	GreaterThan : 0x1,
-	LesserThan : 0x2,
-	Equals : 0x4,
-	InBetween : 0x8,
-	Not : 0x16
-};
-
-
-var output = {
-	"messageType": 10,
-	"status": true,
-	"error" : null,
-	"taskId": req.taskId,
-	"size": 0,
-	"conditions" : []
-};
-_.each(result.preconditions, function(el){
-	size++;
-	output.conditions.push({
-		id : '',
-		type : UECONDITIONTYPE.Device,	//TODO translate
-		comparisonType : UECOMPARISONTYPE.GreaterThan,	//TODO translate
-		deviceType : '',
-		deviceId : el.params.guid,
-		beginValue : el.value,
-		endValue : el.value
-	});
-});
-output.size = size;
-res.json(output);
-*/
-
-
