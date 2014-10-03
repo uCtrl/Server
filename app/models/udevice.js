@@ -2,6 +2,7 @@
 
 var mongoose = require('mongoose'),
 	Schema   = mongoose.Schema,
+	cleanJson = require('./cleanJson.js'),
 	_ 		 = require('lodash');
 
 /**
@@ -72,7 +73,7 @@ UDeviceSchema.post('remove', function (device) {
  * Receives the device (from NB) and will call the cb when mapped.
  * To logic here is only to do the mapping
  */
-UDeviceSchema.methods.fromNinjaBlocks = function (ninjaDevice, cb) {
+UDeviceSchema.statics.fromNinjaBlocks = function (ninjaDevice, cb) {
 	var UDevice = mongoose.model('UDevice');
 
 	var device = new UDevice({});
@@ -86,7 +87,7 @@ UDeviceSchema.methods.fromNinjaBlocks = function (ninjaDevice, cb) {
  * Receives the device (from MongoDB) and will call the cb when mapped
  * To logic here is only to do the mapping
  */
-UDeviceSchema.methods.toNinjaBlocks = function (device, cb) {
+UDeviceSchema.statics.toNinjaBlocks = function (device, cb) {
 	var ninjaDevice = {
 		// NinjaBlocks' device json
 		//...
@@ -145,4 +146,5 @@ UDeviceSchema.methods.toNinjaBlocks = function (device, cb) {
 		},
     }*/
 
+UDeviceSchema.plugin(cleanJson);
 mongoose.model('UDevice', UDeviceSchema);

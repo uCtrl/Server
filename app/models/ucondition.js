@@ -2,6 +2,7 @@
 
 var mongoose = require('mongoose'),
 	Schema   = mongoose.Schema,
+	cleanJson = require('./cleanJson.js'),
 	_ 		 = require('lodash');
 
 /**
@@ -119,4 +120,5 @@ UConditionSchema.post('remove', function (condition) {
     }
 */
 
+UConditionSchema.plugin(cleanJson);
 mongoose.model('UCondition', UConditionSchema);

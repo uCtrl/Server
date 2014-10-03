@@ -2,6 +2,7 @@
 
 var mongoose = require('mongoose'),
 	Schema   = mongoose.Schema,
+	cleanJson = require('./cleanJson.js'),
 	_ 		 = require('lodash');
 
 /**
@@ -43,7 +44,7 @@ UPlatformSchema.post('remove', function (platform) {
  * Receives the block (from NB) and will call the cb when mapped.
  * To logic here is only to do the mapping
  */
-UPlatformSchema.methods.fromNinjaBlocks = function (ninjaBlock, cb) {
+UPlatformSchema.statics.fromNinjaBlocks = function (ninjaBlock, cb) {
 	var UPlatform = mongoose.model('UPlatform');
 
 	var platform = new UPlatform({});
@@ -51,13 +52,13 @@ UPlatformSchema.methods.fromNinjaBlocks = function (ninjaBlock, cb) {
 	// platform.id = block.guid
 	// ... 
 	cb(platform);
-}
+};
 
 /*
  * Receives the platform (from MongoDB) and will call the cb when mapped
  * To logic here is only to do the mapping
  */
-UPlatformSchema.methods.toNinjaBlocks = function (platform, cb) {
+UPlatformSchema.statics.toNinjaBlocks = function (platform, cb) {
 	var block = {
 		// NinjaBlocks' block json
 		//...
@@ -66,7 +67,7 @@ UPlatformSchema.methods.toNinjaBlocks = function (platform, cb) {
 	// block.id = platform.guid
 	// ... 
 	cb(block);
-}
+};
 
 /*
 fromNinjaBlocks: {
@@ -108,4 +109,5 @@ fromNinjaBlocks: {
     }
     */
 
+UPlatformSchema.plugin(cleanJson);
 mongoose.model('UPlatform', UPlatformSchema);

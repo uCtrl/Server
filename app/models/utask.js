@@ -2,6 +2,7 @@
 
 var mongoose = require('mongoose'),
 	Schema   = mongoose.Schema,
+	cleanJson = require('./cleanJson.js'),
 	_ 		 = require('lodash');
 
 /**
@@ -95,4 +96,5 @@ UTaskSchema.post('remove', function (task) {
 		},
     }*/
 
+UTaskSchema.plugin(cleanJson);
 mongoose.model('UTask', UTaskSchema);

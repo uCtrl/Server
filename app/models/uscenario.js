@@ -2,6 +2,7 @@
 
 var mongoose = require('mongoose'),
 	Schema   = mongoose.Schema,
+	cleanJson = require('./cleanJson.js'),
 	_ 		 = require('lodash');
 
 /**
@@ -56,4 +57,5 @@ UScenarioSchema.post('remove', function (scenario) {
 	});
 })
 
+UScenarioSchema.plugin(cleanJson);
 mongoose.model('UScenario', UScenarioSchema);
