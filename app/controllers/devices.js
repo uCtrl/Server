@@ -45,22 +45,18 @@ exports.create = function(req, res) {
 exports.update = function(req, res) {
 	var deviceId = req.params.deviceId;
 
-	UDevice.findOne({ id: deviceId }, function(err, device) { 
-		if (err) {
-			return res.json(500, {
-				error: err//"Can't find device " + deviceId + " to update"
-			});
-		}
-		device = _.extend(device, req.body);
-		device.save(function(err) {
+	UDevice.findOneAndUpdate(
+		{ id: deviceId }, 
+		req.body,
+		function (err, platform) {
 			if (err) {
 				return res.json(500, {
 					error: err//"Can't update device " + deviceId
 				});
 			}
 			res.json(device);
-		});
-	});
+		}
+	);
 };
 
 exports.destroy = function(req, res) {

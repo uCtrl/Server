@@ -44,22 +44,18 @@ exports.create = function(req, res) {
 exports.update = function(req, res) {
 	var scenarioId = req.params.scenarioId;
 
-	UScenario.findOne({ id: scenarioId }, function(err, scenario) { 
-		if (err) {
-			return res.json(500, {
-				error: err//"Can't find scenario " + scenarioId + " to update"
-			});
-		}
-		scenario = _.extend(scenario, req.body);
-		scenario.save(function(err) {
+	UScenario.findOne(
+		{ id: scenarioId }, 
+		req.body,
+		function (err, platform) {
 			if (err) {
 				return res.json(500, {
 					error: err//"Can't update scenario " + scenarioId
 				});
 			}
 			res.json(scenario);
-		});
-	});
+		}
+	);
 };
 
 exports.destroy = function(req, res) {

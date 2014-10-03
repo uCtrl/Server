@@ -43,22 +43,18 @@ exports.create = function(req, res) {
 exports.update = function(req, res) {
 	var taskId = req.params.taskId;
 
-	UTask.findOne({ id: taskId }, function(err, task) { 
-		if (err) {
-			return res.json(500, {
-				error: err//"Can't find task " + taskId + " to update"
-			});
-		}
-		task = _.extend(task, req.body);
-		task.save(function(err) {
+	UTask.findOneAndUpdate(
+		{ id: taskId }, 
+		req.body,
+		function (err, platform) {
 			if (err) {
 				return res.json(500, {
 					error: err//"Can't update task " + taskId
 				});
 			}
 			res.json(task);
-		});
-	});
+		}
+	);
 };
 
 exports.destroy = function(req, res) {

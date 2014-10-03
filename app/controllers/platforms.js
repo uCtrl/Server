@@ -31,22 +31,18 @@ exports.create = function(req, res) {
 exports.update = function(req, res) {
 	var platformId = req.params.platformId;
 
-	UPlatform.findOne({ id: platformId }, function(err, platform) { 
-		if (err) {
-			return res.json(500, {
-				error: err//"Can't find platform " + platformId + " to update"
-			});
-		}
-		platform = _.extend(platform, req.body);
-		platform.save(function(err) {
+	UPlatform.findOneAndUpdate(
+		{ id: platformId }, 
+		req.body,
+		function (err, platform) {
 			if (err) {
 				return res.json(500, {
 					error: err//"Can't update platform " + platformId
 				});
 			}
 			res.json(platform);
-		});
-	});
+		}
+	);
 };
 
 exports.destroy = function(req, res) {

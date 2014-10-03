@@ -43,22 +43,18 @@ exports.create = function(req, res) {
 exports.update = function(req, res) {
 	var conditionId = req.params.conditionId;
 
-	UCondition.findOne({ id: conditionId }, function(err, condition) { 
-		if (err) {
-			return res.json(500, {
-				error: err//"Can't find condition " + conditionId + " to update"
-			});
-		}
-		condition = _.extend(condition, req.body);
-		condition.save(function(err) {
+	UCondition.findOneAndUpdate(
+		{ id: conditionId }, 
+		req.body,
+		function (err, platform) {
 			if (err) {
 				return res.json(500, {
 					error: err//"Can't update condition " + conditionId
 				});
 			}
 			res.json(condition);
-		});
-	});
+		}
+	);
 };
 
 exports.destroy = function(req, res) {
