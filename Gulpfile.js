@@ -1,7 +1,8 @@
 var gulp = require('gulp'),
 	jshint = require('gulp-jshint'),
 	mocha = require('gulp-mocha'),
-	nodemon = require('gulp-nodemon');
+	nodemon = require('gulp-nodemon'),
+	seed = require(__dirname + '/seed/seed.js');
 
 gulp.task('jshint', function() {
     gulp.src(['app/**/*.js'])
@@ -15,6 +16,10 @@ gulp.task('test', function() {
         .pipe(mocha({
 			reporter: 'spec'
 		}));
+});
+
+gulp.task('seed', function() {
+	seed();
 });
 
 gulp.task('default', function () {
