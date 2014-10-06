@@ -19,32 +19,3 @@ var StatSchema = new Schema({
 
 // Model creation
 var Stats = mongoose.model('Stats', StatSchema);
-
-Stats.find(function (err, stats) {
-	if (stats.length == 0) {
-		new Stats ({
-			deviceType: "Ligth",
-			deviceId: 12345,
-			timestamp: Date.now(),
-			ampere: 24,
-			data: 24,
-			value: "ON",
-		}).save();
-		new Stats ({
-			deviceType: "RF sensor",
-			deviceId: 56783,
-			timestamp: Date.now(),
-			ampere: 10,
-			data: 10,
-			value: "OFF",
-		}).save();
-		new Stats ({
-			deviceType: "Thermometer",
-			deviceId: 34567,
-			timestamp: Date.now(),
-			ampere: 5,
-			data: 5,
-			value: 25,
-		}).save(); 
- 	}
-});
