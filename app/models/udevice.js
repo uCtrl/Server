@@ -4,6 +4,20 @@ var mongoose = require('mongoose'),
 	Schema   = mongoose.Schema,
 	cleanJson = require('./cleanJson.js'),
 	_ 		 = require('lodash');
+	
+/**
+ * Constants
+ * TODO : Déterminer les constantes ici.
+ */
+var ENUMTYPE = {
+	"temperature" 	: 1,
+	"humidity" 		: 2,
+	"rgbled8"		: 3,
+	"rgbled"		: 4,
+	"rf433"			: 5,
+	"rf433Sensor"	: 6,
+	"rf433Actuator"	: 7,
+};
 
 /**
  * UDevice Schema
@@ -30,6 +44,7 @@ var UDeviceSchema = new Schema({
 	precision: Number,
 	status: Number,
 	unitLabel: String,
+	lastUpdate: Date, 
 	_platform: {
 		type: Schema.Types.ObjectId, 
 		ref: 'UPlatform',
@@ -72,79 +87,65 @@ UDeviceSchema.post('remove', function (device) {
 /*
  * Receives the device (from NB) and will call the cb when mapped.
  * To logic here is only to do the mapping
+ * Note that Ninja's subdevices will be mapped to an µCtrl's device
  */
-UDeviceSchema.statics.fromNinjaBlocks = function (ninjaDevice, cb) {
+UDeviceSchema.statics.fromNinjaBlocks = function (ninjaDevice, ninjaSubdevice, cb) {
 	var UDevice = mongoose.model('UDevice');
-
-	var device = new UDevice({});
-	// Mapping Ninja to uCtrl
-	// device.id = ninjaDevice.id
-	// ... 
+	// Mapping NinjaBlocks to uCtrl  
+	var device = new UDevice({
+		id 				: ninjaDevice.guid,						
+		type			: ENUMTYPE[ninjaDevice.device_type],	//MAP with enum of uctrl device type. 5 = rfSubdevice
+		name			: ninjaDevice.default_name,
+		description		: null,
+		enabled			: null,
+		isTriggerValue	: null,
+		maxValue		: null,
+		minValue		: null,
+		precision		: null,
+		status			: null,
+		lastUpdate		: ninjaDevice.last_data.timestamp,		//MAP with last_data{} ?
+		unitLabel		: ninjaDevice.unit,
+	});
+	// If it's a subdevice mapping
+	if (ninjaSubdevice != null) {
+		device.id		= device.id + ':' + ninjaSubdevice.data; //MAP deviceGUID:subdeviceDATA. Ex: 1014BBBK6089_0_0_11:010101010101010101010101
+		device.name		= ninjaSubdevice.shortName;
+		device.type		= (ninjaSubdevice.type == 'sensor' ? ENUMTYPE["rf433Sensor"] : ENUMTYPE["rf433Actuator"]);
+	}
 	cb(device);
 };
 
 /*
  * Receives the device (from MongoDB) and will call the cb when mapped
  * To logic here is only to do the mapping
+ * Note that µCtrl's device can be a Ninja's subdevices
  */
 UDeviceSchema.statics.toNinjaBlocks = function (device, cb) {
-	var ninjaDevice = {
-		// NinjaBlocks' device json
-		//...
-	}
 	// Mapping uCtrl to NinjaBlocks
-	// ninjaDevice.id = device.guid
-	// ... 
-	cb(ninjaDevice);
+	// Can't post a device to NinjaBlocks. Can post a subdevice only.
+	// Delete : Delete all informations about the specified device.
+	var ninjaDevice = {
+		//guid 			: device.id
+		//device_type		: _.each(ENUMTYPE, function(typeValue, typeIndex){ if(typeValue == device.type) return typeIndex; });
+		//default_name	: device.name,
+		shortName		: device.name,	//(PUT) Can be updated
+		DA				: device.status //(PUT) When sending command
+		//unit			: device.unitLabel,
+	}
+	
+	// If it's a subdevice mapping
+	if (device.type == ENUMTYPE.rf433Sensor || device.type == ENUMTYPE.rf433Actuator) {
+		var deviceIdSplit = device.id.split(":");	//Subdevice data stored into id.
+		ninjaDevice.guid = deviceIdSplit[0];
+		var ninjaSubdevice = {
+			category	: "rf", //Allowed: "rf", "webhook", "sms"
+			type		: (device.type == ENUMTYPE.rf433Sensor ? "sensor" : "actuator"), //Allowed: "actuator" or "sensor" 
+			shortName	: device.name,
+			data		: deviceIdSplit[1],									
+		}
+	}
+	cb(ninjaDevice, ninjaSubdevice);
 };
-
-/* fromNinjaBlocks: {
-		all: function(req, cb) {
-			var udevice = mongoose.model('UDevice');
-			ninja.devices(function(err, arrDevices){
-				var out = [];
-				_.each(arrDevices, function(deviceObj, deviceIndex){
-					var obj = new udevice({
-						description		: deviceObj.default_name,
-						enabled			: null,
-						id				: deviceIndex,
-						isTriggerValue	: null,
-						maxValue		: null,
-						minValue		: null,
-						name			: deviceObj.default_name,
-						precision		: null,
-						status			: null,
-						type			: null,
-						unitLabel		: deviceObj.unit,
-						deviceType		: deviceObj.device_type,
-					});
-					out.push(obj);
-				});
-				return cb(out);
-			});
-		},
-		
-		show: function(req, cb) {
-			var udevice = mongoose.model('UDevice');
-			ninja.device(req.params.deviceId, function(err, deviceObj){
-				var obj = new udevice({
-					description		: deviceObj.default_name,
-					enabled			: null,
-					id				: deviceObj.guid,
-					isTriggerValue	: null,
-					maxValue		: null,
-					minValue		: null,
-					name			: deviceObj.default_name,
-					precision		: null,
-					status			: null,
-					type			: null,
-					unitLabel		: deviceObj.unit,
-					deviceType		: deviceObj.device_type,
-				});
-				return cb(obj);
-			});
-		},
-    }*/
 
 UDeviceSchema.plugin(cleanJson);
 mongoose.model('UDevice', UDeviceSchema);

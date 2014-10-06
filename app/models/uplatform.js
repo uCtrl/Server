@@ -44,13 +44,19 @@ UPlatformSchema.post('remove', function (platform) {
  * Receives the block (from NB) and will call the cb when mapped.
  * To logic here is only to do the mapping
  */
-UPlatformSchema.statics.fromNinjaBlocks = function (ninjaBlock, cb) {
+UPlatformSchema.statics.fromNinjaBlocks = function (ninjaBlock, ninjaBlockId, cb) {
 	var UPlatform = mongoose.model('UPlatform');
-
-	var platform = new UPlatform({});
 	// Mapping Ninja to uCtrl
-	// platform.id = block.guid
-	// ... 
+	var platform = new UPlatform({
+		firmwareVersion	: null,
+		id				: ninjaBlockId,		//have this info with all blocks GET request only. See examples of GET. 
+		name			: ninjaBlock.short_name,
+		port			: null,
+		room			: null,
+		enabled			: true,
+		ip				: null,
+	});
+	
 	cb(platform);
 };
 
@@ -59,55 +65,45 @@ UPlatformSchema.statics.fromNinjaBlocks = function (ninjaBlock, cb) {
  * To logic here is only to do the mapping
  */
 UPlatformSchema.statics.toNinjaBlocks = function (platform, cb) {
+	//Can't post a block. Can post a nodeid to activate the block only
 	var block = {
-		// NinjaBlocks' block json
-		//...
+		nodeid			: platform.id		//when posting a block
+		//short_name	: platform.name		//can't post this info.
+		//last_active
+		//date_created
 	}
-	// Mapping uCtrl to NinjaBlocks
-	// block.id = platform.guid
-	// ... 
 	cb(block);
 };
 
-/*
-fromNinjaBlocks: {
-		all: function(req, cb) {
-			var uplatform = mongoose.model('UPlatform');
-			ninja.blocks(function(err, arrBlocks){
-				var out = [];
-				_.each(arrBlocks, function(blockObj, blockIndex){
-					var obj = new uplatform({
-						firmwareVersion	: null,
-						id				: blockIndex,
-						name			: blockObj.short_name,
-						port			: null,
-						room			: null,
-						enabled			: null,
-						ip				: null,
-					});
-					out.push(obj);
-				});
-				return cb(out);
-			});
-		},
-		
-		show: function(req, cb) {
-			var uplatform = mongoose.model('UPlatform');
-			ninja.block(req.params.platformId, function(err, blockObj){
-				var obj = new uplatform({
-					firmwareVersion	: null,
-					id				: req.params.platformId,
-					name			: blockObj.short_name,
-					port			: null,
-					room			: null,
-					enabled			: null,
-					ip				: null,
-				});
-				return cb(obj);
-			});
-		},
-    }
-    */
-
 UPlatformSchema.plugin(cleanJson);
 mongoose.model('UPlatform', UPlatformSchema);
+
+
+/* 
+ * Examples of GET
+ *
+	https://api.ninja.is/rest/v0/block
+	{
+		"result": 1,
+		"error": null,
+		"id": 0,
+		"data": {
+			"1014BBBK6089": {
+				"short_name": "Ninja Block",
+				"date_created": 1411493487000,
+				"last_active": 1412360537074
+			}
+		}
+	}
+	https://api.ninja.is/rest/v0/block/1014BBBK6089
+	{
+		"result": 1,
+		"error": null,
+		"id": 0,
+		"data": {
+			"short_name": "Ninja Block",
+			"date_created": 1411493487000,
+			"last_active": 1412360537074
+		}
+	}
+*/

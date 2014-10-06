@@ -14,10 +14,9 @@ var UTaskSchema = new Schema({
 		required: true,
 		unique: true
 	},
-	handler			: String,
-	timeout			: Number,
+	name			: String,
 	suspended		: Boolean,
-	status: Boolean,
+	status			: String,
 	_scenario: {
 		type: Schema.Types.ObjectId, 
 		ref: 'UScenario',
@@ -61,40 +60,46 @@ UTaskSchema.post('remove', function (task) {
 })
 
 /*
-	fromNinjaBlocks: {
-		all: function(req, cb) {
-			var utask = mongoose.model('UTask');
-			ninja.rules(function(err, arrRules){
-				var out = [];
-				arrRules.forEach(function(ruleObj, ruleIndex){
-					if(ruleObj.actions[0].params.guid == req.params.deviceId){
-						var obj = new utask({
-							id				: ruleObj.rid,
-							status			: ruleObj.actions[0].da,
-							handler			: ruleObj.actions[0].handler,
-							timeout			: ruleObj.timeout,
-							suspended		: ruleObj.suspended,
-						});
-						out.push(obj);
-					}
-				});
-				return cb(out);
-			});
-		},
-		show: function(req, cb) {
-			var utask = mongoose.model('UTask');
-			ninja.rule(req.params.taskId, function(err, ruleObj){
-				var obj = new utask({
-					id			: ruleObj.rid,
-					status		: ruleObj.actions[0].da,
-					handler		: ruleObj.actions[0].handler,
-					timeout		: ruleObj.timeout,
-					suspended	: ruleObj.suspended,
-				});
-				return cb(obj);
-			});
-		},
-    }*/
+ * Receives the block (from NB) and will call the cb when mapped.
+ * To logic here is only to do the mapping
+ */
+UTaskSchema.statics.fromNinjaBlocks = function (ninjaRule, cb) {
+	var UTask = mongoose.model('UTask');
+	// Mapping Ninja to uCtrl
+	var task = new UTask({
+		id			: ninjaRule.rid,
+		name		: ninjaRule.shortName,
+		suspended	: ninjaRule.suspended,
+		status		: ninjaRule.actions[0].da,	//Limited to only one action by task when mapping to µCtrl.
+	});
+	cb(task);
+};
+
+/*
+ * Receives the task (from MongoDB) and will call the cb when mapped
+ * To logic here is only to do the mapping
+ */
+UTaskSchema.statics.toNinjaBlocks = function (task, cb) {
+	var NB_TIMEOUT = 2;
+	var NB_ACTIONHANDLER = "ninjaSendCommand";
+	var deviceIdSplit = task._scenario._device.id.split(":");	//Subdevice data, if one, is stored into id.
+	
+	var ninjaRule = {
+		shortName		: task.name,
+		timeout			: NB_TIMEOUT,
+		preconditions 	: null,			//TODO : Check if it can be null now and updated after by ucondition.
+		actions			: [{ 
+			handler: NB_ACTIONHANDLER, 
+			params: { 
+				guid : deviceIdSplit[0],
+				to	 : (deviceIdSplit.length > 1 ? deviceIdSplit[1] : null),	// if µCtrl device is a subdevice
+				da	 : task.status,
+				
+			} 
+		}]
+	}
+	cb(ninjaRule);
+};
 
 UTaskSchema.plugin(cleanJson);
 mongoose.model('UTask', UTaskSchema);
