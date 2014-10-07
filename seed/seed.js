@@ -56,6 +56,7 @@ module.exports = function() {
 							if (clonedCondition.beginDate) clonedCondition.beginDate = new Date(clonedCondition.beginDate);
 							if (clonedCondition.endDate) clonedCondition.endDate = new Date(clonedCondition.endDate);
 							var dbCondition = new UCondition(clonedCondition);
+							dbCondition.deviceId = device.id
 							dbCondition.save(function(err) { if (err) throw new Error(err); });
 						});
 					});
