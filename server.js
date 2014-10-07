@@ -48,6 +48,25 @@ var walk = function(path) {
 };
 walk(routes_path);
 
+// Start services
+var services_path = __dirname + '/app/services';
+var walk = function(path) {
+    fs.readdirSync(path).forEach(function(file) {
+        var newPath = path + '/' + file;
+        var stat = fs.statSync(newPath);
+        if (stat.isFile()) {
+            if (/(.*)\.(js$)/.test(file)) {
+                require(newPath);
+            }
+        // We skip the app/routes/middlewares directory as it is meant to be
+        // used and shared by routes as further middlewares and is not a 
+        // route by itself
+        } else if (stat.isDirectory() && file !== 'middlewares') {
+            walk(newPath);
+        }
+    });
+};
+walk(services_path);
 
 // Start the app by listening on <port>
 var port = process.env.PORT || config.port;

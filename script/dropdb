@@ -1,0 +1,2 @@
+#!/bin/bash
+mongo uCtrl-dev --eval "db.dropDatabase()"
