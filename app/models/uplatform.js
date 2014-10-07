@@ -8,7 +8,7 @@ var mongoose = require('mongoose'),
 /**
  * UPlatform Schema
  */
-var UPlatformSchema	= new Schema({
+var UPlatformSchema = new Schema({
 	name: { 
 		type: String,
 		required: true

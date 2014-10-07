@@ -14,9 +14,9 @@ var UTaskSchema = new Schema({
 		required: true,
 		unique: true
 	},
-	name			: String,
-	suspended		: Boolean,
-	status			: String,
+	name : String,
+	suspended : Boolean,
+	status : String,
 	_scenario: {
 		type: Schema.Types.ObjectId, 
 		ref: 'UScenario',
