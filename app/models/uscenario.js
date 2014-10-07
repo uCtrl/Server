@@ -3,7 +3,7 @@
 var mongoose = require('mongoose'),
 	Schema   = mongoose.Schema,
 	cleanJson = require('./cleanJson.js'),
-	_ 		 = require('lodash');
+	_ = require('lodash');
 
 /**
  * UScenario Schema

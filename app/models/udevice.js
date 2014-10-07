@@ -3,20 +3,20 @@
 var mongoose = require('mongoose'),
 	Schema   = mongoose.Schema,
 	cleanJson = require('./cleanJson.js'),
-	_ 		 = require('lodash');
+	_ = require('lodash');
 	
 /**
  * Constants
  * TODO : Déterminer les constantes ici.
  */
 var ENUMTYPE = {
-	"temperature" 	: 1,
-	"humidity" 		: 2,
-	"rgbled8"		: 3,
-	"rgbled"		: 4,
-	"rf433"			: 5,
-	"rf433Sensor"	: 6,
-	"rf433Actuator"	: 7,
+	"temperature" : 1,
+	"humidity" : 2,
+	"rgbled8" : 3,
+	"rgbled" : 4,
+	"rf433" : 5,
+	"rf433Sensor" : 6,
+	"rf433Actuator" : 7,
 };
 
 /**
@@ -93,24 +93,25 @@ UDeviceSchema.statics.fromNinjaBlocks = function (ninjaDevice, ninjaSubdevice, c
 	var UDevice = mongoose.model('UDevice');
 	// Mapping NinjaBlocks to uCtrl  
 	var device = new UDevice({
-		id 				: ninjaDevice.guid,						
-		type			: ENUMTYPE[ninjaDevice.device_type],	//MAP with enum of uctrl device type. 5 = rfSubdevice
-		name			: ninjaDevice.default_name,
-		description		: null,
-		enabled			: null,
-		isTriggerValue	: null,
-		maxValue		: null,
-		minValue		: null,
-		precision		: null,
-		status			: null,
-		lastUpdate		: ninjaDevice.last_data.timestamp,		//MAP with last_data{} ?
-		unitLabel		: ninjaDevice.unit,
+		id : ninjaDevice.guid,						
+		type : ENUMTYPE[ninjaDevice.device_type],
+		name : ninjaDevice.default_name,
+		description : null,
+		enabled : null,
+		isTriggerValue : null,
+		maxValue : null,
+		minValue : null,
+		precision : null,
+		status : null,
+		lastUpdate : ninjaDevice.last_data.timestamp,
+		unitLabel : ninjaDevice.unit,
 	});
 	// If it's a subdevice mapping
 	if (ninjaSubdevice != null) {
-		device.id		= device.id + ':' + ninjaSubdevice.data; //MAP deviceGUID:subdeviceDATA. Ex: 1014BBBK6089_0_0_11:010101010101010101010101
-		device.name		= ninjaSubdevice.shortName;
-		device.type		= (ninjaSubdevice.type == 'sensor' ? ENUMTYPE["rf433Sensor"] : ENUMTYPE["rf433Actuator"]);
+		//MAP deviceGUID:subdeviceDATA. Ex: 1014BBBK6089_0_0_11:010101010101010101010101
+		device.id = device.id + ':' + ninjaSubdevice.data;
+		device.name = ninjaSubdevice.shortName;
+		device.type = (ninjaSubdevice.type == 'sensor' ? ENUMTYPE["rf433Sensor"] : ENUMTYPE["rf433Actuator"]);
 	}
 	cb(device);
 };
@@ -122,15 +123,16 @@ UDeviceSchema.statics.fromNinjaBlocks = function (ninjaDevice, ninjaSubdevice, c
  */
 UDeviceSchema.statics.toNinjaBlocks = function (device, cb) {
 	// Mapping uCtrl to NinjaBlocks
-	// Can't post a device to NinjaBlocks. Can post a subdevice only.
+	// Post : Can't post a device to NinjaBlocks. Can post a subdevice only.
+	// Put : shortName and DA can be send.
 	// Delete : Delete all informations about the specified device.
 	var ninjaDevice = {
-		//guid 			: device.id
-		//device_type		: _.each(ENUMTYPE, function(typeValue, typeIndex){ if(typeValue == device.type) return typeIndex; });
-		//default_name	: device.name,
-		shortName		: device.name,	//(PUT) Can be updated
-		DA				: device.status //(PUT) When sending command
-		//unit			: device.unitLabel,
+		//guid : device.id
+		//device_type : _.each(ENUMTYPE, function(typeValue, typeIndex){ if(typeValue == device.type) return typeIndex; });
+		//default_name : device.name,
+		shortName : device.name, //Can be updated
+		DA : device.status //When sending command
+		//unit : device.unitLabel,
 	}
 	
 	// If it's a subdevice mapping
@@ -138,10 +140,10 @@ UDeviceSchema.statics.toNinjaBlocks = function (device, cb) {
 		var deviceIdSplit = device.id.split(":");	//Subdevice data stored into id.
 		ninjaDevice.guid = deviceIdSplit[0];
 		var ninjaSubdevice = {
-			category	: "rf", //Allowed: "rf", "webhook", "sms"
-			type		: (device.type == ENUMTYPE.rf433Sensor ? "sensor" : "actuator"), //Allowed: "actuator" or "sensor" 
-			shortName	: device.name,
-			data		: deviceIdSplit[1],									
+			category : "rf", //Allowed: "rf", "webhook", "sms"
+			type : (device.type == ENUMTYPE.rf433Sensor ? "sensor" : "actuator"), //Allowed: "actuator" or "sensor" 
+			shortName : device.name,
+			data : deviceIdSplit[1],									
 		}
 	}
 	cb(ninjaDevice, ninjaSubdevice);

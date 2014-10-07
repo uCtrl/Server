@@ -2,7 +2,7 @@
 
 var mongoose = require('mongoose'),
 	Schema   = mongoose.Schema,
-	_ 		 = require('lodash');
+	_ = require('lodash');
 
 var UserSchema = new Schema({
 	name: String,

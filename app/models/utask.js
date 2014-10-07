@@ -3,7 +3,7 @@
 var mongoose = require('mongoose'),
 	Schema   = mongoose.Schema,
 	cleanJson = require('./cleanJson.js'),
-	_ 		 = require('lodash');
+	_ = require('lodash');
 
 /**
  * UTask Schema
@@ -66,11 +66,12 @@ UTaskSchema.post('remove', function (task) {
 UTaskSchema.statics.fromNinjaBlocks = function (ninjaRule, cb) {
 	var UTask = mongoose.model('UTask');
 	// Mapping Ninja to uCtrl
+	// Limited to only one action by task when mapping to µCtrl.
 	var task = new UTask({
-		id			: ninjaRule.rid,
-		name		: ninjaRule.shortName,
-		suspended	: ninjaRule.suspended,
-		status		: ninjaRule.actions[0].da,	//Limited to only one action by task when mapping to µCtrl.
+		id : ninjaRule.rid,
+		name : ninjaRule.shortName,
+		suspended : ninjaRule.suspended,
+		status : ninjaRule.actions[0].da,	
 	});
 	cb(task);
 };
@@ -85,15 +86,15 @@ UTaskSchema.statics.toNinjaBlocks = function (task, cb) {
 	var deviceIdSplit = task._scenario._device.id.split(":");	//Subdevice data, if one, is stored into id.
 	
 	var ninjaRule = {
-		shortName		: task.name,
-		timeout			: NB_TIMEOUT,
-		preconditions 	: null,			//TODO : Check if it can be null now and updated after by ucondition.
-		actions			: [{ 
+		shortName : task.name,
+		timeout : NB_TIMEOUT,
+		preconditions : null, //TODO : Check if it can be null now and updated after by ucondition.
+		actions : [{ 
 			handler: NB_ACTIONHANDLER, 
 			params: { 
 				guid : deviceIdSplit[0],
-				to	 : (deviceIdSplit.length > 1 ? deviceIdSplit[1] : null),	// if µCtrl device is a subdevice
-				da	 : task.status,
+				to : (deviceIdSplit.length > 1 ? deviceIdSplit[1] : null),
+				da : task.status,
 				
 			} 
 		}]

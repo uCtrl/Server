@@ -3,7 +3,7 @@
 var mongoose = require('mongoose'),
 	Schema   = mongoose.Schema,
 	cleanJson = require('./cleanJson.js'),
-	_ 		 = require('lodash');
+	_ = require('lodash');
 
 /**
  * Constants
@@ -94,30 +94,31 @@ UConditionSchema.statics.fromNinjaBlocks = function (ninjaPrecondition, cb) {
 	// Mapping Ninja to uCtrl
 	var deviceIdSplit = task._scenario._device.id.split(":");	//Subdevice data, if one, is stored into id.
 	var condition = new UCondition({
-		id				: null,
-		type			: null,
-		deviceId		: ninjaPrecondition.params.guid,
-		deviceType		: null,
-		comparisonType	: null,
-		beginValue		: null,
-		endValue		: null,
-		beginDate		: null,
-		endDate			: null,
-		beginTime		: null,
-		endTime			: null,
+		id : null,
+		type : null,
+		deviceId : ninjaPrecondition.params.guid,
+		deviceType : null,
+		comparisonType : null,
+		beginValue : null,
+		endValue : null,
+		beginDate : null,
+		endDate : null,
+		beginTime : null,
+		endTime : null,
 		selectedWeekdays: null,
 	});
 
 	switch (ninjaPrecondition.handler) {
-		case 'ninjaChange' : 	//When condition include a rf subdevice
-			condition.deviceId += (ninjaPrecondition.params.to != null ? ':' + ninjaPrecondition.params.to : ''); //if it's a subdevice
+		//When condition include a rf subdevice.
+		case 'ninjaChange' : 	
+			condition.deviceId += (ninjaPrecondition.params.to != null ? ':' + ninjaPrecondition.params.to : '');
 			condition.type = ENUMCONDITIONTYPE.Device;
 			condition.comparisonType = ENUMCOMPARISONTYPE.None;
 			break;
 		case 'ninjaEquality' : 
 		case 'ninjaThreshold' : 
 			condition.type = ENUMCONDITIONTYPE.Device;
-			switch (ninjaPrecondition.params.equality) { //GT/LT/GTE/LTE/EQ
+			switch (ninjaPrecondition.params.equality) {
 				case 'GT' :
 				case 'GTE' :
 					condition.comparisonType = ENUMCOMPARISONTYPE.GreaterThan;
@@ -140,7 +141,6 @@ UConditionSchema.statics.fromNinjaBlocks = function (ninjaPrecondition, cb) {
 			condition.endValue = ninjaPrecondition.params.and;
 			break;
 			break;
-		//case 'ninjaRangeToggle' : 
 	}
 	cb(condition);
 };
@@ -156,38 +156,39 @@ UConditionSchema.statics.toNinjaBlocks = function (condition, cb) {
 	var ninjaPrecondition = { 
 		handler: null, 
 		params: { 
-			guid 	: deviceIdSplit[0],
-			to		: null,
-			value	: null,
-			between	: null,
-			and		: null,
+			guid : deviceIdSplit[0],
+			to : null,
+			value : null,
+			between : null,
+			and : null,
 		}
 	}
-	// [{"handler":"ninjaRangeToggle","params":{"guid":"STEALTHYNINJA_2_0_9","between":26,"and":30}}]
+
 	switch (condition.comparisonType) {
+		//When condition include a rf subdevice.
 		case ENUMCOMPARISONTYPE.None :
 			ninjaPrecondition.handler	= 'ninjaChange';
-			ninjaPrecondition.params.to	= (deviceIdSplit.length > 1 ? deviceIdSplit[1] : null);	// µCtrl device is a subdevice
+			ninjaPrecondition.params.to	= (deviceIdSplit.length > 1 ? deviceIdSplit[1] : null);
 			break;
 		case ENUMCOMPARISONTYPE.GreaterThan :
-			ninjaPrecondition.handler			= 'ninjaEquality';	//ninjaEquality, ninjaThreshold
-			ninjaPrecondition.params.equality	= 'GT';				//GT/LT/GTE/LTE/EQ
-			ninjaPrecondition.params.value		= condition.beginValue;
+			ninjaPrecondition.handler = 'ninjaEquality';	//it can be ninjaThreshold
+			ninjaPrecondition.params.equality = 'GT';
+			ninjaPrecondition.params.value = condition.beginValue;
 			break;
 		case ENUMCOMPARISONTYPE.LesserThan :
-			ninjaPrecondition.handler			= 'ninjaEquality';	//ninjaEquality, ninjaThreshold
-			ninjaPrecondition.params.equality	= 'LT';				//GT/LT/GTE/LTE/EQ
-			ninjaPrecondition.params.value		= condition.beginValue;
+			ninjaPrecondition.handler = 'ninjaEquality';	//it can be ninjaThreshold
+			ninjaPrecondition.params.equality = 'LT';	
+			ninjaPrecondition.params.value = condition.beginValue;
 			break;
 		case ENUMCOMPARISONTYPE.Equals :
-			ninjaPrecondition.handler			= 'ninjaEquality';	//ninjaEquality, ninjaThreshold
-			ninjaPrecondition.params.equality	= 'EQ';				//GT/LT/GTE/LTE/EQ
-			ninjaPrecondition.params.value		= condition.beginValue;
+			ninjaPrecondition.handler = 'ninjaEquality';	//it can be ninjaThreshold
+			ninjaPrecondition.params.equality = 'EQ';
+			ninjaPrecondition.params.value = condition.beginValue;
 			break;
 		case ENUMCOMPARISONTYPE.InBetween :
-			ninjaPrecondition.handler			= 'ninjaRangeToggle';
-			ninjaPrecondition.params.between	= condition.beginValue;
-			ninjaPrecondition.params.and		= condition.endValue;
+			ninjaPrecondition.handler = 'ninjaRangeToggle';
+			ninjaPrecondition.params.between = condition.beginValue;
+			ninjaPrecondition.params.and = condition.endValue;
 			break;
 	}
 	cb(ninjaPrecondition);
