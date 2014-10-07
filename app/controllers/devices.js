@@ -11,10 +11,15 @@ exports.all = function(req, res) {
 	UPlatform.findOne({ id: platformId }).populate('_devices').exec(function(err, platform) {
 		if (err) {
 			return res.json(500, {
+				status: false,
 				error: err//"Can't find the associated platform " + platformId
 			});
 	    }
-	    res.json(platform._devices);
+	    res.json({
+			status: true,
+			error: null,
+			devices: platform._devices
+		});
 	});
 };
 
@@ -26,6 +31,7 @@ exports.create = function(req, res) {
 	UPlatform.findOne({ id: platformId }).exec(function(err, platform) {
 		if (err) {
 			return res.json(500, {
+				status: false,
 				error: err//"Can't find the associated platform " + platformId
 			});
 	    }		
@@ -33,10 +39,15 @@ exports.create = function(req, res) {
 		device.save(function(err) {
 			if (err) {
 				return res.json(500, {
+					status: false,
 					error: err//"Can't create the device"
 				});
 			}
-			res.json(device);
+			res.json({
+				status: true,
+				error: null,
+				device: device
+			});
 		});
 
 	});
@@ -51,10 +62,15 @@ exports.update = function(req, res) {
 		function (err, platform) {
 			if (err) {
 				return res.json(500, {
+					status: false,
 					error: err//"Can't update device " + deviceId
 				});
 			}
-			res.json(device);
+			res.json({
+				status: true,
+				error: null,
+				device: device
+			});
 		}
 	);
 };
@@ -65,10 +81,15 @@ exports.destroy = function(req, res) {
 	UDevice.findOne({ id: deviceId }, function(err, device) {
 		if (err) {
 			return res.json(500, {
+				status: false,
 				error: err//"Can't delete device " + deviceId
 			});
 		}
-		res.json(device.remove());
+		res.json({
+			status: true,
+			error: null,
+			device: device.remove()
+		});
 	});
 };
 
@@ -78,10 +99,15 @@ exports.show = function(req, res) {
 	UDevice.findOne({ id: deviceId }, function(err, device) {
 	    if (err) {
 			return res.json(500, {
+				status: false,
 				error: err//"Can't retrieve device " + deviceId
 			});
 		}
-	    res.json(device);
+	    res.json({
+			status: true,
+			error: null,
+			device: device
+		});
 	});
 };
 
