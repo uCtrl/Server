@@ -14,6 +14,7 @@ var express = require('express'),
 // Load configurations
 // Set the node enviornment variable if not set before
 process.env.NODE_ENV = process.env.NODE_ENV || 'development';
+global.__base = __dirname + '/';
 
 // Initializing system variables 
 var config = require('./config/config'),
@@ -21,23 +22,6 @@ var config = require('./config/config'),
 
 // Bootstrap db connection
 var db = mongoose.connect(config.db);
-
-// Bootstrap models
-var models_path = __dirname + '/app/models';
-var walk = function(path) {
-    fs.readdirSync(path).forEach(function(file) {
-        var newPath = path + '/' + file;
-        var stat = fs.statSync(newPath);
-        if (stat.isFile()) {
-            if (/(.*)\.(js$)/.test(file)) {
-                require(newPath);
-            }
-        } else if (stat.isDirectory()) {
-            walk(newPath);
-        }
-    });
-};
-walk(models_path);
 
 var app = express();
 

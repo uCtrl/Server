@@ -1,6 +1,5 @@
 'use strict';
 
 module.exports = {
-    db: 'mongodb://localhost/uCtrl-test',
-    port: 3001
+    db: 'mongodb://localhost/uCtrl-test'
 };
