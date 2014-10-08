@@ -10,9 +10,6 @@ var conditions = require(__base + 'app/controllers/conditions.js');
 var users = require(__base + 'app/controllers/users.js');
 
 module.exports = function(app) {
-    
-    app.get('/', index.render);
-
     app.get('/logs', logs.read);
     app.get('/logs/:deviceId', logs.read);
     app.post('/logs', logs.create);
