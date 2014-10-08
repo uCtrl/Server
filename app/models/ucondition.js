@@ -52,8 +52,8 @@ var UConditionSchema = new Schema({
 	endValue: String,	//TODO : attr. converted to string
 	beginDate: Date,
 	endDate: Date,
-	beginTime: Date,
-	endTime: Date,
+	beginTime: String,
+	endTime: String,
 	selectedWeekdays: Number,
 	_task: {
 		type: Schema.Types.ObjectId, 

@@ -51,8 +51,8 @@ module.exports = function() {
 						_.forEach(task.conditions, function(condition) {
 							var clonedCondition = _.clone(condition, true);
 							clonedCondition["_task"] = dbTask._id;
-							if (clonedCondition.beginTime) clonedCondition.beginTime = new Date(clonedCondition.beginTime);
-							if (clonedCondition.endTime) clonedCondition.endTime = new Date(clonedCondition.endTime);
+							if (clonedCondition.beginTime) clonedCondition.beginTime = clonedCondition.beginTime;
+							if (clonedCondition.endTime) clonedCondition.endTime = clonedCondition.endTime;
 							if (clonedCondition.beginDate) clonedCondition.beginDate = new Date(clonedCondition.beginDate);
 							if (clonedCondition.endDate) clonedCondition.endDate = new Date(clonedCondition.endDate);
 							var dbCondition = new UCondition(clonedCondition);
