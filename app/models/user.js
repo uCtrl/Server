@@ -5,6 +5,7 @@ var mongoose = require('mongoose'),
 	_ = require('lodash');
 
 var UserSchema = new Schema({
+	id: String,
 	name: String,
 	email: String,
 	ninjablocks: {

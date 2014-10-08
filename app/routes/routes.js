@@ -18,7 +18,7 @@ module.exports = function(app) {
     app.post('/logs', logs.create);
 
     app.route('/users')
-        .post(users.logIn);
+        .get(users.logIn);
 
     app.route('/platforms')
         .get(platforms.all)

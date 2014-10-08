@@ -63,12 +63,12 @@ UTaskSchema.post('remove', function (task) {
  * Receives the block (from NB) and will call the cb when mapped.
  * To logic here is only to do the mapping
  */
-UTaskSchema.statics.fromNinjaBlocks = function (ninjaRule, cb) {
+UTaskSchema.statics.fromNinjaBlocks = function (ninjaRule, ninjaRuleId, cb) {
 	var UTask = mongoose.model('UTask');
 	// Mapping Ninja to uCtrl
 	// Limited to only one action by task when mapping to µCtrl.
 	var task = new UTask({
-		id : ninjaRule.rid,
+		id : ninjaRuleId,
 		name : ninjaRule.shortName,
 		suspended : ninjaRule.suspended,
 		status : ninjaRule.actions[0].da,	
@@ -95,7 +95,6 @@ UTaskSchema.statics.toNinjaBlocks = function (task, cb) {
 				guid : deviceIdSplit[0],
 				to : (deviceIdSplit.length > 1 ? deviceIdSplit[1] : null),
 				da : task.status,
-				
 			} 
 		}]
 	}

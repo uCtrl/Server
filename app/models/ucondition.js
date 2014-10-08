@@ -40,7 +40,7 @@ var UConditionSchema = new Schema({
 		required: true
 	},
 	deviceId: {
-		type: Number,
+		type: String, //TODO : converted to string
 		required: true
 	},
 	deviceType: Number,
@@ -48,8 +48,8 @@ var UConditionSchema = new Schema({
 		type: Number,
 		required: true
 	},
-	beginValue: String,	//TODO : attr. converted to string
-	endValue: String,	//TODO : attr. converted to string
+	beginValue: String, //TODO : converted to string
+	endValue: String,	//TODO : converted to string
 	beginDate: Date,
 	endDate: Date,
 	beginTime: Date,
@@ -89,12 +89,11 @@ UConditionSchema.post('remove', function (condition) {
  * To logic here is only to do the mapping
  * ref: https://github.com/ninjablocks/ninjablocks.github.com/wiki/Rules-Engine-Documentation
  */
-UConditionSchema.statics.fromNinjaBlocks = function (ninjaPrecondition, cb) {
+UConditionSchema.statics.fromNinjaBlocks = function (ninjaPrecondition, ninjaPreconditionId, cb) {
 	var UCondition = mongoose.model('UCondition');
 	// Mapping Ninja to uCtrl
-	var deviceIdSplit = task._scenario._device.id.split(":");	//Subdevice data, if one, is stored into id.
 	var condition = new UCondition({
-		id : null,
+		id : ninjaPreconditionId,
 		type : null,
 		deviceId : ninjaPrecondition.params.guid,
 		deviceType : null,
@@ -111,9 +110,11 @@ UConditionSchema.statics.fromNinjaBlocks = function (ninjaPrecondition, cb) {
 	switch (ninjaPrecondition.handler) {
 		//When condition include a rf subdevice.
 		case 'ninjaChange' : 	
-			condition.deviceId += (ninjaPrecondition.params.to != null ? ':' + ninjaPrecondition.params.to : '');
+			condition.deviceId += ':' + ninjaPrecondition.params.to; //TODO don't have access to subdevice id
 			condition.type = ENUMCONDITIONTYPE.Device;
 			condition.comparisonType = ENUMCOMPARISONTYPE.None;
+			condition.beginValue = ninjaPrecondition.params.to;
+			condition.endValue = ninjaPrecondition.params.to;
 			break;
 		case 'ninjaEquality' : 
 		case 'ninjaThreshold' : 
@@ -151,7 +152,7 @@ UConditionSchema.statics.fromNinjaBlocks = function (ninjaPrecondition, cb) {
  * ref: https://github.com/ninjablocks/ninjablocks.github.com/wiki/Rules-Engine-Documentation
  */
 UConditionSchema.statics.toNinjaBlocks = function (condition, cb) {
-	var deviceIdSplit = condition.deviceId.split(":");	//Subdevice data, if one, is stored into id.
+	var deviceIdSplit = condition.deviceId.split(":");	//Subdevice id, if one, is stored into id.
 	
 	var ninjaPrecondition = { 
 		handler: null, 
@@ -168,7 +169,7 @@ UConditionSchema.statics.toNinjaBlocks = function (condition, cb) {
 		//When condition include a rf subdevice.
 		case ENUMCOMPARISONTYPE.None :
 			ninjaPrecondition.handler	= 'ninjaChange';
-			ninjaPrecondition.params.to	= (deviceIdSplit.length > 1 ? deviceIdSplit[1] : null);
+			ninjaPrecondition.params.to	= condition.beginValue;
 			break;
 		case ENUMCOMPARISONTYPE.GreaterThan :
 			ninjaPrecondition.handler = 'ninjaEquality';	//it can be ninjaThreshold

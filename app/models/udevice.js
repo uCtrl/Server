@@ -89,11 +89,11 @@ UDeviceSchema.post('remove', function (device) {
  * To logic here is only to do the mapping
  * Note that Ninja's subdevices will be mapped to an µCtrl's device
  */
-UDeviceSchema.statics.fromNinjaBlocks = function (ninjaDevice, ninjaSubdevice, cb) {
+UDeviceSchema.statics.fromNinjaBlocks = function (ninjaDevice, ninjaDeviceId, ninjaSubdevice, ninjaSubdeviceId, cb) {
 	var UDevice = mongoose.model('UDevice');
 	// Mapping NinjaBlocks to uCtrl  
 	var device = new UDevice({
-		id : ninjaDevice.guid,						
+		id : ninjaDeviceId,						
 		type : ENUMTYPE[ninjaDevice.device_type],
 		name : ninjaDevice.default_name,
 		description : null,
@@ -108,10 +108,11 @@ UDeviceSchema.statics.fromNinjaBlocks = function (ninjaDevice, ninjaSubdevice, c
 	});
 	// If it's a subdevice mapping
 	if (ninjaSubdevice != null) {
-		//MAP deviceGUID:subdeviceDATA. Ex: 1014BBBK6089_0_0_11:010101010101010101010101
-		device.id = device.id + ':' + ninjaSubdevice.data;
+		device.id = device.id + ':' + ninjaSubdeviceId;	//id = deviceGUID:subdeviceID
 		device.name = ninjaSubdevice.shortName;
 		device.type = (ninjaSubdevice.type == 'sensor' ? ENUMTYPE["rf433Sensor"] : ENUMTYPE["rf433Actuator"]);
+		device.minValue = ninjaSubdevice.data;
+		device.maxValue = ninjaSubdevice.data;
 	}
 	cb(device);
 };
