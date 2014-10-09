@@ -6,24 +6,7 @@ var _ = require('lodash'),
 	User = mongoose.model('User');
 	
 exports.logIn = function(req, res) {
-	var crawler = new ninjacrawler({userId : req.params.userID});
-	crawler.fetchAll( function(err, result)  {
-		crawler.mapData( function(err, result) {
-			res.json(result);
-		});
-	});
-};
-
-/*
-exports.logIn = function(req, res) {
-	var ninjablocks = req.body.ninjablocks;
-	if (!ninjablocks || !ninjablocks.userAccessToken) {
-		return res.json(500, {
-			error: "No ninjablocks token provided"
-		});
-	}
-
-	User.findOne({"ninjablocks.userAccessToken": ninjablocks.userAccessToken}, function(err, user) {
+	User.findOne({"id": req.param.userId}, function(err, user) {
 		if (err) {
 			return res.json(500, {
 				error: err
@@ -31,20 +14,48 @@ exports.logIn = function(req, res) {
 		}
 
 		if (user) {
-			// RAISE EVENT TO START CRAWLING
-			res.json({ token: user._id });
-		} else {
-			var user = new User({ ninjablocks: { userAccessToken: ninjablocks.userAccessToken }});
+			// start crawling
+			var crawler = new ninjacrawler({userId : user.id});
+			crawler.fetchAll( function(err, result)  {
+				crawler.mapData( function(err, result) {
+					res.json({ token: user._id });
+				});
+			});
+		} 
+		else {
+			var user = new User({ 
+				id : '123',
+				name : 'µCtrl tester',
+				email : 'uctrl@outlook.com',
+				ninjablocks: { userAccessToken: global.uctrl.ninja.userAccessToken }
+			});
 			user.save(function(err, user) {
 				if (err) {
 					return res.json(500, {
 						error: err
 					});
 				}
-				// RAISE EVENT TO START CRAWLING
-				res.json({ token: user._id });
+				// start crawling
+				var crawler = new ninjacrawler({userId : user.id});
+				crawler.fetchAll( function(err, result)  {
+					crawler.mapData( function(err, result) {
+						res.json({ token: user._id });
+					});
+				});
 			});
 		}
 	});
 };
-*/
+
+exports.create = function(req, res) {
+	var user = new User(req.body);
+	
+	user.save(function(err) {
+		if (err) {
+			return res.json(500, {
+				error: err//"Can't create the user"
+			});
+		}
+		res.json(user);
+	});
+};

@@ -157,11 +157,13 @@ UConditionSchema.statics.toNinjaBlocks = function (condition, cb) {
 	var ninjaPrecondition = { 
 		handler: null, 
 		params: { 
+			equality : null,
 			guid : deviceIdSplit[0],
 			to : null,
 			value : null,
 			between : null,
 			and : null,
+			shortName : null,
 		}
 	}
 

@@ -19,7 +19,6 @@ var request = require('request'),
 function ninjaCrawler(options) {
 	var self = this;
 	this._options = options || {};
-	this._options.userAccessToken = global.uctrl.ninja.userAccessToken; //TODO temp
 	this._fromNinjaBlocks = {
 		blocks : [],
 		devices : [],
@@ -31,21 +30,26 @@ function ninjaCrawler(options) {
 	 * @param  {Function} callback   Callback when request finished or error found
 	 */
 	this.fetchAll = function(callback) {
-		var nb = new ninjablocks({userAccessToken : self._options.userAccessToken});
 		
-		// fetch NinjaBlocks blocks
-		nb.blocks( function(err, blocks) {
-			self._fromNinjaBlocks.blocks = blocks;
+		// get user and his ninjablocks userAccessToken
+		User.findOne({"id": self._options.userId}, function(err, user) {
+			var nb = new ninjablocks({userAccessToken : user.ninjablocks.userAccessToken});
 			
-			// fetch NinjaBlocks devices
-			nb.devices(function(err, devices) {
-				self._fromNinjaBlocks.devices = devices;
+			// fetch NinjaBlocks blocks
+			nb.blocks( function(err, blocks) {
+				self._fromNinjaBlocks.blocks = blocks;
 				
-				// fetch NinjaBlocks rules
-				nb.rules(function(err, rules) {
-					self._fromNinjaBlocks.rules = rules;
+				// fetch NinjaBlocks devices
+				nb.devices(function(err, devices) {
+					self._fromNinjaBlocks.devices = devices;
 					
-					callback(err, true);
+					// fetch NinjaBlocks rules
+					nb.rules(function(err, rules) {
+						self._fromNinjaBlocks.rules = rules;
+						
+						// callback after asynchronous calls
+						callback(err, true);
+					});
 				});
 			});
 		});
@@ -56,22 +60,23 @@ function ninjaCrawler(options) {
 	 * @param  {Function} callback   Callback when request finished or error found
 	 */
 	this.mapData = function(callback){
-		//Create platforms entries
+		// create platforms entries
 		_(self._fromNinjaBlocks.blocks).forEach(function (blockObj, blockId)  {
 			UPlatform.fromNinjaBlocks(blockObj, blockId, function(platform){
 				platform.save();
 
-				//Create devices under this platform
+				// create devices under this platform
 				_(self._fromNinjaBlocks.devices).forEach(function (deviceObj, deviceId)  { 
 					if (deviceId.split("_")[0] == platform.id) {
 						if (deviceObj.has_subdevice_count >= 1) {
-							//If it contains subdevices
+							
+							// if it contains subdevices
 							_(deviceObj.subDevices).forEach(function (subdeviceObj, subdeviceId)  { 			
 								UDevice.fromNinjaBlocks(deviceObj, deviceId, subdeviceObj, subdeviceObj.data, function(device){
 									device['_platform'] = platform._id;
 									device.save();
 									
-									//Create a default scenario under this device
+									// create a default scenario under this subdevice
 									var scenario = new UScenario({ 
 										id : Date.now(), 
 										name : 'Default Scenario',
@@ -79,14 +84,14 @@ function ninjaCrawler(options) {
 									scenario['_device'] = device._id;
 									scenario.save();
 									
-									//Create rules under the scenario
+									// create rules under this scenario
 									_(self._fromNinjaBlocks.rules).forEach(function(ruleObj, ruleId)  {
-										if (ruleObj.actions[0].params.guid == deviceId) {
+										if (ruleObj.actions[0].params.guid == deviceId && ruleObj.actions[0].params.to == subdeviceObj.data) {
 											UTask.fromNinjaBlocks(ruleObj, ruleObj.rid, function(task){
 												task['_scenario'] = scenario._id;
 												task.save();
 
-												//Create conditions under the task
+												// create conditions under this task
 												_(ruleObj.preconditions).forEach(function(preconditionObj, preconditionId)  {						
 													UCondition.fromNinjaBlocks(preconditionObj, null, function(condition){
 														condition['_task'] = task._id;
@@ -100,11 +105,13 @@ function ninjaCrawler(options) {
 							});
 						}
 						else {
+						
+							// if no subdevices
 							UDevice.fromNinjaBlocks(deviceObj, deviceId, null, null, function(device){
 								device['_platform'] = platform._id;
 								device.save();
 								
-								//Create a default scenario under the device
+								// create a default scenario under this device
 								var scenario = new UScenario({ 
 									id : Date.now(), 
 									name : 'Default Scenario',
@@ -112,14 +119,14 @@ function ninjaCrawler(options) {
 								scenario['_device'] = device._id;
 								scenario.save();
 								
-								//Create rules under the scenario
+								// create rules under this scenario
 								_(self._fromNinjaBlocks.rules).forEach(function(ruleObj, ruleId)  {
 									if (ruleObj.actions[0].params.guid == deviceId) {
 											UTask.fromNinjaBlocks(ruleObj, ruleObj.rid, function(task){
 												task['_scenario'] = scenario._id;
 												task.save();
 												
-												//Create conditions under the task
+												// create conditions under this task
 												_(ruleObj.preconditions).forEach(function(preconditionObj, preconditionId)  {						
 													UCondition.fromNinjaBlocks(preconditionObj, task.id + ':' + preconditionId, function(condition){
 														condition['_task'] = task._id;
@@ -142,100 +149,7 @@ function ninjaCrawler(options) {
 
 
 /**
- * Exports ninjaCrawlUser object
- * @type ninjaCrawlUser
+ * Exports ninjaCrawler object
+ * @type ninjaCrawler
  */
 module.exports = ninjaCrawler;
-
-
-/*
-Old fashion
-//Fetch NinjaBlocks blocks
-		nb.blocks( function(err, blocks) {
-			console.log("###Fetching blocks");
-			_(blocks).forEach(function (blockObj, blockId)  { 
-				UPlatform.fromNinjaBlocks(blockObj, blockId, function(platform){
-					console.log(platform);
-					platform.save();
-				});
-			});
-			
-			//Fetch NinjaBlocks devices
-			nb.devices(function(err, devices) {
-				console.log("###Fetching devices");
-				_(devices).forEach(function (deviceObj, deviceId)  { 
-					var blockId = deviceId.split("_")[0];
-					
-					//Fetch NinjaBlocks device's subdevices
-					if (deviceObj.has_subdevice_count >= 1) {
-						_(deviceObj.subDevices).forEach(function (subdeviceObj, subdeviceId)  { 			
-							UPlatform.findOne({ id: blockId }).exec(function(err, platform) {
-								if (!err) {
-									UDevice.fromNinjaBlocks(deviceObj, deviceId, subdeviceObj, subdeviceObj.data, function(device){
-										device['_platform'] = platform._id;
-										console.log(device);
-										device.save();
-										
-										//Create default scenario
-										var scenario = new UScenario({ 
-											id : Date.now(), 
-											name : 'Default Scenario',
-											_device : device._id,
-										});
-										scenario.save();
-									});
-								}	
-							});	
-						});
-					}
-					else {
-						UPlatform.findOne({ id: blockId }).exec(function(err, platform) {
-							if (!err) {
-								UDevice.fromNinjaBlocks(deviceObj, deviceId, null, null, function(device){
-									device['_platform'] = platform._id;
-									console.log(device);
-									device.save();
-									
-									//Create default scenario
-										var scenario = new UScenario({ 
-											id : Date.now(), 
-											name : 'Default Scenario',
-											_device : device._id,
-										});
-										scenario.save();
-								});
-							}	
-						});	
-					}
-				});
-				
-				//Fetch NinjaBlocks rules
-				nb.rules(function(err, rules) {
-					console.log("###Fetching rules");
-					_(rules).forEach(function(ruleObj, ruleId)  {
-						var deviceId = ruleObj.actions[0].params.guid;
-						
-						UDevice.findOne({ id : deviceId}).exec(function(err, device) {
-							if (!err) {
-								UTask.fromNinjaBlocks(ruleObj, ruleObj.rid, function(task){
-									task['_scenario'] = device._scenarios[0]._id;
-									console.log(task);
-									task.save();
-									
-									//Fetch NinjaBlocks rule's preconditions
-									console.log("###Fetching preconditions");
-									_(ruleObj.preconditions).forEach(function(preconditionObj, preconditionId)  {						
-										UCondition.fromNinjaBlocks(preconditionObj, null, function(condition){
-											condition['_task'] = task._id;
-											console.log(condition);
-											condition.save();
-										});
-									});
-								});
-							}	
-						});	
-					});
-				});
-			});
-		});
-*/
