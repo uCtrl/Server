@@ -75,10 +75,3 @@ console.log('Express app started on port ' + port);
 
 // Expose app
 exports = module.exports = app;
-
-
-var notifier = require('./app/tools/notifs.js').NotificationCenter.getInstance();
-
-notifier.registerCallback(11, function(data) {
-    console.log(data);
-});

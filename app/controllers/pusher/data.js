@@ -2,7 +2,6 @@
 
 var mongoose = require('mongoose');
 var Stats = mongoose.model('Stats');
-var notifier = require('../../tools/notifs.js').NotificationCenter.getInstance();
 
 exports.save = function(data) {
 	console.log("NINJA: Data received from device: " + data.D);
@@ -20,6 +19,6 @@ exports.save = function(data) {
 	});
 	o.save();
 
-	notifier.triggerEvent(o.deviceId, o.data);
+	Stats.emit('create', o);
 };
 

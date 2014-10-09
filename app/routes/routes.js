@@ -1,6 +1,5 @@
 'use strict';
 
-var index = require(__base + 'app/controllers/index');
 var logs = require(__base + 'app/controllers/logs.js');
 var platforms = require(__base + 'app/controllers/platforms.js');
 var devices = require(__base + 'app/controllers/devices.js');
