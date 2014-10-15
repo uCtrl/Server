@@ -17,9 +17,7 @@ exports.logIn = function(req, res) {
 			// start crawling
 			var crawler = new ninjacrawler({userId : user.id});
 			crawler.fetchAll( function(err, result)  {
-				crawler.mapData( function(err, result) {
-					res.json({ token: user._id });
-				});
+				res.json({ token: user._id });
 			});
 		} 
 		else {
@@ -37,11 +35,12 @@ exports.logIn = function(req, res) {
 				}
 				// start crawling
 				var crawler = new ninjacrawler({userId : user.id});
-				crawler.fetchAll( function(err, result)  {
-					crawler.mapData( function(err, result) {
-						res.json({ token: user._id });
-					});
+				crawler.pushAll( function(err, result)  {
+					res.json(result);
 				});
+				/*crawler.fetchAll( function(err, result)  {
+					res.json({ token: user._id });
+				});*/
 			});
 		}
 	});

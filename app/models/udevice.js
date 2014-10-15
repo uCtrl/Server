@@ -128,19 +128,21 @@ UDeviceSchema.statics.toNinjaBlocks = function (device, cb) {
 	// Put : shortName and DA can be send.
 	// Delete : Delete all informations about the specified device.
 	var ninjaDevice = {
-		//guid : device.id
+		guid : device.id,
 		//device_type : _.each(ENUMTYPE, function(typeValue, typeIndex){ if(typeValue == device.type) return typeIndex; });
-		//default_name : device.name,
+		default_name : device.name,
 		shortName : device.name, //Can be updated
-		DA : device.status //When sending command
-		//unit : device.unitLabel,
+		DA : device.status, //When sending command
+		unit : device.unitLabel,
 	}
+	var ninjaSubdevice = null;
 	
 	// If it's a subdevice mapping
 	if (device.type == ENUMTYPE.rf433Sensor || device.type == ENUMTYPE.rf433Actuator) {
 		var deviceIdSplit = device.id.split(":");	//Subdevice data stored into id.
 		ninjaDevice.guid = deviceIdSplit[0];
-		var ninjaSubdevice = {
+		ninjaSubdevice = {
+			guid : deviceIdSplit[0], //*
 			category : "rf", //Allowed: "rf", "webhook", "sms"
 			type : (device.type == ENUMTYPE.rf433Sensor ? "sensor" : "actuator"), //Allowed: "actuator" or "sensor" 
 			shortName : device.name,

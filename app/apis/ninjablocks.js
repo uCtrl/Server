@@ -475,7 +475,7 @@ function ninjaBlocks(options) {
 			 * @param  {Object}   data   Data for the request
 			 * @param  {String}   data.shortName   The name of your rule. 
 			 * @param  {String}   data.preconditions   Array of precondition handlers.
-			 * @param  {String}   data.shortName   Array of action handlers.
+			 * @param  {String}   data.actions   Array of action handlers.
 			 * @param  {String=}  data.timeout   Number of seconds to wait before executing this rule again.  
 			 * @param  {Function} callback   Callback when request finished or error found
 			 */
@@ -489,7 +489,7 @@ function ninjaBlocks(options) {
 			 * @param  {Object}   data   Data for the request
 			 * @param  {String}   data.shortName   The name of your rule. 
 			 * @param  {String}   data.preconditions   Array of precondition handlers.
-			 * @param  {String}   data.shortName   Array of action handlers.
+			 * @param  {String}   data.actions   Array of action handlers.
 			 * @param  {String=}  data.timeout   Number of seconds to wait before executing this rule again.  
 			 * @param  {Function} callback   Callback when request finished or error found
 			 */

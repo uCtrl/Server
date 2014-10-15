@@ -18,6 +18,7 @@ var UScenarioSchema = new Schema({
 		type: String,
 		required: true
 	},
+	active : Boolean,
 	_device: {
 		type: Schema.Types.ObjectId, 
 		ref: 'UDevice',

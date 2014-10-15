@@ -71,7 +71,7 @@ UTaskSchema.statics.fromNinjaBlocks = function (ninjaRule, ninjaRuleId, cb) {
 		id : ninjaRuleId,
 		name : ninjaRule.shortName,
 		suspended : ninjaRule.suspended,
-		status : ninjaRule.actions[0].da,	
+		status : _(ninjaRule.actions).first().params.da || null,
 	});
 	cb(task);
 };
@@ -81,24 +81,34 @@ UTaskSchema.statics.fromNinjaBlocks = function (ninjaRule, ninjaRuleId, cb) {
  * To logic here is only to do the mapping
  */
 UTaskSchema.statics.toNinjaBlocks = function (task, cb) {
+	var UScenario = mongoose.model('UScenario');
+	var UDevice = mongoose.model('UDevice');
 	var NB_TIMEOUT = 2;
 	var NB_ACTIONHANDLER = "ninjaSendCommand";
-	var deviceIdSplit = task._scenario._device.id.split(":");	//Subdevice data, if one, is stored into id.
+	var deviceIdSplit = null;
 	
-	var ninjaRule = {
-		shortName : task.name,
-		timeout : NB_TIMEOUT,
-		preconditions : null, //TODO : Check if it can be null now and updated after by ucondition.
-		actions : [{ 
-			handler: NB_ACTIONHANDLER, 
-			params: { 
-				guid : deviceIdSplit[0],
-				to : (deviceIdSplit.length > 1 ? deviceIdSplit[1] : null),
-				da : task.status,
-			} 
-		}]
-	}
-	cb(ninjaRule);
+	UScenario.findById(task._scenario, function(err, scenario){
+		UDevice.findById(scenario._device, function(err, device){
+			deviceIdSplit = device.id.split(":");	//Subdevice data, if one, is stored into id.
+			
+			var ninjaRule = {
+				rid : task.id,
+				shortName : task.name,
+				timeout : NB_TIMEOUT,
+				preconditions : [], //need to be filled
+				actions : [{ 
+					handler: NB_ACTIONHANDLER, 
+					params: { 
+						guid : deviceIdSplit[0],
+						to : (deviceIdSplit.length > 1 ? deviceIdSplit[1] : null),
+						da : task.status,
+					} 
+				}]
+			}
+			
+			cb(ninjaRule);
+		});
+	});
 };
 
 UTaskSchema.plugin(cleanJson);

@@ -67,13 +67,13 @@ UPlatformSchema.statics.fromNinjaBlocks = function (ninjaBlock, ninjaBlockId, cb
  */
 UPlatformSchema.statics.toNinjaBlocks = function (platform, cb) {
 	//Can't post a block. Can post a nodeid to activate the block only
-	var block = {
-		nodeid : platform.id
-		//short_name : platform.name
+	var ninjaBlock = {
+		nodeid : platform.id,
+		short_name : platform.name
 		//last_active
 		//date_created
 	}
-	cb(block);
+	cb(ninjaBlock);
 };
 
 UPlatformSchema.plugin(cleanJson);
