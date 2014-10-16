@@ -15,7 +15,7 @@ module.exports = function(app) {
 
     var stats = require('../controllers/stats.js');
     app.get('/stats', stats.read);
-    app.get('/stats/:deviceId', stats.read);
+    app.get('/stats/:deviceId/:beginDate/:endDate', stats.read);
     app.post('/stats', stats.create);
     app.route('/users')
         .post(users.logIn);

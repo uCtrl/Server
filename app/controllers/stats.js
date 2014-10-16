@@ -9,9 +9,18 @@ exports.read = function(req, res) {
 			res.json(stats);
 		});
 	} else {
-		Stats.find({ deviceId: req.params.deviceId }, function (err, stats) {
-			res.json(stats);
-		});
+		if (!req.params.beginDate || !req.params.endDate) {
+			Stats.find({ guid: req.params.deviceId}, function (err, stats) {
+				res.json(stats);
+			});
+		} else {
+			Stats.find({ 
+				guid: req.params.deviceId, 
+				timestamp: {"$gte": req.params.beginDate, "$lt": req.params.endDate} }, 
+				function (err, stats) {
+					res.json(stats);
+				});
+		}
 	}
 };
 
