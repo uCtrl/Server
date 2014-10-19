@@ -1,6 +1,5 @@
 'use strict';
 
-var index = require(__base + 'app/controllers/index');
 var logs = require(__base + 'app/controllers/logs.js');
 var platforms = require(__base + 'app/controllers/platforms.js');
 var devices = require(__base + 'app/controllers/devices.js');
@@ -10,13 +9,14 @@ var conditions = require(__base + 'app/controllers/conditions.js');
 var users = require(__base + 'app/controllers/users.js');
 
 module.exports = function(app) {
-    
-    app.get('/', index.render);
-
     app.get('/logs', logs.read);
     app.get('/logs/:deviceId', logs.read);
     app.post('/logs', logs.create);
 
+    var stats = require('../controllers/stats.js');
+    app.get('/stats', stats.read);
+    app.get('/stats/:deviceId/:beginDate/:endDate', stats.read);
+    app.post('/stats', stats.create);
     app.route('/users')
         .post(users.logIn);
 
