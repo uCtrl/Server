@@ -4,15 +4,14 @@ var mongoose = require('mongoose');
 var Stats = mongoose.model('Stats');
 
 exports.save = function(data) {
-	console.log("NINJA: Data received from device: " + data.D);
+	console.log("NINJA: Data received from device: " + data.GUID);
 
 	var o = new Stats({
 		// Ninja equivalents
-		guid: data.GUID,
+		id: data.GUID,
 		data: data.DA,
-		deviceId: data.D,
-		vendorId: data.V,
-		portNumber: data.G,
+		type: data.D,
+		vendor: data.V,
 
 		// Custom fields
 		timestamp: data.timestamp || Date.now()
