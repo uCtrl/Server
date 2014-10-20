@@ -3,7 +3,8 @@
 var mongoose = require('mongoose'),
 	Schema   = mongoose.Schema,
 	cleanJson = require('./cleanJson.js'),
-	_ = require('lodash');
+	_ = require('lodash'),
+	uuid = require('node-uuid');
 	
 /**
  * Constants
@@ -28,23 +29,25 @@ var UDeviceSchema = new Schema({
 		required: true,
 		unique: true
 	},
+	tpId: {
+		type: String,
+		required: true,
+		unique: true
+	},
+	name: String,
 	type: { 
 		type: Number,
 		required: true
 	},
-	name: {
-		type: String,
-		required: true
-	},
 	description: String,
-	enabled: Boolean,
-	isTriggerValue: Boolean,
 	maxValue: Number,
 	minValue: Number,
+	value: String,
 	precision: Number,
 	status: Number,
 	unitLabel: String,
-	lastUpdate: Date, 
+	enabled: Boolean,
+	lastUpdated: Number, 
 	_platform: {
 		type: Schema.Types.ObjectId, 
 		ref: 'UPlatform',
@@ -63,6 +66,8 @@ UDeviceSchema.post('save', function (device) {
 		{ $addToSet: { _devices: device._id } }, 
 		{ safe: true },
 		function (err, num) { if (err) console.log("Error: ", err) });
+		
+	this.db.model('UDevice').emit('new', this);
 })
 
 UDeviceSchema.post('remove', function (device) {
@@ -82,6 +87,8 @@ UDeviceSchema.post('remove', function (device) {
 		}
 		_(scenarios).forEach(function(scenario) { scenario.remove() } );
 	});
+	
+	this.db.model('UDevice').emit('remove', this);
 })
 
 /*
@@ -93,26 +100,26 @@ UDeviceSchema.statics.fromNinjaBlocks = function (ninjaDevice, ninjaDeviceId, ni
 	var UDevice = mongoose.model('UDevice');
 	// Mapping NinjaBlocks to uCtrl  
 	var device = new UDevice({
-		id : ninjaDeviceId,						
+		id : uuid.v1(),
+		tpId : ninjaDeviceId,
+		name : ninjaDevice.default_name,		
 		type : ENUMTYPE[ninjaDevice.device_type],
-		name : ninjaDevice.default_name,
 		description : null,
-		enabled : null,
-		isTriggerValue : null,
 		maxValue : null,
 		minValue : null,
+		value : (ninjaDevice.last_data != undefined, ninjaDevice.last_data.DA, null),
 		precision : null,
 		status : null,
-		lastUpdate : ninjaDevice.last_data.timestamp,
 		unitLabel : ninjaDevice.unit,
+		enabled : true,
+		lastUpdated : ninjaDevice.last_data.timestamp,
 	});
 	// If it's a subdevice mapping
 	if (ninjaSubdevice != null) {
-		device.id = device.id + ':' + ninjaSubdeviceId;	//id = deviceGUID:subdeviceID
+		device.tpId = device.tpId + ':' + ninjaSubdeviceId;	//id = deviceGUID:subdeviceID
 		device.name = ninjaSubdevice.shortName;
 		device.type = (ninjaSubdevice.type == 'sensor' ? ENUMTYPE["rf433Sensor"] : ENUMTYPE["rf433Actuator"]);
-		device.minValue = ninjaSubdevice.data;
-		device.maxValue = ninjaSubdevice.data;
+		device.value = ninjaSubdevice.data;
 	}
 	cb(device);
 };
@@ -128,25 +135,24 @@ UDeviceSchema.statics.toNinjaBlocks = function (device, cb) {
 	// Put : shortName and DA can be send.
 	// Delete : Delete all informations about the specified device.
 	var ninjaDevice = {
-		guid : device.id,
-		//device_type : _.each(ENUMTYPE, function(typeValue, typeIndex){ if(typeValue == device.type) return typeIndex; });
+		guid : device.tpId,
 		default_name : device.name,
 		shortName : device.name, //Can be updated
-		DA : device.status, //When sending command
+		DA : device.value, //When sending command
 		unit : device.unitLabel,
 	}
 	var ninjaSubdevice = null;
 	
 	// If it's a subdevice mapping
 	if (device.type == ENUMTYPE.rf433Sensor || device.type == ENUMTYPE.rf433Actuator) {
-		var deviceIdSplit = device.id.split(":");	//Subdevice data stored into id.
-		ninjaDevice.guid = deviceIdSplit[0];
+		var deviceTpIdSplit = device.tpId.split(":");	//Subdevice data stored into tpId.
+		ninjaDevice.guid = deviceTpIdSplit[0];
 		ninjaSubdevice = {
-			guid : deviceIdSplit[0], //*
+			guid : deviceTpIdSplit[0], //*
 			category : "rf", //Allowed: "rf", "webhook", "sms"
 			type : (device.type == ENUMTYPE.rf433Sensor ? "sensor" : "actuator"), //Allowed: "actuator" or "sensor" 
 			shortName : device.name,
-			data : deviceIdSplit[1],									
+			data : deviceTpIdSplit[1],									
 		}
 	}
 	cb(ninjaDevice, ninjaSubdevice);

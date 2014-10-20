@@ -17,9 +17,16 @@ module.exports = function(app) {
     app.get('/logs/:deviceId', logs.read);
     app.post('/logs', logs.create);
 
+	//TODO : revoir les routes user.
     app.route('/users')
-        .get(users.logIn)
+        .post(users.logIn)
         .post(users.create);
+		
+	app.route('/users/fetchAll')
+        .post(users.fetchAll)
+		
+	app.route('/users/pushAll')
+        .post(users.pushAll)
 
     app.route('/platforms')
         .get(platforms.all)

@@ -32,7 +32,7 @@ function ninjaCrawler(options) {
 	this.fetchAll = function(callback) {
 		
 		// get user and his ninjablocks userAccessToken
-		User.findOne({"id": self._options.userId}, function(err, user) {
+		User.findById(self._options.userId, function(err, user) {
 			var nb = new ninjablocks({userAccessToken : user.ninjablocks.userAccessToken});
 			
 			// fetch NinjaBlocks blocks
@@ -78,34 +78,32 @@ function ninjaCrawler(options) {
 										device.save();
 										
 										// create a default scenario under this subdevice
-										var scenario = new UScenario({ 
-											id : Date.now(), 
-											name : 'Default Scenario',
-											active : true,
-										});
-										scenario['_device'] = device._id;
-										scenario.save();
-										
-										// create rules under this scenario
-										_(self._fromNinjaBlocks.rules).forEach(function(ruleObj, ruleId)  {
-											if (ruleObj.actions[0].params.guid == deviceId && ruleObj.actions[0].params.to == subdeviceObj.data) {
-												UTask.fromNinjaBlocks(ruleObj, ruleObj.rid, function(task){
-													task['_scenario'] = scenario._id;
-													task.save();
+										UScenario.createDefault(function(scenario){
+											scenario['_device'] = device._id;
+											scenario.save();
+											
+											// create rules under this scenario
+											_(self._fromNinjaBlocks.rules).forEach(function(ruleObj, ruleId)  {
+												if (ruleObj.actions[0].params.guid == deviceId && ruleObj.actions[0].params.to == subdeviceObj.data) {
+													UTask.fromNinjaBlocks(ruleObj, ruleObj.rid, function(task){
+														task['_scenario'] = scenario._id;
+														task.save();
 
-													// create conditions under this task
-													_(ruleObj.preconditions).forEach(function(preconditionObj, preconditionId)  {						
-														UCondition.fromNinjaBlocks(preconditionObj, task.id + ':' + preconditionId, function(condition){
-															condition['_task'] = task._id;
-															condition.save();
+														// create conditions under this task
+														_(ruleObj.preconditions).forEach(function(preconditionObj, preconditionId)  {						
+															UCondition.fromNinjaBlocks(preconditionObj, task.id + ':' + preconditionId, function(condition){
+																condition['_task'] = task._id;
+																condition.save();
+															});
 														});
 													});
-												});
-											}
+												}
+											});
 										});
 									});
 								});
 							}
+							
 							else {
 							
 								// if no subdevices
@@ -113,18 +111,13 @@ function ninjaCrawler(options) {
 									device['_platform'] = platform._id;
 									device.save();
 									
-									// create a default scenario under this device
-									var scenario = new UScenario({ 
-										id : Date.now(), 
-										name : 'Default Scenario',
-										active : true,
-									});
-									scenario['_device'] = device._id;
-									scenario.save();
-									
-									// create rules under this scenario
-									_(self._fromNinjaBlocks.rules).forEach(function(ruleObj, ruleId)  {
-										if (ruleObj.actions[0].params.guid == deviceId) {
+									UScenario.createDefault(function(scenario){
+										scenario['_device'] = device._id;
+										scenario.save();
+											
+										// create rules under this scenario
+										_(self._fromNinjaBlocks.rules).forEach(function(ruleObj, ruleId)  {
+											if (ruleObj.actions[0].params.guid == deviceId) {
 												UTask.fromNinjaBlocks(ruleObj, ruleObj.rid, function(task){
 													task['_scenario'] = scenario._id;
 													task.save();
@@ -137,7 +130,8 @@ function ninjaCrawler(options) {
 														});
 													});
 												});
-										}
+											}
+										});
 									});
 								});
 							}
@@ -155,7 +149,7 @@ function ninjaCrawler(options) {
 	this.pushAll = function(callback) {
 		
 		// get user and his ninjablocks userAccessToken
-		User.findOne({"id": self._options.userId}, function(err, user) {
+		User.findById(self._options.userId, function(err, user) {
 			var nb = new ninjablocks({userAccessToken : user.ninjablocks.userAccessToken});
 			
 			// map platforms to NinjaBlocks blocks
@@ -175,10 +169,10 @@ function ninjaCrawler(options) {
 						nb.device(ninjaDevice.guid).update(ninjaDevice, function(err, result){
 							if (ninjaSubdevice != null) {
 								// create subdevices if any
-								/*nb.device(ninjaDevice.guid).subdevice().create(ninjaSubdevice, function(err, result){
+								nb.device(ninjaDevice.guid).subdevice().create(ninjaSubdevice, function(err, result){
 									console.log(err);
 									console.log(result);
-								});*/
+								});
 							}
 						});
 					});

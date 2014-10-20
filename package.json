@@ -21,7 +21,8 @@
     "multer": "^0.1.4",
     "serve-favicon": "^2.1.4",
     "request": "^2.44.0",
-    "q": "~1.0.1"
+    "q": "~1.0.1",
+    "node-uuid": "^1.4.1"
   },
   "devDependencies": {
     "gulp": "^3.8.8",

@@ -3,7 +3,8 @@
 var mongoose = require('mongoose'),
 	Schema   = mongoose.Schema,
 	cleanJson = require('./cleanJson.js'),
-	_ = require('lodash');
+	_ = require('lodash'),
+	uuid = require('node-uuid');
 
 /**
  * UTask Schema
@@ -14,9 +15,15 @@ var UTaskSchema = new Schema({
 		required: true,
 		unique: true
 	},
+	tpId: {
+		type: String,
+		required: true,
+		unique: true
+	},
 	name : String,
-	suspended : Boolean,
-	status : String,
+	value : String,
+	enabled : Boolean,
+	lastUpdated: Number,
 	_scenario: {
 		type: Schema.Types.ObjectId, 
 		ref: 'UScenario',
@@ -38,6 +45,8 @@ UTaskSchema.post('save', function (task) {
 		{ $addToSet: { _tasks: task._id } }, 
 		{ safe: true },
 		function(err, num) { if (err) console.log("Error: ", err) });
+		
+	this.db.model('UTask').emit('new', this);
 })
 
 UTaskSchema.post('remove', function (task) {
@@ -57,6 +66,8 @@ UTaskSchema.post('remove', function (task) {
 		}
 		_(conditions).forEach(function(condition) { condition.remove() } );
 	});
+	
+	this.db.model('UTask').emit('remove', this);
 })
 
 /*
@@ -68,10 +79,12 @@ UTaskSchema.statics.fromNinjaBlocks = function (ninjaRule, ninjaRuleId, cb) {
 	// Mapping Ninja to uCtrl
 	// Limited to only one action by task when mapping to µCtrl.
 	var task = new UTask({
-		id : ninjaRuleId,
+		id : uuid.v1(),
+		tpId : ninjaRuleId,
 		name : ninjaRule.shortName,
-		suspended : ninjaRule.suspended,
-		status : _(ninjaRule.actions).first().params.da || null,
+		value : _(ninjaRule.actions).first().params.da || null,
+		enabled : ninjaRule.suspended,
+		lastUpdated : null,
 	});
 	cb(task);
 };
@@ -85,27 +98,27 @@ UTaskSchema.statics.toNinjaBlocks = function (task, cb) {
 	var UDevice = mongoose.model('UDevice');
 	var NB_TIMEOUT = 2;
 	var NB_ACTIONHANDLER = "ninjaSendCommand";
-	var deviceIdSplit = null;
+	var deviceTpIdSplit = null;
 	
 	UScenario.findById(task._scenario, function(err, scenario){
 		UDevice.findById(scenario._device, function(err, device){
-			deviceIdSplit = device.id.split(":");	//Subdevice data, if one, is stored into id.
+			deviceTpIdSplit = device.tpId.split(":");	//Subdevice data, if one, is stored into id.
 			
 			var ninjaRule = {
-				rid : task.id,
+				rid : task.tpId,
 				shortName : task.name,
 				timeout : NB_TIMEOUT,
-				preconditions : [], //need to be filled
+				preconditions : [], //need to be filled with ucondition objects
 				actions : [{ 
 					handler: NB_ACTIONHANDLER, 
 					params: { 
-						guid : deviceIdSplit[0],
-						to : (deviceIdSplit.length > 1 ? deviceIdSplit[1] : null),
+						guid : deviceTpIdSplit[0],
+						to : (deviceTpIdSplit.length > 1 ? deviceTpIdSplit[1] : null),
 						da : task.status,
 					} 
 				}]
 			}
-			
+
 			cb(ninjaRule);
 		});
 	});

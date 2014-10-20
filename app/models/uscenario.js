@@ -3,7 +3,8 @@
 var mongoose = require('mongoose'),
 	Schema   = mongoose.Schema,
 	cleanJson = require('./cleanJson.js'),
-	_ = require('lodash');
+	_ = require('lodash'),
+	uuid = require('node-uuid');
 
 /**
  * UScenario Schema
@@ -14,11 +15,13 @@ var UScenarioSchema = new Schema({
 		required: true,
 		unique: true
 	},
-	name: {
+	tpId: {
 		type: String,
-		required: true
+		unique: true
 	},
-	active : Boolean,
+	name: String,
+	enabled : Boolean,
+	lastUpdated: Number,
 	_device: {
 		type: Schema.Types.ObjectId, 
 		ref: 'UDevice',
@@ -37,6 +40,8 @@ UScenarioSchema.post('save', function (scenario) {
 		{ $addToSet: { _scenarios: scenario._id } }, 
 		{ safe: true },
 		function (err, num) { if (err) console.log("Error: ", err) });
+		
+	this.db.model('UScenario').emit('new', this);
 })
 
 UScenarioSchema.post('remove', function (scenario) {
@@ -56,7 +61,24 @@ UScenarioSchema.post('remove', function (scenario) {
 		}
 		_(tasks).forEach(function(task) { task.remove() } );
 	});
+	
+	this.db.model('UScenario').emit('remove', this);
 })
+
+/*
+ * Create default scenario
+ */
+UScenarioSchema.statics.createDefault = function (cb) {
+	var UScenario = mongoose.model('UScenario');
+	var scenario = new UScenario({
+		id : uuid.v1(),
+		tpId : null, 
+		name : 'Default scenario',
+		enabled : true,
+		lastUpdated : null,
+	});
+	cb(scenario);
+};
 
 UScenarioSchema.plugin(cleanJson);
 mongoose.model('UScenario', UScenarioSchema);
