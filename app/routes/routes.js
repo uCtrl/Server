@@ -1,6 +1,7 @@
 'use strict';
 
 var logs = require(__base + 'app/controllers/logs.js');
+var system = require(__base + 'app/controllers/system.js');
 var platforms = require(__base + 'app/controllers/platforms.js');
 var devices = require(__base + 'app/controllers/devices.js');
 var scenarios = require(__base + 'app/controllers/scenarios.js');
@@ -19,6 +20,9 @@ module.exports = function(app) {
     app.post('/stats', stats.create);
     app.route('/users')
         .post(users.logIn);
+
+    app.route('/system')
+        .get(system.all)
 
     app.route('/platforms')
         .get(platforms.all)
