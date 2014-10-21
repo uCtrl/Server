@@ -6,7 +6,7 @@ var Stats = mongoose.model('Stats');
 exports.read = function(req, res) {
 	var columns = 'id data type timestamp';
 
-	if (!req.params.deviceId) {
+	if (!req.query.deviceId) {
 		Stats.find({
 			timestamp: {"$gte": req.query.from || 0, "$lt": req.query.to || Date.now()}
 		})
@@ -16,7 +16,7 @@ exports.read = function(req, res) {
 		});
 	} else {
 		Stats.find({ 
-			id: req.params.deviceId,
+			id: req.query.deviceId,
 			timestamp: {"$gte": req.query.from || 0, "$lt": req.query.to || Date.now()} 
 		})
 		.select(columns)

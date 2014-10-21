@@ -18,9 +18,6 @@ module.exports = function(app) {
 
     app.route('/stats')
        .get(stats.read);
-       
-    app.route('/stats/:deviceId')
-       .get(stats.read);
 
     app.route('/users')
         .post(users.logIn);

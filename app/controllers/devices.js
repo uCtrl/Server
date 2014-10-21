@@ -127,6 +127,8 @@ exports.stats = function(req, res) {
 			});
 			mean /= stats.length;
 			res.json(mean);
+		} else {
+			res.json(stats);
 		}
 	});
 };

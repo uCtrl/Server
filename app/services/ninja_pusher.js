@@ -20,19 +20,10 @@ channel.bind('data', dataController.save);
 // CONFIG - Seems to be sent when playing around in the interface without applying new rules
 channel.bind('config',
   function(data) {
-  	console.log(data);
-  	console.log('CONFIG. FIND ME, I NEED TO GET IMPLEMENTED.');
-  	_.forEach(data.CONFIG, function (c) {
-  		console.log(c.data);
-  	});
+  	console.log('New CONFIG. ');
   }
 );
 
-// STREAM - Gotta find out what that is
-channel.bind('stream',
-  function(data) {
-  	console.log('STREAM. FIND ME, I NEED TO GET IMPLEMENTED.');
-  	
-  	console.log(data);
-  }
-);
+// STREAM
+var streamController = require('../controllers/pusher/stream.js');
+channel.bind('stream', streamController.save);

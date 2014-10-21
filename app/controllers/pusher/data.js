@@ -4,8 +4,6 @@ var mongoose = require('mongoose');
 var Stats = mongoose.model('Stats');
 
 exports.save = function(data) {
-	console.log("NINJA: Data received from device: " + data.GUID);
-
 	var o = new Stats({
 		// Ninja equivalents
 		id: data.GUID,
