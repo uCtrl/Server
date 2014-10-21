@@ -117,20 +117,21 @@ UConditionSchema.statics.fromNinjaBlocks = function (ninjaPrecondition, ninjaPre
 		ninjaPrecondition.handler == 'ninjaThreshold' || 
 		ninjaPrecondition.handler == 'ninjaRangeToggle' 
 	) {
-		UDevice.find({tpId : condition.deviceTpId}, function(err, device){
-				condition.deviceId = device.id;
+		//TODO can't obtain de device.id if the device isn't in the database yet. Asynchronous fetching problem.
+		UDevice.findOne({tpId : ninjaPrecondition.params.guid}, function(err, device){
+				condition.deviceId = (err != null ? device.id : null);
 				condition.type = ENUMCONDITIONTYPE.Device;
 				
 				switch (ninjaPrecondition.handler) {
 					//When condition include a rf subdevice.
 					case 'ninjaChange' : 	
-						condition.deviceTpId += ninjaPrecondition.params.guid + ':' + ninjaPrecondition.params.to; //TODO don't have access to subdevice id
+						condition.deviceTpId = ninjaPrecondition.params.guid + ':' + ninjaPrecondition.params.to; //TODO don't have access to subdevice id
 						condition.comparisonType = ENUMCOMPARISONTYPE.None;
 						condition.deviceValue = ninjaPrecondition.params.to;
 						break;
 					case 'ninjaEquality' : 
 					case 'ninjaThreshold' : 
-						condition.deviceTpId += ninjaPrecondition.params.guid;
+						condition.deviceTpId = ninjaPrecondition.params.guid;
 						switch (ninjaPrecondition.params.equality) {
 							case 'GT' :
 							case 'GTE' :
@@ -147,7 +148,7 @@ UConditionSchema.statics.fromNinjaBlocks = function (ninjaPrecondition, ninjaPre
 						condition.deviceValue = ninjaPrecondition.params.value;
 						break;
 					case 'ninjaRangeToggle' : 
-						condition.deviceTpId += ninjaPrecondition.params.guid;
+						condition.deviceTpId = ninjaPrecondition.params.guid;
 						condition.comparisonType = ENUMCOMPARISONTYPE.InBetween;
 						condition.beginValue = ninjaPrecondition.params.between;
 						condition.endValue = ninjaPrecondition.params.and;

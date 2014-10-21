@@ -68,7 +68,7 @@ function ninjaCrawler(options) {
 
 					// create devices under this platform
 					_(self._fromNinjaBlocks.devices).forEach(function (deviceObj, deviceId)  { 
-						if (deviceId.split("_")[0] == platform.id) {
+						if (deviceId.split("_")[0] == platform.tpId) {
 							if (deviceObj.has_subdevice_count >= 1) {
 								
 								// if it contains subdevices
@@ -78,11 +78,11 @@ function ninjaCrawler(options) {
 										device.save();
 										
 										// create a default scenario under this subdevice
-										UScenario.createDefault(function(scenario){
+										UScenario.createDefault(function(scenario) {
 											scenario['_device'] = device._id;
 											scenario.save();
 											
-											// create rules under this scenario
+											// create tasks under this scenario
 											_(self._fromNinjaBlocks.rules).forEach(function(ruleObj, ruleId)  {
 												if (ruleObj.actions[0].params.guid == deviceId && ruleObj.actions[0].params.to == subdeviceObj.data) {
 													UTask.fromNinjaBlocks(ruleObj, ruleObj.rid, function(task){
@@ -91,7 +91,7 @@ function ninjaCrawler(options) {
 
 														// create conditions under this task
 														_(ruleObj.preconditions).forEach(function(preconditionObj, preconditionId)  {						
-															UCondition.fromNinjaBlocks(preconditionObj, task.id + ':' + preconditionId, function(condition){
+															UCondition.fromNinjaBlocks(preconditionObj, task.tpId + ':' + preconditionId, function(condition){
 																condition['_task'] = task._id;
 																condition.save();
 															});
@@ -111,7 +111,7 @@ function ninjaCrawler(options) {
 									device['_platform'] = platform._id;
 									device.save();
 									
-									UScenario.createDefault(function(scenario){
+									UScenario.createDefault(function(scenario) {
 										scenario['_device'] = device._id;
 										scenario.save();
 											
@@ -124,7 +124,7 @@ function ninjaCrawler(options) {
 													
 													// create conditions under this task
 													_(ruleObj.preconditions).forEach(function(preconditionObj, preconditionId)  {						
-														UCondition.fromNinjaBlocks(preconditionObj, task.id + ':' + preconditionId, function(condition){
+														UCondition.fromNinjaBlocks(preconditionObj, task.tpId + ':' + preconditionId, function(condition){
 															condition['_task'] = task._id;
 															condition.save();
 														});

@@ -19,14 +19,12 @@ module.exports = function(app) {
 
 	//TODO : revoir les routes user.
     app.route('/users')
-        .post(users.logIn)
+        //.post(users.logIn)
         .post(users.create);
 		
-	app.route('/users/fetchAll')
-        .post(users.fetchAll)
-		
-	app.route('/users/pushAll')
-        .post(users.pushAll)
+	app.route('/users/:token')
+		.get(users.fetchAll)
+		.put(users.pushAll);
 
     app.route('/platforms')
         .get(platforms.all)

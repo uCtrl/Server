@@ -10,7 +10,7 @@ exports.logIn = function(req, res) {
 };
 
 exports.create = function(req, res) {
-	var userAccessToken = req.param.userAccessToken;
+	var userAccessToken = req.body.userAccessToken;
 	
 	if (userAccessToken != undefined) {
 		//TODO : ceci est pour test seulement
@@ -43,9 +43,9 @@ exports.create = function(req, res) {
 };
 
 exports.fetchAll = function(req, res) {
-	var userId = req.param.userId;
-	
-	User.findById(userId, function(err, user) {
+	var token = req.params.token;
+
+	User.findById(token, function(err, user) {
 		if (err) {
 			return res.json(500, {
 				error: err
@@ -61,9 +61,9 @@ exports.fetchAll = function(req, res) {
 };
 
 exports.pushAll = function(req, res) {
-	var userId = req.param.userId;
+	var token = req.params.token;
 	
-	User.findById(userId, function(err, user) {
+	User.findById(token, function(err, user) {
 		if (err) {
 			return res.json(500, {
 				error: err
