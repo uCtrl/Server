@@ -15,8 +15,13 @@ module.exports = function(app) {
     app.post('/logs', logs.create);
 
     var stats = require('../controllers/stats.js');
-    app.get('/stats', stats.read);
-    app.get('/stats/:deviceId/:beginDate/:endDate', stats.read);
+
+    app.route('/stats')
+       .get(stats.read);
+       
+    app.route('/stats/:deviceId')
+       .get(stats.read);
+
     app.route('/users')
         .post(users.logIn);
 
@@ -40,6 +45,9 @@ module.exports = function(app) {
         .get(devices.show)
         .put(devices.update)
         .delete(devices.destroy);    
+
+    app.route('/platforms/:platformId/devices/:deviceId/stats')
+        .get(devices.stats);
 
     app.route('/platforms/:platformId/devices/:deviceId/scenarios')
 	    .get(scenarios.all)

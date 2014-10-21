@@ -3,7 +3,8 @@
 var _ = require('lodash'),
 	mongoose = require('mongoose'),
 	UPlatform = mongoose.model('UPlatform'),
-	UDevice = mongoose.model('UDevice');
+	UDevice = mongoose.model('UDevice'),
+	Stats = mongoose.model('Stats');
 
 exports.all = function(req, res) {
 	var platformId = req.params.platformId;
@@ -110,5 +111,25 @@ exports.show = function(req, res) {
 		});
 	});
 };
+
+exports.stats = function(req, res) {
+	var columns = 'data';
+	Stats.find({ 
+		id: req.params.deviceId,
+		timestamp: {"$gte": req.query.from || 0, "$lt": req.query.to || Date.now()} 
+	})
+	.select(columns)
+	.exec(function (err, stats) {
+		if (req.query.fn == "mean") {
+			var datas = _.pluck(stats, 'data');
+			var mean = _.reduce(datas, function(sum, num) {
+				return sum + num;
+			});
+			mean /= stats.length;
+			res.json(mean);
+		}
+	});
+};
+
 
 /* We'll need to think about the subdevices and what to do exactly with them */
