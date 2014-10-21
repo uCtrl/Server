@@ -53,7 +53,6 @@ var UConditionSchema = new Schema({
 	endValue: String,
 	deviceId: String,
 	deviceTpId: String,
-	deviceValue: String,
 	enabled: Boolean,
 	lastUpdated: Number,
 	_task: {

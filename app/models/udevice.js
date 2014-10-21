@@ -8,6 +8,7 @@ var mongoose = require('mongoose'),
 	
 /**
  * Constants
+ * Use http://shop.ninjablocks.com/pages/device-ids
  * TODO : Déterminer les constantes ici.
  */
 var ENUMTYPE = {
@@ -40,8 +41,8 @@ var UDeviceSchema = new Schema({
 		required: true
 	},
 	description: String,
-	maxValue: Number,
-	minValue: Number,
+	maxValue: String,
+	minValue: String,
 	value: String,
 	precision: Number,
 	status: Number,
