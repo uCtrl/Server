@@ -113,13 +113,14 @@ exports.show = function(req, res) {
 };
 
 exports.stats = function(req, res) {
-	var columns = 'data';
+	var columns = 'data timestamp';
 	Stats.find({ 
 		id: req.params.deviceId,
 		timestamp: {"$gte": req.query.from || 0, "$lt": req.query.to || Date.now()} 
 	})
 	.select(columns)
 	.exec(function (err, stats) {
+		// MEAN
 		if (req.query.fn == "mean") {
 			var datas = _.pluck(stats, 'data');
 			var mean = _.reduce(datas, function(sum, num) {
@@ -127,7 +128,21 @@ exports.stats = function(req, res) {
 			});
 			mean /= stats.length;
 			res.json(mean);
-		} else {
+		} 
+
+		// MAXIMUM
+		else if (req.query.fn == "max") {
+			var max = _.max(stats, 'data');
+			res.json(max);
+		} 
+
+		// MINIMUM
+		else if (req.query.fn == "min") {
+			var min = _.min(stats, 'data');
+			res.json(min);
+		} 
+
+		else {
 			res.json(stats);
 		}
 	});
