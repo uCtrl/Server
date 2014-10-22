@@ -11,10 +11,15 @@ exports.all = function(req, res) {
 	UTask.find({ _scenario: scenarioId }).sort('id').exec(function(err, tasks) {
 		if (err) {
 			return res.json(500, {
+				status: false,
 				error: err//"Can't list the tasks for scenario " + scenarioId
 			});
 	    }
-		res.json(tasks);
+		res.json({
+			status: true,
+			error: null,
+			tasks: tasks
+		});
 	});
 };
 
@@ -25,6 +30,7 @@ exports.create = function(req, res) {
 	UScenario.findOne({ id: scenarioId }).exec(function(err, scenario) {
 		if (err) {
 			return res.json(500, {
+				status: false,
 				error: err//"Can't find the associated scenario " + scenarioId
 			});
 	    }		
@@ -32,10 +38,15 @@ exports.create = function(req, res) {
 		task.save(function(err) {
 			if (err) {
 				return res.json(500, {
+					status: false,
 					error: err//"Can't create the scenario"
 				});
 			}
-			res.json(task);
+			res.json({
+				status: true,
+				error: null,
+				task: task
+			});
 		});
 	});
 };
@@ -49,10 +60,15 @@ exports.update = function(req, res) {
 		function (err, platform) {
 			if (err) {
 				return res.json(500, {
+					status: false,
 					error: err//"Can't update task " + taskId
 				});
 			}
-			res.json(task);
+			res.json({
+				status: true,
+				error: null,
+				task: task
+			});
 		}
 	);
 };
@@ -63,10 +79,15 @@ exports.destroy = function(req, res) {
 	UTask.findOne({ id: taskId }, function(err, task) {
 		if (err) {
 			return res.json(500, {
+				status: false,
 				error: err//"Can't delete task " + taskId
 			});
 		}
-		res.json(task.remove());
+		res.json({
+			status: true,
+			error: null,
+			task: task.remove()
+		});
 	});
 };
 
@@ -76,9 +97,14 @@ exports.show = function(req, res) {
 	UTask.findOne({ id: taskId }, function(err, task) {
 	    if (err) {
 			return res.json(500, {
+				status: false,
 				error: err//"Can't retrieve task " + taskId
 			});
 		}
-	    res.json(task);
+	    res.json({
+			status: true,
+			error: null,
+			task: task
+		});
 	});
 };

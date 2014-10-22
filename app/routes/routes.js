@@ -1,23 +1,23 @@
 'use strict';
 
-var index = require(__base + 'app/controllers/index');
 var logs = require(__base + 'app/controllers/logs.js');
+var system = require(__base + 'app/controllers/system.js');
 var platforms = require(__base + 'app/controllers/platforms.js');
 var devices = require(__base + 'app/controllers/devices.js');
 var scenarios = require(__base + 'app/controllers/scenarios.js');
 var tasks = require(__base + 'app/controllers/tasks.js');
 var conditions = require(__base + 'app/controllers/conditions.js');
 var users = require(__base + 'app/controllers/users.js');
+var stats = require('../controllers/stats.js');
 
 module.exports = function(app) {
-    
-    app.get('/', index.render);
-
     app.get('/logs', logs.read);
     app.get('/logs/:deviceId', logs.read);
     app.post('/logs', logs.create);
 
-	//TODO : revoir les routes user.
+    app.route('/stats')
+       .get(stats.read);
+
     app.route('/users')
         //.post(users.logIn)
         .post(users.create);
@@ -25,6 +25,9 @@ module.exports = function(app) {
 	app.route('/users/:token')
 		.get(users.fetchAll)
 		.put(users.pushAll);
+
+    app.route('/system')
+        .get(system.all)
 
     app.route('/platforms')
         .get(platforms.all)
@@ -43,6 +46,9 @@ module.exports = function(app) {
         .get(devices.show)
         .put(devices.update)
         .delete(devices.destroy);    
+
+    app.route('/platforms/:platformId/devices/:deviceId/stats')
+        .get(devices.stats);
 
     app.route('/platforms/:platformId/devices/:deviceId/scenarios')
 	    .get(scenarios.all)

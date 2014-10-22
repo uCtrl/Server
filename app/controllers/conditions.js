@@ -11,10 +11,15 @@ exports.all = function (req, res) {
 	UCondition.find({ _task: taskId }).sort('id').exec(function(err, conditions) {
 		if (err) {
 			return res.json(500, {
+				status: false,
 				error: err//"Can't list the tasks for task " + taskId
 			});
 		}
-		res.json(conditions);
+		res.json({
+			status: true,
+			error: null,
+			conditions: conditions
+		});
 	});
 };
 
@@ -25,6 +30,7 @@ exports.create = function(req, res) {
 	UTask.findOne({ id: taskId }).exec(function(err, task) {
 		if (err) {
 			return res.json(500, {
+				status: false,
 				error: err//"Can't find the associated task " + taskId
 			});
 	    }		
@@ -32,10 +38,15 @@ exports.create = function(req, res) {
 		condition.save(function(err) {
 			if (err) {
 				return res.json(500, {
+					status: false,
 					error: err//"Can't create the condition"
 				});
 			}
-			res.json(condition);
+			res.json({
+				status: true,
+				error: null,
+				condition: condition
+			});
 		});
 	});
 };
@@ -49,10 +60,15 @@ exports.update = function(req, res) {
 		function (err, platform) {
 			if (err) {
 				return res.json(500, {
+					status: false,
 					error: err//"Can't update condition " + conditionId
 				});
 			}
-			res.json(condition);
+			res.json({
+				status: true,
+				error: null,
+				condition: condition 
+			});
 		}
 	);
 };
@@ -63,10 +79,15 @@ exports.destroy = function(req, res) {
 	UCondition.findOne({ id: conditionId }, function(err, condition) {
 		if (err) {
 			return res.json(500, {
+				status: false,
 				error: err//"Can't delete condition " + conditionId
 			});
 		}
-		res.json(condition.remove());
+		res.json({
+			status: true,
+			error: null,
+			condition: condition.remove()
+		});
 	});
 };
 
@@ -76,9 +97,14 @@ exports.show = function(req, res) {
 	UCondition.findOne({ id: conditionId }, function(err, condition) {
 	    if (err) {
 			return res.json(500, {
+				status: false,
 				error: err//"Can't retrieve condition " + conditionId
 			});
 		}
-	    res.json(condition);
+	    res.json({
+			status: true,
+			error: null,
+			condition: condition 
+		});
 	});
 };

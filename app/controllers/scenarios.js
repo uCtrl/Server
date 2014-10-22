@@ -11,10 +11,15 @@ exports.all = function(req, res) {
 	UScenario.find({ _device: deviceId }).sort('id').exec(function(err, scenarios) {
 		if (err) {
 			return res.json(500, {
+				status: false,
 				error: err//"Can't list the scenarios for device " + deviceId
 			});
 	    }
-		res.json(scenarios);
+		res.json({
+			status: true,
+			error: null,
+			scenarios: scenarios
+		});
 	});
 };
 
@@ -25,6 +30,7 @@ exports.create = function(req, res) {
 	UDevice.findOne({ id: deviceId }).exec(function(err, device) {
 		if (err) {
 			return res.json(500, {
+				status: false,
 				error: err//"Can't find the associated device " + deviceId
 			});
 	    }		
@@ -32,10 +38,15 @@ exports.create = function(req, res) {
 		scenario.save(function(err) {
 			if (err) {
 				return res.json(500, {
+					status: false,
 					error: err//"Can't create the scenario"
 				});
 			}
-			res.json(scenario);
+			res.json({
+				status: true,
+				error: null,
+				scenario: scenario
+			});
 		});
 
 	});
@@ -50,10 +61,15 @@ exports.update = function(req, res) {
 		function (err, platform) {
 			if (err) {
 				return res.json(500, {
+					status: false,
 					error: err//"Can't update scenario " + scenarioId
 				});
 			}
-			res.json(scenario);
+			res.json({
+				status: true,
+				error: null,
+				scenario: scenario
+			});
 		}
 	);
 };
@@ -64,10 +80,15 @@ exports.destroy = function(req, res) {
 	UScenario.findOne({ id: scenarioId }, function(err, scenario) {
 		if (err) {
 			return res.json(500, {
+				status: false,
 				error: err//"Can't delete scenario " + scenarioId
 			});
 		}
-		res.json(scenario.remove());
+		res.json({
+			status: true,
+			error: null,
+			scenario: scenario.remove()
+		});
 	});
 };
 
@@ -77,9 +98,14 @@ exports.show = function(req, res) {
 	UScenario.findOne({ id: scenarioId }, function(err, scenario) {
 	    if (err) {
 			return res.json(500, {
+				status: false,
 				error: err//"Can't retrieve scenario " + scenarioId
 			});
 		}
-	    res.json(scenario);
+	    res.json({
+			status: true,
+			error: null,
+			scenario: scenario
+		});
 	});
 };
