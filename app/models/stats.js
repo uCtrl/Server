@@ -9,10 +9,9 @@ var Schema = mongoose.Schema;
 
 var StatSchema = new Schema({
 	// Ninja equivalents
-	id: { type: String, required: false}, 
+	id: { type: String, required: true}, 
 	data: { type: Object, required: true},
 	type: { type: Number, required: true},
-	vendor: { type: Number, required: false},
 	timestamp: { type: Number, required: true}
 });
 
