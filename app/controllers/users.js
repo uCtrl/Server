@@ -2,37 +2,78 @@
 
 var _ = require('lodash'),
 	mongoose = require('mongoose'),
+	ninjacrawler = require('../apis/ninjacrawler.js'),
+	ninjablocks = require('../apis/ninjablocks.js'),
 	User = mongoose.model('User');
-
+	
 exports.logIn = function(req, res) {
-	var ninjablocks = req.body.ninjablocks;
-	if (!ninjablocks || !ninjablocks.userAccessToken) {
-		return res.json(500, {
-			error: "No ninjablocks token provided"
+};
+
+exports.create = function(req, res) {
+	var userAccessToken = req.body.userAccessToken;
+	
+	if (userAccessToken != undefined) {
+		//TODO : ceci est pour test seulement
+		User.createDefault( function(user) {
+			user.save(function(err) {
+				if (err) {
+					return res.json(500, {
+						error: err //"Can't create the user"
+					});
+				}
+				res.json({ token: user._id });
+			});
 		});
 	}
+	else {
+		var nb = new ninjablocks({userAccessToken : userAccessToken});
+		nb.user( function(ninjaUser) {
+			User.fromNinjaBlocks(ninjaUser, ninjaUser.id, userAccessToken, function(user) {
+				user.save(function(err) {
+					if (err) {
+						return res.json(500, {
+							error: err //"Can't create the user"
+						});
+					}
+					res.json({ token: user._id });
+				});
+			});
+		});
+	}
+};
 
-	User.findOne({"ninjablocks.userAccessToken": ninjablocks.userAccessToken}, function(err, user) {
+exports.fetchAll = function(req, res) {
+	var token = req.params.token;
+
+	User.findById(token, function(err, user) {
 		if (err) {
 			return res.json(500, {
 				error: err
 			});
 		}
-
 		if (user) {
-			// RAISE EVENT TO START CRAWLING
-			res.json({ token: user._id });
-		} else {
-			var user = new User({ ninjablocks: { userAccessToken: ninjablocks.userAccessToken }});
-			user.save(function(err, user) {
-				if (err) {
-					return res.json(500, {
-						error: err
-					});
-				}
-				// RAISE EVENT TO START CRAWLING
-				res.json({ token: user._id });
+			var crawler = new ninjacrawler({userId : user._id});
+			crawler.fetchAll( function(err, result)  {
+				res.json("Completed");
 			});
 		}
+	});
+};
+
+exports.pushAll = function(req, res) {
+	var token = req.params.token;
+	
+	User.findById(token, function(err, user) {
+		if (err) {
+			return res.json(500, {
+				error: err
+			});
+		}
+		if (user) {
+			var crawler = new ninjacrawler({userId : user._id});
+			crawler.pushAll( function(err, result)  {
+				res.json("Completed");
+			});
+		} 
 	});
 };

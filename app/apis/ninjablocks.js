@@ -5,10 +5,10 @@
 'use strict';
 
 var request = require('request'),
-	_ 		= require('lodash'),
-	util    = require('util'),
-    url     = 'https://api.ninja.is/rest/v0/';
-
+	_ = require('lodash'),
+	util = require('util'),
+    url = 'https://api.ninja.is/rest/v0/',
+	urlOAuth = 'https://api.ninja.is/oauth/';
 
 function ninjaBlocks(options) {
 
@@ -16,7 +16,48 @@ function ninjaBlocks(options) {
   	this._options = options || {};
   	this._qs = { "user_access_token" : options.userAccessToken };
 
-
+	/**
+	 * For OAuth 2 protocol purposes.
+	 * Retrieve a third party's access code
+	 * @param  {Function} callback   Callback when request finished or error found
+	 */
+	this.logIn = function(clientId, redirectUri, callback) {
+		request({
+			url: urlOAuth + 'authorize',
+			method: 'GET',
+			qs: {
+				client_id : clientId,
+				redirect_uri : redirectUri,
+				scope : 'all',
+				response_type : 'code',
+			},
+        }, function(error, response, body) {
+			callback(error, body);
+		});
+	};
+	
+	/**
+	 * For OAuth 2 protocol purposes.
+	 * Exchange the access code for a third party's access token
+	 * @param  {Function} callback   Callback when request finished or error found
+	 */
+	this.authenticate = function(clientId, clientSecret, authCode, redirectUri, callback) {
+		request({
+			url: urlOAuth + 'oauth/access_token',
+			method: 'POST',
+			qs: {
+				client_id : clientId,
+				client_secret : clientSecret,
+				code : authCode,
+				redirect_uri : redirectUri,
+				grant_type : 'authorization_code',
+			},
+        }, function(error, response, body) {
+			//return the access_token
+			callback(error, body);
+		});
+	};
+	
   	/**
 	 * Return information about the authenticated user.
 	 * @param  {Function} callback   Callback when request finished or error found
@@ -251,12 +292,47 @@ function ninjaBlocks(options) {
   				deleteRequest(util.format('device/%s/callback', guid), callback);
   			},
   			
+			/**
+			 * Returns the list of subdevices associated with this device.
+			 * @param  {Function} callback   Callback when request finished or error found
+			 */
+			subdevices: function(callback) {
+				getRequest(util.format('device/%s', guid), function(err, deviceObj) {
+					if (err) callback(err, null);
+					else {
+						if (deviceObj.has_subdevice_count >=1 ) callback(null, deviceObj.subDevices);
+						else callback('This device has no subdevices', null);
+					}
+				});
+			},
+			
   			/**
 			 * Base definition for subdevice.
 			 * @param  {String}   subdeviceId   Id of the subdevice
 			 */
-  			subdevice: function(subdeviceId) {
-  				return {
+  			subdevice: function(subdeviceId, callback) {
+  				/**
+				 * Fetch metadata about the specified subdevice.
+				 * @param  {Function} callback   Callback when request finished or error found
+				 */
+				if (callback) {
+					getRequest(util.format('device/%s', guid), function(err, deviceObj) {
+						if (err) callback(err, null);
+						else {
+							if (deviceObj.has_subdevice_count >=1 ) {
+								if (deviceObj.subDevices[subdeviceId] != undefined)
+									callback(null, deviceObj.subDevices[subdeviceId]);
+								else callback('This subdevice doesn\'t exist', null);
+							}
+							else{
+								callback('This device has no subdevices', null);
+							}
+						}
+					});
+					return;
+				}
+				
+				return {
 
   					/**
 					 * Create a new sub-device associated with the specified device and return a unique ID within the device.
@@ -379,13 +455,27 @@ function ninjaBlocks(options) {
 
   		return {
 
+			/**
+			 * Returns the list of preconditions associated with this rule.
+			 * @param  {Function} callback   Callback when request finished or error found
+			 */
+			preconditions: function(callback) {
+				getRequest(util.format('rule/%s', ruleId), function(err, ruleObj) {
+					if (err) callback(err, null);
+					else {
+						if (ruleObj["preconditions"] != undefined) callback(null, ruleObj["preconditions"]);
+						else callback('This rule has no preconditions', null);
+					}
+				});
+			},
+			
   			/**
 			 * Create a new rule.
 			 *
 			 * @param  {Object}   data   Data for the request
 			 * @param  {String}   data.shortName   The name of your rule. 
 			 * @param  {String}   data.preconditions   Array of precondition handlers.
-			 * @param  {String}   data.shortName   Array of action handlers.
+			 * @param  {String}   data.actions   Array of action handlers.
 			 * @param  {String=}  data.timeout   Number of seconds to wait before executing this rule again.  
 			 * @param  {Function} callback   Callback when request finished or error found
 			 */
@@ -399,7 +489,7 @@ function ninjaBlocks(options) {
 			 * @param  {Object}   data   Data for the request
 			 * @param  {String}   data.shortName   The name of your rule. 
 			 * @param  {String}   data.preconditions   Array of precondition handlers.
-			 * @param  {String}   data.shortName   Array of action handlers.
+			 * @param  {String}   data.actions   Array of action handlers.
 			 * @param  {String=}  data.timeout   Number of seconds to wait before executing this rule again.  
 			 * @param  {Function} callback   Callback when request finished or error found
 			 */

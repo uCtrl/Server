@@ -24,6 +24,9 @@
     "q": "~1.0.1",
     "request": "~2.44.0",
     "serve-favicon": "^2.1.4",
+    "request": "^2.44.0",
+    "q": "~1.0.1",
+    "node-uuid": "^1.4.1",
     "ws": "^0.4.32"
   },
   "devDependencies": {

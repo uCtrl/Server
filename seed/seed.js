@@ -25,6 +25,7 @@ module.exports = function() {
 			var clonedPlatform = _.clone(platform, true);
 			delete clonedPlatform.devices;
 			var dbPlatform = new UPlatform(clonedPlatform);
+			dbPlatform["tpId"] = dbPlatform.id;
 			dbPlatform.save(function(err) { if (err) throw new Error(err); });
 
 			_.forEach(platform.devices, function(device) {
@@ -32,6 +33,7 @@ module.exports = function() {
 				delete clonedDevice.scenarios;
 				clonedDevice["_platform"] = dbPlatform._id;
 				var dbDevice = new UDevice(clonedDevice);
+				dbDevice["tpId"] = dbDevice.id;
 				dbDevice.save(function(err) { if (err) throw new Error(err); });
 				
 				_.forEach(device.scenarios, function(scenario) {
@@ -39,6 +41,7 @@ module.exports = function() {
 					delete clonedScenario.tasks;
 					clonedScenario["_device"] = dbDevice._id;
 					var dbScenario = new UScenario(clonedScenario);
+					dbScenario["tpId"] = dbScenario.id;
 					dbScenario.save(function(err) { if (err) throw new Error(err); });
 
 					_.forEach(scenario.tasks, function(task) {
@@ -46,17 +49,14 @@ module.exports = function() {
 						delete clonedTask.conditions;
 						clonedTask["_scenario"] = dbScenario._id;
 						var dbTask = new UTask(clonedTask);
+						dbTask["tpId"] = dbTask.id;
 						dbTask.save(function(err) { if (err) throw new Error(err); });
 
 						_.forEach(task.conditions, function(condition) {
 							var clonedCondition = _.clone(condition, true);
 							clonedCondition["_task"] = dbTask._id;
-							if (clonedCondition.beginTime) clonedCondition.beginTime = clonedCondition.beginTime;
-							if (clonedCondition.endTime) clonedCondition.endTime = clonedCondition.endTime;
-							if (clonedCondition.beginDate) clonedCondition.beginDate = new Date(clonedCondition.beginDate);
-							if (clonedCondition.endDate) clonedCondition.endDate = new Date(clonedCondition.endDate);
 							var dbCondition = new UCondition(clonedCondition);
-							dbCondition.deviceId = device.id
+							dbCondition["tpId"] = dbCondition.id;
 							dbCondition.save(function(err) { if (err) throw new Error(err); });
 						});
 					});

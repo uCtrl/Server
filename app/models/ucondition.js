@@ -3,7 +3,8 @@
 var mongoose = require('mongoose'),
 	Schema   = mongoose.Schema,
 	cleanJson = require('./cleanJson.js'),
-	_ = require('lodash');
+	_ = require('lodash'),
+	uuid = require('node-uuid');
 
 /**
  * Constants
@@ -35,26 +36,25 @@ var UConditionSchema = new Schema({
 		required: true,
 		unique: true
 	},
+	tpId: {
+		type: String,
+		required: true,
+		unique: true
+	},
 	type: {
 		type: Number,
 		required: true
 	},
-	deviceId: {
-		type: Number,
-		required: true
-	},
-	deviceType: Number,
 	comparisonType: {
 		type: Number,
 		required: true
 	},
-	beginValue: String,	//TODO : attr. converted to string
-	endValue: String,	//TODO : attr. converted to string
-	beginDate: Date,
-	endDate: Date,
-	beginTime: String,
-	endTime: String,
-	selectedWeekdays: Number,
+	beginValue: String,
+	endValue: String,
+	deviceId: String,
+	deviceTpId: String,
+	enabled: Boolean,
+	lastUpdated: Number,
 	_task: {
 		type: Schema.Types.ObjectId, 
 		ref: 'UTask',
@@ -72,6 +72,8 @@ UConditionSchema.post('save', function (condition) {
 		{ $addToSet: { _conditions: condition._id } }, 
 		{ safe: true },
 		function (err, num) { if (err) console.log("Error: ", err) });
+	
+	this.db.model('UCondition').emit('new', this);
 })
 
 UConditionSchema.post('remove', function (condition) {
@@ -82,6 +84,8 @@ UConditionSchema.post('remove', function (condition) {
 		{ $pull: { _conditions: condition._id } }, 
 		{ safe: true },
 		function (err, num) { if (err) console.log("Error: ", err) });
+		
+	this.db.model('UCondition').emit('remove', this);
 })
 
 /*
@@ -89,60 +93,71 @@ UConditionSchema.post('remove', function (condition) {
  * To logic here is only to do the mapping
  * ref: https://github.com/ninjablocks/ninjablocks.github.com/wiki/Rules-Engine-Documentation
  */
-UConditionSchema.statics.fromNinjaBlocks = function (ninjaPrecondition, cb) {
+UConditionSchema.statics.fromNinjaBlocks = function (ninjaPrecondition, ninjaPreconditionId, cb) {
 	var UCondition = mongoose.model('UCondition');
+	var UDevice = mongoose.model('UDevice');
 	// Mapping Ninja to uCtrl
-	var deviceIdSplit = task._scenario._device.id.split(":");	//Subdevice data, if one, is stored into id.
 	var condition = new UCondition({
-		id : null,
+		id : uuid.v1(),
+		tpId : ninjaPreconditionId,
 		type : null,
-		deviceId : ninjaPrecondition.params.guid,
-		deviceType : null,
 		comparisonType : null,
 		beginValue : null,
 		endValue : null,
-		beginDate : null,
-		endDate : null,
-		beginTime : null,
-		endTime : null,
-		selectedWeekdays: null,
+		deviceId : null,
+		deviceTpId : null,
+		deviceValue : null,
+		enabled : true,
+		lastUpdated : null,
 	});
-
-	switch (ninjaPrecondition.handler) {
-		//When condition include a rf subdevice.
-		case 'ninjaChange' : 	
-			condition.deviceId += (ninjaPrecondition.params.to != null ? ':' + ninjaPrecondition.params.to : '');
-			condition.type = ENUMCONDITIONTYPE.Device;
-			condition.comparisonType = ENUMCOMPARISONTYPE.None;
-			break;
-		case 'ninjaEquality' : 
-		case 'ninjaThreshold' : 
-			condition.type = ENUMCONDITIONTYPE.Device;
-			switch (ninjaPrecondition.params.equality) {
-				case 'GT' :
-				case 'GTE' :
-					condition.comparisonType = ENUMCOMPARISONTYPE.GreaterThan;
-					break;
-				case 'LT' :
-				case 'LTE' :
-					condition.comparisonType = ENUMCOMPARISONTYPE.LesserThan;
-					break;
-				case 'EQ' :
-					condition.comparisonType = ENUMCOMPARISONTYPE.Equals;
-					break;
-			}
-			condition.beginValue = ninjaPrecondition.params.value;
-			condition.endValue = ninjaPrecondition.params.value;
-			break;
-		case 'ninjaRangeToggle' : 
-			condition.type = ENUMCONDITIONTYPE.Device;
-			condition.comparisonType = ENUMCOMPARISONTYPE.InBetween;
-			condition.beginValue = ninjaPrecondition.params.between;
-			condition.endValue = ninjaPrecondition.params.and;
-			break;
-			break;
+	
+	if (
+		ninjaPrecondition.handler == 'ninjaChange' || 
+		ninjaPrecondition.handler == 'ninjaEquality' || 
+		ninjaPrecondition.handler == 'ninjaThreshold' || 
+		ninjaPrecondition.handler == 'ninjaRangeToggle' 
+	) {
+		//TODO can't obtain de device.id if the device isn't in the database yet. Asynchronous fetching problem.
+		UDevice.findOne({tpId : ninjaPrecondition.params.guid}, function(err, device){
+				condition.deviceId = (err != null ? device.id : null);
+				condition.type = ENUMCONDITIONTYPE.Device;
+				
+				switch (ninjaPrecondition.handler) {
+					//When condition include a rf subdevice.
+					case 'ninjaChange' : 	
+						condition.deviceTpId = ninjaPrecondition.params.guid + ':' + ninjaPrecondition.params.to; //TODO don't have access to subdevice id
+						condition.comparisonType = ENUMCOMPARISONTYPE.None;
+						condition.deviceValue = ninjaPrecondition.params.to;
+						break;
+					case 'ninjaEquality' : 
+					case 'ninjaThreshold' : 
+						condition.deviceTpId = ninjaPrecondition.params.guid;
+						switch (ninjaPrecondition.params.equality) {
+							case 'GT' :
+							case 'GTE' :
+								condition.comparisonType = ENUMCOMPARISONTYPE.GreaterThan;
+								break;
+							case 'LT' :
+							case 'LTE' :
+								condition.comparisonType = ENUMCOMPARISONTYPE.LesserThan;
+								break;
+							case 'EQ' :
+								condition.comparisonType = ENUMCOMPARISONTYPE.Equals;
+								break;
+						}
+						condition.deviceValue = ninjaPrecondition.params.value;
+						break;
+					case 'ninjaRangeToggle' : 
+						condition.deviceTpId = ninjaPrecondition.params.guid;
+						condition.comparisonType = ENUMCOMPARISONTYPE.InBetween;
+						condition.beginValue = ninjaPrecondition.params.between;
+						condition.endValue = ninjaPrecondition.params.and;
+						break;
+				}
+				
+				cb(condition);
+		});
 	}
-	cb(condition);
 };
 
 /*
@@ -151,16 +166,18 @@ UConditionSchema.statics.fromNinjaBlocks = function (ninjaPrecondition, cb) {
  * ref: https://github.com/ninjablocks/ninjablocks.github.com/wiki/Rules-Engine-Documentation
  */
 UConditionSchema.statics.toNinjaBlocks = function (condition, cb) {
-	var deviceIdSplit = condition.deviceId.split(":");	//Subdevice data, if one, is stored into id.
+	var deviceTpIdSplit = condition.deviceTpId.split(":");	//Subdevice id, if one, is stored into id.
 	
 	var ninjaPrecondition = { 
 		handler: null, 
 		params: { 
-			guid : deviceIdSplit[0],
+			equality : null,
+			guid : deviceTpIdSplit[0],
 			to : null,
 			value : null,
 			between : null,
 			and : null,
+			shortName : null,
 		}
 	}
 
@@ -168,22 +185,22 @@ UConditionSchema.statics.toNinjaBlocks = function (condition, cb) {
 		//When condition include a rf subdevice.
 		case ENUMCOMPARISONTYPE.None :
 			ninjaPrecondition.handler	= 'ninjaChange';
-			ninjaPrecondition.params.to	= (deviceIdSplit.length > 1 ? deviceIdSplit[1] : null);
+			ninjaPrecondition.params.to	= condition.deviceValue;
 			break;
 		case ENUMCOMPARISONTYPE.GreaterThan :
 			ninjaPrecondition.handler = 'ninjaEquality';	//it can be ninjaThreshold
 			ninjaPrecondition.params.equality = 'GT';
-			ninjaPrecondition.params.value = condition.beginValue;
+			ninjaPrecondition.params.value = condition.deviceValue;
 			break;
 		case ENUMCOMPARISONTYPE.LesserThan :
 			ninjaPrecondition.handler = 'ninjaEquality';	//it can be ninjaThreshold
 			ninjaPrecondition.params.equality = 'LT';	
-			ninjaPrecondition.params.value = condition.beginValue;
+			ninjaPrecondition.params.value = condition.deviceValue;
 			break;
 		case ENUMCOMPARISONTYPE.Equals :
 			ninjaPrecondition.handler = 'ninjaEquality';	//it can be ninjaThreshold
 			ninjaPrecondition.params.equality = 'EQ';
-			ninjaPrecondition.params.value = condition.beginValue;
+			ninjaPrecondition.params.value = condition.deviceValue;
 			break;
 		case ENUMCOMPARISONTYPE.InBetween :
 			ninjaPrecondition.handler = 'ninjaRangeToggle';
