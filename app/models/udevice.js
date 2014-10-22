@@ -8,17 +8,22 @@ var mongoose = require('mongoose'),
 	
 /**
  * Constants
- * Use http://shop.ninjablocks.com/pages/device-ids
- * TODO : Déterminer les constantes ici.
+ * use http://shop.ninjablocks.com/pages/device-ids
  */
-var ENUMTYPE = {
-	"temperature" : 1,
-	"humidity" : 2,
-	"rgbled8" : 3,
-	"rgbled" : 4,
-	"rf433" : 5,
-	"rf433Sensor" : 6,
-	"rf433Actuator" : 7,
+var UEType = {
+	PushButton : 5,
+	LightSensor : 6,
+	PIRMotionSensor : 7,
+	RF433 : 11,
+	Humidity : 30,
+	Temperature : 31,
+	Switch : 206,
+	ProximitySensor : 219,
+	Light : 233,
+	StatusLight : 999,
+	OnBoardRGBLed : 1000,
+	NinjasEyes : 1007,
+	BelkinWeMoSocket : 1009
 };
 
 /**
@@ -40,6 +45,7 @@ var UDeviceSchema = new Schema({
 		type: Number,
 		required: true
 	},
+	subdeviceType : String,
 	description: String,
 	maxValue: String,
 	minValue: String,
@@ -68,8 +74,12 @@ UDeviceSchema.post('save', function (device) {
 		{ safe: true },
 		function (err, num) { if (err) console.log("Error: ", err) });
 		
-	this.db.model('UDevice').emit('new', this);
+	this.db.model('UDevice').emit('create', device);
 })
+
+UDeviceSchema.post('findOneAndUpdate', function (device) {
+	this.db.model('UDevice').emit('update', device);
+});
 
 UDeviceSchema.post('remove', function (device) {
 	var UPlatform = mongoose.model('UPlatform');
@@ -89,7 +99,7 @@ UDeviceSchema.post('remove', function (device) {
 		_(scenarios).forEach(function(scenario) { scenario.remove() } );
 	});
 	
-	this.db.model('UDevice').emit('remove', this);
+	this.db.model('UDevice').emit('destroy', device);
 })
 
 /*
@@ -104,7 +114,7 @@ UDeviceSchema.statics.fromNinjaBlocks = function (ninjaDevice, ninjaDeviceId, ni
 		id : uuid.v1(),
 		tpId : ninjaDeviceId,
 		name : ninjaDevice.default_name,		
-		type : ENUMTYPE[ninjaDevice.device_type],
+		type : ninjaDevice.did,
 		description : null,
 		maxValue : null,
 		minValue : null,
@@ -119,7 +129,8 @@ UDeviceSchema.statics.fromNinjaBlocks = function (ninjaDevice, ninjaDeviceId, ni
 	if (ninjaSubdevice != null) {
 		device.tpId = device.tpId + ':' + ninjaSubdeviceId;	//id = deviceGUID:subdeviceID
 		device.name = ninjaSubdevice.shortName;
-		device.type = (ninjaSubdevice.type == 'sensor' ? ENUMTYPE["rf433Sensor"] : ENUMTYPE["rf433Actuator"]);
+		device.subdeviceType = ninjaSubdevice.type; //Allowed: "actuator" or "sensor" 
+		//device.type = (ninjaSubdevice.type == 'sensor' ? ENUMTYPE["rf433Sensor"] : ENUMTYPE["rf433Actuator"]);
 		device.value = ninjaSubdevice.data;
 	}
 	cb(device);
@@ -144,14 +155,15 @@ UDeviceSchema.statics.toNinjaBlocks = function (device, cb) {
 	}
 	var ninjaSubdevice = null;
 	
-	// If it's a subdevice mapping
-	if (device.type == ENUMTYPE.rf433Sensor || device.type == ENUMTYPE.rf433Actuator) {
+	// If it's a subdevice mapping (RF433)
+	if (device.type == UEType.RF433) {
 		var deviceTpIdSplit = device.tpId.split(":");	//Subdevice data stored into tpId.
 		ninjaDevice.guid = deviceTpIdSplit[0];
 		ninjaSubdevice = {
 			guid : deviceTpIdSplit[0], //*
 			category : "rf", //Allowed: "rf", "webhook", "sms"
-			type : (device.type == ENUMTYPE.rf433Sensor ? "sensor" : "actuator"), //Allowed: "actuator" or "sensor" 
+			//type : (device.type == ENUMTYPE.rf433Sensor ? "sensor" : "actuator"), //Allowed: "actuator" or "sensor" 
+			type : device.subdeviceType, //Allowed: "actuator" or "sensor" 
 			shortName : device.name,
 			data : deviceTpIdSplit[1],									
 		}

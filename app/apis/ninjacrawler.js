@@ -14,8 +14,37 @@ var request = require('request'),
 	UDevice = mongoose.model('UDevice'),
 	UScenario = mongoose.model('UScenario'),
 	UTask = mongoose.model('UTask'),
-	UCondition = mongoose.model('UCondition');
+	UCondition = mongoose.model('UCondition'),
+	uuid = require('node-uuid');
 
+/**
+ * Model events listener
+ * CRUD for NinjaBlocks on model's events
+ */
+ var ringBell = function()
+{
+	console.log('##############Event : new element created');
+}
+
+User.on('create', ringBell);
+User.on('update', ringBell);
+User.on('destroy', ringBell);
+UPlatform.on('create', ringBell);
+UPlatform.on('update', ringBell);
+UPlatform.on('destroy', ringBell);
+UDevice.on('create', ringBell);
+UDevice.on('update', ringBell);
+UDevice.on('destroy', ringBell);
+UScenario.on('create', ringBell);
+UScenario.on('update', ringBell);
+UScenario.on('destroy', ringBell);
+UTask.on('create', ringBell);
+UTask.on('update', ringBell);
+UTask.on('destroy', ringBell);
+UCondition.on('create', ringBell);
+UCondition.on('update', ringBell);
+UCondition.on('destroy', ringBell);
+	
 function ninjaCrawler(options) {
 	var self = this;
 	this._options = options || {};
@@ -78,6 +107,15 @@ function ninjaCrawler(options) {
 										device.save();
 										
 										// create a default scenario under this subdevice
+										/*
+										var scenario = new UScenario({
+											id : uuid.v1(),
+											tpId : null, 
+											name : 'Default scenario',
+											enabled : true,
+											lastUpdated : null,
+										});
+										*/
 										UScenario.createDefault(function(scenario) {
 											scenario['_device'] = device._id;
 											scenario.save();
@@ -89,7 +127,9 @@ function ninjaCrawler(options) {
 														task['_scenario'] = scenario._id;
 														task.save();
 
-														// create conditions under this task
+														// create conditions under this t
+														
+														ask
 														_(ruleObj.preconditions).forEach(function(preconditionObj, preconditionId)  {						
 															UCondition.fromNinjaBlocks(preconditionObj, task.tpId + ':' + preconditionId, function(condition){
 																condition['_task'] = task._id;
@@ -111,6 +151,16 @@ function ninjaCrawler(options) {
 									device['_platform'] = platform._id;
 									device.save();
 									
+										/*
+										var scenario = new UScenario({
+											id : uuid.v1(),
+											tpId : null, 
+											name : 'Default scenario',
+											enabled : true,
+											lastUpdated : null,
+										});
+										*/
+										
 									UScenario.createDefault(function(scenario) {
 										scenario['_device'] = device._id;
 										scenario.save();
@@ -180,7 +230,7 @@ function ninjaCrawler(options) {
 			});
 			
 			// map actives scenarios only (and their tasks and conditions) to NinjaBlocks rules
-			UScenario.find({ active : true }, function(err, scenarios) {
+			UScenario.find({ enabled : true }, function(err, scenarios) {
 				_(scenarios).forEach(function(scenarioObj, scenarioIndex){
 					_(scenarioObj._tasks).forEach(function(taskId, taskIndex){
 						UTask.findById(taskId, function(err, taskObj){
@@ -190,7 +240,7 @@ function ninjaCrawler(options) {
 								UCondition.find({ _id: { $in: taskObj._conditions } }, function(err, conditions) {
 									_(conditions).forEach(function(conditionObj) {
 										UCondition.toNinjaBlocks(conditionObj, function(ninjaPrecondition){
-											console.log(ninjaPrecondition);
+											//console.log(ninjaPrecondition);
 											ninjaRule.preconditions.push(ninjaPrecondition);
 										});
 									});

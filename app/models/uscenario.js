@@ -15,10 +15,7 @@ var UScenarioSchema = new Schema({
 		required: true,
 		unique: true
 	},
-	tpId: {
-		type: String,
-		unique: true
-	},
+	tpId: String,
 	name: String,
 	enabled : Boolean,
 	lastUpdated: Number,
@@ -41,8 +38,12 @@ UScenarioSchema.post('save', function (scenario) {
 		{ safe: true },
 		function (err, num) { if (err) console.log("Error: ", err) });
 		
-	this.db.model('UScenario').emit('new', this);
+	this.db.model('UScenario').emit('create', scenario);
 })
+
+UScenarioSchema.post('findOneAndUpdate', function (scenario) {
+	this.db.model(UScenario).emit('update', scenario);
+});
 
 UScenarioSchema.post('remove', function (scenario) {
 	var UDevice = mongoose.model('UDevice');
@@ -62,7 +63,7 @@ UScenarioSchema.post('remove', function (scenario) {
 		_(tasks).forEach(function(task) { task.remove() } );
 	});
 	
-	this.db.model('UScenario').emit('remove', this);
+	this.db.model('UScenario').emit('destroy', scenario);
 })
 
 /*
@@ -73,7 +74,7 @@ UScenarioSchema.statics.createDefault = function (cb) {
 	var scenario = new UScenario({
 		id : uuid.v1(),
 		tpId : null, 
-		name : 'Default scenario',
+		name : 'Default scenario ' + Date.now(),
 		enabled : true,
 		lastUpdated : null,
 	});

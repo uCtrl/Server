@@ -73,8 +73,12 @@ UConditionSchema.post('save', function (condition) {
 		{ safe: true },
 		function (err, num) { if (err) console.log("Error: ", err) });
 	
-	this.db.model('UCondition').emit('new', this);
+	this.db.model('UCondition').emit('create', condition);
 })
+
+UConditionSchema.post('findOneAndUpdate', function (condition) {
+	this.db.model('UCondition').emit('update', condition);
+});
 
 UConditionSchema.post('remove', function (condition) {
 	var UTask = mongoose.model('UTask');
@@ -85,7 +89,7 @@ UConditionSchema.post('remove', function (condition) {
 		{ safe: true },
 		function (err, num) { if (err) console.log("Error: ", err) });
 		
-	this.db.model('UCondition').emit('remove', this);
+	this.db.model('UCondition').emit('destroy', condition);
 })
 
 /*

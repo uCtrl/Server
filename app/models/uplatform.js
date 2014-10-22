@@ -42,7 +42,11 @@ UPlatformSchema.post('save', function (platform) {
 				io.sockets.emit('new_my_model', mymodel.toJSON());
 			});
 	*/
-	this.db.model('UPlatform').emit('new', this);
+	this.db.model('UPlatform').emit('create', platform);
+});
+
+UPlatformSchema.post('findOneAndUpdate', function (platform) {
+	this.db.model('UPlatform').emit('update', platform);
 });
 
 UPlatformSchema.post('remove', function (platform) {
@@ -54,9 +58,9 @@ UPlatformSchema.post('remove', function (platform) {
 		}
 		_(devices).forEach(function(device) { device.remove() } );
 		
-		this.db.model('UPlatform').emit('remove', this);
+		this.db.model('UPlatform').emit('destroy', platform);
 	});
-})
+});
 
 /*
  * Receives the block (from NB) and will call the cb when mapped.
