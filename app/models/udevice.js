@@ -73,13 +73,9 @@ UDeviceSchema.post('save', function (device) {
 		{ $addToSet: { _devices: device._id } }, 
 		{ safe: true },
 		function (err, num) { if (err) console.log("Error: ", err) });
-		
-	this.db.model('UDevice').emit('create', device);
 })
 
-UDeviceSchema.post('findOneAndUpdate', function (device) {
-	this.db.model('UDevice').emit('update', device);
-});
+// Can't use middleware on findAndUpdate functions
 
 UDeviceSchema.post('remove', function (device) {
 	var UPlatform = mongoose.model('UPlatform');
@@ -98,8 +94,6 @@ UDeviceSchema.post('remove', function (device) {
 		}
 		_(scenarios).forEach(function(scenario) { scenario.remove() } );
 	});
-	
-	this.db.model('UDevice').emit('destroy', device);
 })
 
 /*
@@ -113,7 +107,7 @@ UDeviceSchema.statics.fromNinjaBlocks = function (ninjaDevice, ninjaDeviceId, ni
 	var device = new UDevice({
 		id : uuid.v1(),
 		tpId : ninjaDeviceId,
-		name : ninjaDevice.default_name,		
+		name : ninjaDevice.shortName,		
 		type : ninjaDevice.did,
 		description : null,
 		maxValue : null,

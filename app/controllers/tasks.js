@@ -15,6 +15,8 @@ exports.all = function(req, res) {
 				error: err//"Can't list the tasks for scenario " + scenarioId
 			});
 	    }
+		
+		UTask.emit('all', tasks);
 		res.json({
 			status: true,
 			error: null,
@@ -42,6 +44,8 @@ exports.create = function(req, res) {
 					error: err//"Can't create the scenario"
 				});
 			}
+			
+			UTask.emit('create', task);
 			res.json({
 				status: true,
 				error: null,
@@ -57,13 +61,15 @@ exports.update = function(req, res) {
 	UTask.findOneAndUpdate(
 		{ id: taskId }, 
 		req.body,
-		function (err, platform) {
+		function (err, task) {
 			if (err) {
 				return res.json(500, {
 					status: false,
 					error: err//"Can't update task " + taskId
 				});
 			}
+			
+			UTask.emit('update', task);
 			res.json({
 				status: true,
 				error: null,
@@ -83,6 +89,8 @@ exports.destroy = function(req, res) {
 				error: err//"Can't delete task " + taskId
 			});
 		}
+		
+		UTask.emit('destroy', task);
 		res.json({
 			status: true,
 			error: null,
@@ -101,6 +109,8 @@ exports.show = function(req, res) {
 				error: err//"Can't retrieve task " + taskId
 			});
 		}
+		
+		UTask.emit('show', task);
 	    res.json({
 			status: true,
 			error: null,

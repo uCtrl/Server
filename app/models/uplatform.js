@@ -35,19 +35,9 @@ var UPlatformSchema = new Schema({
 });
 
 UPlatformSchema.post('save', function (platform) {
-	/*
-	 * ref : http://grokbase.com/t/gg/mongoose-orm/1235c1mjsq/mongoose-emitting-an-event-in-a-middleware-function
-	 * use:
-			MyModel.on('new', function(mymodel) {
-				io.sockets.emit('new_my_model', mymodel.toJSON());
-			});
-	*/
-	this.db.model('UPlatform').emit('create', platform);
 });
 
-UPlatformSchema.post('findOneAndUpdate', function (platform) {
-	this.db.model('UPlatform').emit('update', platform);
-});
+// Can't use middleware on findAndUpdate functions
 
 UPlatformSchema.post('remove', function (platform) {
 	var UDevice = mongoose.model('UDevice');
@@ -57,8 +47,6 @@ UPlatformSchema.post('remove', function (platform) {
 			return;
 		}
 		_(devices).forEach(function(device) { device.remove() } );
-		
-		this.db.model('UPlatform').emit('destroy', platform);
 	});
 });
 

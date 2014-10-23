@@ -45,13 +45,9 @@ UTaskSchema.post('save', function (task) {
 		{ $addToSet: { _tasks: task._id } }, 
 		{ safe: true },
 		function(err, num) { if (err) console.log("Error: ", err) });
-		
-	this.db.model('UTask').emit('create', task);
 })
 
-UTaskSchema.post('findOneAndUpdate', function (task) {
-	this.db.model('UTask').emit('update', task);
-});
+// Can't use middleware on findAndUpdate functions
 
 UTaskSchema.post('remove', function (task) {
 	var UScenario = mongoose.model('UScenario');
@@ -70,8 +66,6 @@ UTaskSchema.post('remove', function (task) {
 		}
 		_(conditions).forEach(function(condition) { condition.remove() } );
 	});
-	
-	this.db.model('UTask').emit('destroy', task);
 })
 
 /*

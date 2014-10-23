@@ -16,6 +16,8 @@ exports.all = function(req, res) {
 				error: err//"Can't find the associated platform " + platformId
 			});
 	    }
+		
+		UDevice.emit('all', platform._devices);
 	    res.json({
 			status: true,
 			error: null,
@@ -44,6 +46,8 @@ exports.create = function(req, res) {
 					error: err//"Can't create the device"
 				});
 			}
+			
+			UDevice.emit('create', device);
 			res.json({
 				status: true,
 				error: null,
@@ -60,13 +64,15 @@ exports.update = function(req, res) {
 	UDevice.findOneAndUpdate(
 		{ id: deviceId }, 
 		req.body,
-		function (err, platform) {
+		function (err, device) {
 			if (err) {
 				return res.json(500, {
 					status: false,
 					error: err//"Can't update device " + deviceId
 				});
 			}
+			
+			UDevice.emit('update', device);
 			res.json({
 				status: true,
 				error: null,
@@ -86,6 +92,8 @@ exports.destroy = function(req, res) {
 				error: err//"Can't delete device " + deviceId
 			});
 		}
+		
+		UDevice.emit('destroy', device);
 		res.json({
 			status: true,
 			error: null,
@@ -104,6 +112,8 @@ exports.show = function(req, res) {
 				error: err//"Can't retrieve device " + deviceId
 			});
 		}
+		
+		UDevice.emit('show', device);
 	    res.json({
 			status: true,
 			error: null,

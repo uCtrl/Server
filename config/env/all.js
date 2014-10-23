@@ -37,3 +37,5 @@ var walk = function(path) {
     });
 };
 walk(models_path);
+
+require(rootPath + '/app/apis/ninjacrawler.js');

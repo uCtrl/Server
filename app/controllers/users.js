@@ -13,21 +13,14 @@ exports.create = function(req, res) {
 	var userAccessToken = req.body.userAccessToken;
 	
 	if (userAccessToken != undefined) {
-		//TODO : ceci est pour test seulement
-		User.createDefault( function(user) {
-			user.save(function(err) {
-				if (err) {
-					return res.json(500, {
-						error: err //"Can't create the user"
-					});
-				}
-				res.json({ token: user._id });
-			});
-		});
-	}
-	else {
 		var nb = new ninjablocks({userAccessToken : userAccessToken});
-		nb.user( function(ninjaUser) {
+		nb.user( function(err, ninjaUser) {
+			if (err) {
+				return res.json(500, {
+					error: err //"Can't create the user"
+				});
+			}
+			
 			User.fromNinjaBlocks(ninjaUser, ninjaUser.id, userAccessToken, function(user) {
 				user.save(function(err) {
 					if (err) {
@@ -35,9 +28,16 @@ exports.create = function(req, res) {
 							error: err //"Can't create the user"
 						});
 					}
+					
+					User.emit('create', user);
 					res.json({ token: user._id });
 				});
 			});
+		});	
+	}
+	else {
+		return res.json(500, {
+			error: "Please provide a valid userAccessToken." //"Can't create the user"
 		});
 	}
 };
@@ -52,7 +52,7 @@ exports.fetchAll = function(req, res) {
 			});
 		}
 		if (user) {
-			var crawler = new ninjacrawler({userId : user._id});
+			var crawler = new ninjacrawler({userAccessToken : user.ninjablocks.userAccessToken});
 			crawler.fetchAll( function(err, result)  {
 				res.json("Completed");
 			});
@@ -70,7 +70,7 @@ exports.pushAll = function(req, res) {
 			});
 		}
 		if (user) {
-			var crawler = new ninjacrawler({userId : user._id});
+			var crawler = new ninjacrawler({userAccessToken : user.ninjablocks.userAccessToken});
 			crawler.pushAll( function(err, result)  {
 				res.json("Completed");
 			});
