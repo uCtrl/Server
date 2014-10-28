@@ -2,13 +2,12 @@
 
 var _ = require('lodash'),
 	mongoose = require('mongoose'),
-	ninjacrawler = require('../apis/ninjacrawler.js'),
 	ninjablocks = require('../apis/ninjablocks.js'),
 	User = mongoose.model('User');
-	
-exports.logIn = function(req, res) {
-};
 
+exports.all = function(req, res) {
+};
+	
 exports.create = function(req, res) {
 	var userAccessToken = req.body.userAccessToken;
 	
@@ -42,38 +41,66 @@ exports.create = function(req, res) {
 	}
 };
 
-exports.fetchAll = function(req, res) {
-	var token = req.params.token;
+exports.update = function(req, res) {
+	var userId = req.params.userId;
 
-	User.findById(token, function(err, user) {
+	User.findOneAndUpdate(
+		{ id: userId }, 
+		req.body,
+		function (err, user) {
+			if (err) {
+				return res.json(500, {
+					status: false,
+					error: err//"Can't update user " + userId
+				});
+			}
+			
+			User.emit('update', user);
+			res.json({
+				status: true,
+				error: null,
+				user: user
+			});
+		}
+	);
+};
+
+exports.destroy = function(req, res) {
+	var userId = req.params.userId;
+
+	User.findOne({ id: userId }, function(err, user) {
 		if (err) {
 			return res.json(500, {
-				error: err
+				status: false,
+				error: err//"Can't update user " + userId
 			});
 		}
-		if (user) {
-			var crawler = new ninjacrawler({userAccessToken : user.ninjablocks.userAccessToken});
-			crawler.fetchAll( function(err, result)  {
-				res.json("Completed");
-			});
-		}
+		
+		User.emit('destroy', user);
+		res.json({
+			status: true,
+			error: null,
+			user: user.remove()
+		});
 	});
 };
 
-exports.pushAll = function(req, res) {
-	var token = req.params.token;
-	
-	User.findById(token, function(err, user) {
-		if (err) {
+exports.show = function(req, res) {
+	var userId = req.params.userId;
+
+	User.findOne({ id: userId }, function(err, user) {
+	    if (err) {
 			return res.json(500, {
-				error: err
+				status: false,
+				error: err//"Can't update user " + userId
 			});
 		}
-		if (user) {
-			var crawler = new ninjacrawler({userAccessToken : user.ninjablocks.userAccessToken});
-			crawler.pushAll( function(err, result)  {
-				res.json("Completed");
-			});
-		} 
+		
+		User.emit('show', user);
+	    res.json({
+			status: true,
+			error: null,
+			user: user
+		});
 	});
 };

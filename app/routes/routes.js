@@ -19,15 +19,20 @@ module.exports = function(app) {
        .get(stats.read);
 
     app.route('/users')
-        //.post(users.logIn)
+		//.get(users.all)
         .post(users.create);
+	
+	app.route('/users/:userId')
+        .get(users.show)
+        .put(users.update)
+        .delete(users.destroy);  
 		
-	app.route('/users/:token')
-		.get(users.fetchAll)
-		.put(users.pushAll);
-
     app.route('/system')
-        .get(system.all)
+        .get(system.all);
+		
+	app.route('/system/:token')
+		.get(system.fetchAll)
+		.put(system.pushAll);
 
     app.route('/platforms')
         .get(platforms.all)
