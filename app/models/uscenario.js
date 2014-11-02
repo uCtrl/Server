@@ -15,6 +15,10 @@ var UScenarioSchema = new Schema({
 		required: true,
 		unique: true
 	},
+	parentId: {
+		type: String,
+		required: true
+	},
 	tpId: String,
 	name: String,
 	enabled : Boolean,
@@ -22,7 +26,7 @@ var UScenarioSchema = new Schema({
 	_device: {
 		type: Schema.Types.ObjectId, 
 		ref: 'UDevice',
-		required: true
+		//required: true
 	},
 	_tasks: [{
 		type: Schema.Types.ObjectId, 

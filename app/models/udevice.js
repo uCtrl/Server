@@ -35,6 +35,10 @@ var UDeviceSchema = new Schema({
 		required: true,
 		unique: true
 	},
+	parentId: {
+		type: String,
+		required: true
+	},
 	tpId: {
 		type: String,
 		required: true,
@@ -58,7 +62,7 @@ var UDeviceSchema = new Schema({
 	_platform: {
 		type: Schema.Types.ObjectId, 
 		ref: 'UPlatform',
-		required: true
+		//required: true
 	},
 	_scenarios: [{
 		type: Schema.Types.ObjectId, 

@@ -36,6 +36,10 @@ var UConditionSchema = new Schema({
 		required: true,
 		unique: true
 	},
+	parentId: {
+		type: String,
+		required: true
+	},
 	tpId: {
 		type: String,
 		required: true,
@@ -58,7 +62,7 @@ var UConditionSchema = new Schema({
 	_task: {
 		type: Schema.Types.ObjectId, 
 		ref: 'UTask',
-		required: true
+		//required: true
 	}
 });
 

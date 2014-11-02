@@ -101,7 +101,7 @@ exports.fetchAll = function(req, res) {
 				res.json({
 					status: true,
 					error: err,
-					results: "Completed"
+					result: "Completed - " + results
 				});
 			});
 		}
@@ -123,7 +123,7 @@ exports.pushAll = function(req, res) {
 				res.json({
 					status: true,
 					error: err,
-					results: "Completed"
+					results: "Completed - " + results
 				});
 			});
 		} 

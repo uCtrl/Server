@@ -15,6 +15,10 @@ var UTaskSchema = new Schema({
 		required: true,
 		unique: true
 	},
+	parentId: {
+		type: String,
+		required: true
+	},
 	tpId: {
 		type: String,
 		required: true,
@@ -27,7 +31,7 @@ var UTaskSchema = new Schema({
 	_scenario: {
 		type: Schema.Types.ObjectId, 
 		ref: 'UScenario',
-		required: true
+		//required: true
 	},
 	_conditions: [{
 		type: Schema.Types.ObjectId, 
