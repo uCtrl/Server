@@ -193,7 +193,7 @@ UConditionSchema.statics.toNinjaBlocks = function (condition, cb) {
 		case ENUMCONDITIONTYPE.Date :
 		case ENUMCONDITIONTYPE.Time :
 			ninjaPrecondition.handler = 'weeklyTimePeriod';
-			ninjaPrecondition.params.timezone: "America/Montreal"
+			ninjaPrecondition.params.timezone = "America/Montreal"
 			ninjaPrecondition.params.times.push(condition.beginValue);
 			ninjaPrecondition.params.times.push(condition.endValue);
 			break;
