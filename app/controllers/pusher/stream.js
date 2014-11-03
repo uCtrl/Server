@@ -16,14 +16,14 @@ exports.save = function(data) {
 	})
 	.exec(function (err, task) {
 		if (task.length) {
-			var o = new Logs({
+			/*var o = new Logs({
 				type: "Rule",
-				target: task.id,
+				id: task.id,
 				timestamp: data.timestamp || Date.now()
 			});
 			o.save();
 
-			Logs.emit('Rule', o);
+			Logs.emit('Rule', o);*/
 		} else {
 			// console.log ("no task found with rule name: ", name);
 		}

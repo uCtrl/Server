@@ -12,8 +12,6 @@ var stats = require('../controllers/stats.js');
 
 module.exports = function(app) {
     app.get('/logs', logs.read);
-    app.get('/logs/:deviceId', logs.read);
-    app.post('/logs', logs.create);
 
     app.route('/stats')
        .get(stats.read);
@@ -49,6 +47,9 @@ module.exports = function(app) {
 
     app.route('/platforms/:platformId/devices/:deviceId/stats')
         .get(devices.stats);
+
+    app.route('/platforms/:platformId/devices/:deviceId/logs')
+        .get(devices.logs);
 
     app.route('/platforms/:platformId/devices/:deviceId/scenarios')
 	    .get(scenarios.all)

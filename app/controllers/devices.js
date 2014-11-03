@@ -4,7 +4,8 @@ var _ = require('lodash'),
 	mongoose = require('mongoose'),
 	UPlatform = mongoose.model('UPlatform'),
 	UDevice = mongoose.model('UDevice'),
-	Stats = mongoose.model('Stats');
+	Stats = mongoose.model('Stats'),
+	Logs = mongoose.model('Log');
 
 exports.all = function(req, res) {
 	var platformId = req.params.platformId;
@@ -148,5 +149,8 @@ exports.stats = function(req, res) {
 	});
 };
 
-
-/* We'll need to think about the subdevices and what to do exactly with them */
+exports.logs = function(req, res) {
+	Logs.find({ id: req.params.deviceId }, function (err, logs) {
+		res.json(logs);
+	});	
+}
