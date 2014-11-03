@@ -1,3 +1,4 @@
+// The rules engine from NinjaBlocks is experimental.
 'use strict';
 
 var mongoose = require('mongoose'),
@@ -30,8 +31,7 @@ var UTaskSchema = new Schema({
 	lastUpdated: Number,
 	_scenario: {
 		type: Schema.Types.ObjectId, 
-		ref: 'UScenario',
-		//required: true
+		ref: 'UScenario'
 	},
 	_conditions: [{
 		type: Schema.Types.ObjectId, 
@@ -85,7 +85,7 @@ UTaskSchema.statics.fromNinjaBlocks = function (ninjaRule, ninjaRuleId, cb) {
 		tpId : ninjaRuleId,
 		name : ninjaRule.shortName,
 		value : _(ninjaRule.actions).first().params.da || null,
-		enabled : ninjaRule.suspended,
+		enabled : !ninjaRule.suspended,
 		lastUpdated : null,
 	});
 	cb(task);

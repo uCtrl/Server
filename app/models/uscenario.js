@@ -25,8 +25,7 @@ var UScenarioSchema = new Schema({
 	lastUpdated: Number,
 	_device: {
 		type: Schema.Types.ObjectId, 
-		ref: 'UDevice',
-		//required: true
+		ref: 'UDevice'
 	},
 	_tasks: [{
 		type: Schema.Types.ObjectId, 

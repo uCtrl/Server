@@ -7,6 +7,16 @@ var mongoose = require('mongoose'),
 	uuid = require('node-uuid');
 
 /**
+ * Constants
+ */
+var UEStatus = {//TODO : review status code.
+	OK : 1,
+	Error : 2,
+	Disconnected : 3
+	//...
+};
+
+/**
  * UPlatform Schema
  */
 var UPlatformSchema = new Schema({
@@ -61,14 +71,14 @@ UPlatformSchema.statics.fromNinjaBlocks = function (ninjaBlock, ninjaBlockId, cb
 	var platform = new UPlatform({
 		id : uuid.v1(),
 		tpId : ninjaBlockId,
-		firmwareVersion : null,
+		firmwareVersion : '3.813',
 		name : ninjaBlock.short_name,
 		ip : null,
-		port : null,
+		port : 443,
 		room : null,
-		status : null,
+		status : UEStatus.OK,
 		enabled : true,
-		lastUpdated : null,
+		lastUpdated : ninjaBlock.date_created,
 	});
 	
 	cb(platform);

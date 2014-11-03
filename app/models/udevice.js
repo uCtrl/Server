@@ -11,19 +11,129 @@ var mongoose = require('mongoose'),
  * use http://shop.ninjablocks.com/pages/device-ids
  */
 var UEType = {
-	PushButton : 5,
-	LightSensor : 6,
-	PIRMotionSensor : 7,
-	RF433 : 11,
-	Humidity : 30,
-	Temperature : 31,
-	Switch : 206,
-	ProximitySensor : 219,
-	Light : 233,
-	StatusLight : 999,
-	OnBoardRGBLed : 1000,
-	NinjasEyes : 1007,
-	BelkinWeMoSocket : 1009
+	5 : {
+		typeName : 'PushButton',
+		maxValue : null,
+		minValue : null,
+		precision: null,
+		unitLabel: null
+	},
+	6 : {
+		typeName : 'LightSensor',
+		maxValue : null,
+		minValue : null,
+		precision: null,
+		unitLabel: null
+	},
+	7 : {
+		typeName : 'PIRMotionSensor',
+		maxValue : null,
+		minValue : null,
+		precision: null,
+		unitLabel: null
+	},
+	11 : {
+		typeName : 'RF433',
+		maxValue : null,
+		minValue : null,
+		precision: null,
+		unitLabel: null
+	},
+	30 : {
+		typeName : 'Humidity',
+		maxValue : '100',
+		minValue : '0',
+		precision: '1',
+		unitLabel: '%'
+	},
+	31 : {
+		typeName : 'Temperature',
+		maxValue : '35.0',
+		minValue : '-25.0',
+		precision: '0.1',
+		unitLabel: '°C'
+	},
+	206 : {
+		typeName : 'Switch',
+		maxValue : null,
+		minValue : null,
+		precision: null,
+		unitLabel: null
+	},
+	219 : {
+		typeName : 'ProximitySensor',
+		maxValue : null,
+		minValue : null,
+		precision: null,
+		unitLabel: null
+	},
+	233 : {
+		typeName : 'Light',
+		maxValue : null,
+		minValue : null,
+		precision: null,
+		unitLabel: null
+	},
+	999 : {
+		typeName : 'StatusLight',
+		maxValue : 'FFFFFF',
+		minValue : '000000',
+		precision: '1',
+		unitLabel: null,
+	},
+	1000 : {
+		typeName : 'OnBoardRGBLed',
+		maxValue : 'FFFFFF',
+		minValue : '000000',
+		precision: '1',
+		unitLabel: null
+	},
+	1007 : {
+		typeName : 'NinjasEyes',
+		maxValue : 'FFFFFF',
+		minValue : '000000',
+		precision: '1',
+		unitLabel: null
+	},
+	1009 : {
+		typeName : 'BelkinWeMoSocket',
+		maxValue : null,
+		minValue : null,
+		precision: null,
+		unitLabel: null
+	},
+	1012 : {//TODO : Special case of multiple variables (on, hue, bri, sat)
+		typeName : 'Limitless LED White',
+		maxValue : '254',
+		minValue : '0',
+		precision: '1',
+		unitLabel: 'brightness'
+	}
+	//...
+};
+
+var UESubdeviceType = {//We don't have this info from NinjaBlocks.
+	'010111010100011100110000' : 5,
+	'110100110101010100110000' : 5,
+	'110110101101101011011010' : 1009,
+	'110110101101101011010010' : 1009,
+	'110110101101101011011110' : 1009,
+	'110110101101101011010110' : 1009,
+	'110110101101101011011100' : 1009,
+	'110110101101101011010100' : 1009,
+	'010101010101010101010101' : 7,
+	'010101011111000101010000' : 206,//TODO : Door sensor type?
+	'010000010101110101010000' : 206,
+	'111101010101011101010000' : 206,
+	'110111011101010101010000' : 206
+	//...
+};
+
+var UEStatus = {//TODO : review status code.
+	OK : 1,
+	Error : 2,
+	Disconnected : 3
+	//...
 };
 
 /**
@@ -61,8 +171,7 @@ var UDeviceSchema = new Schema({
 	lastUpdated: Number, 
 	_platform: {
 		type: Schema.Types.ObjectId, 
-		ref: 'UPlatform',
-		//required: true
+		ref: 'UPlatform'
 	},
 	_scenarios: [{
 		type: Schema.Types.ObjectId, 
@@ -112,14 +221,14 @@ UDeviceSchema.statics.fromNinjaBlocks = function (ninjaDevice, ninjaDeviceId, ni
 		id : uuid.v1(),
 		tpId : ninjaDeviceId,
 		name : ninjaDevice.shortName,		
-		type : ninjaDevice.did,
+		type : ninjaDevice.did,//check UEType
 		description : null,
-		maxValue : null,
-		minValue : null,
-		value : (ninjaDevice.last_data != undefined, ninjaDevice.last_data.DA, null),
-		precision : null,
-		status : null,
-		unitLabel : ninjaDevice.unit,
+		maxValue : UEType[ninjaDevice.did].maxValue || null,
+		minValue : UEType[ninjaDevice.did].minValue || null,
+		value : ninjaDevice.last_data.DA || null,
+		precision : UEType[ninjaDevice.did].precision || null,
+		status : UEStatus.OK,
+		unitLabel : UEType[ninjaDevice.did].unitLabel || null,
 		enabled : true,
 		lastUpdated : ninjaDevice.last_data.timestamp,
 	});
@@ -128,7 +237,9 @@ UDeviceSchema.statics.fromNinjaBlocks = function (ninjaDevice, ninjaDeviceId, ni
 		device.tpId = device.tpId + ':' + ninjaSubdeviceId;	//id = deviceGUID:subdeviceID
 		device.name = ninjaSubdevice.shortName;
 		device.subdeviceType = ninjaSubdevice.type; //Allowed: "actuator" or "sensor" 
-		//device.type = (ninjaSubdevice.type == 'sensor' ? ENUMTYPE["rf433Sensor"] : ENUMTYPE["rf433Actuator"]);
+		device.type = UESubdeviceType[ninjaSubdevice.data];
+		device.maxValue = ninjaSubdevice.data;
+		device.minValue = ninjaSubdevice.data;
 		device.value = ninjaSubdevice.data;
 	}
 	cb(device);
@@ -141,27 +252,26 @@ UDeviceSchema.statics.fromNinjaBlocks = function (ninjaDevice, ninjaDeviceId, ni
  */
 UDeviceSchema.statics.toNinjaBlocks = function (device, cb) {
 	// Mapping uCtrl to NinjaBlocks
-	// Post : Can't post a device to NinjaBlocks. Can post a subdevice only.
+	// Post : Can post a subdevice ONLY.
 	// Put : shortName and DA can be send.
 	// Delete : Delete all informations about the specified device.
 	var ninjaDevice = {
 		guid : device.tpId,
 		default_name : device.name,
-		shortName : device.name, //Can be updated
-		DA : device.value, //When sending command
+		shortName : device.name,//Can be updated
+		DA : device.value,//When sending command
 		unit : device.unitLabel,
 	}
 	var ninjaSubdevice = null;
 	
 	// If it's a subdevice mapping (RF433)
-	if (device.type == UEType.RF433) {
-		var deviceTpIdSplit = device.tpId.split(":");	//Subdevice data stored into tpId.
+	if (device.type == 11) {
+		var deviceTpIdSplit = device.tpId.split(":");//Subdevice data stored into tpId.
 		ninjaDevice.guid = deviceTpIdSplit[0];
 		ninjaSubdevice = {
-			guid : deviceTpIdSplit[0], //*
-			category : "rf", //Allowed: "rf", "webhook", "sms"
-			//type : (device.type == ENUMTYPE.rf433Sensor ? "sensor" : "actuator"), //Allowed: "actuator" or "sensor" 
-			type : device.subdeviceType, //Allowed: "actuator" or "sensor" 
+			guid : deviceTpIdSplit[0],
+			category : "rf",//Allowed: "rf", "webhook", "sms"
+			type : device.subdeviceType,//Allowed: "actuator" or "sensor" 
 			shortName : device.name,
 			data : deviceTpIdSplit[1],									
 		}
