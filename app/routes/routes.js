@@ -8,16 +8,16 @@ var scenarios = require(__base + 'app/controllers/scenarios.js');
 var tasks = require(__base + 'app/controllers/tasks.js');
 var conditions = require(__base + 'app/controllers/conditions.js');
 var users = require(__base + 'app/controllers/users.js');
-var stats = require('../controllers/stats.js');
+var stats = require(__base + 'app/controllers/stats.js');
 
 module.exports = function(app) {
+
     app.get('/logs', logs.read);
 
     app.route('/stats')
        .get(stats.read);
 
     app.route('/users')
-        //.post(users.logIn)
         .post(users.create);
 		
 	app.route('/users/:token')

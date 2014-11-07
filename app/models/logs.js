@@ -13,11 +13,11 @@ var ENUMLOGTYPE = {
 };
 
 var ENUMLOGSEVERITY = {
-    Normal = 0,
-    Inactive = 1,
-    Warning = 2,
-    Error = 3,
-    Other = 4
+    Normal: 0,
+    Inactive: 1,
+    Warning: 2,
+    Error: 3,
+    Other: 4
 };
 
 var LogSchema = new Schema({

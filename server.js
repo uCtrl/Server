@@ -4,6 +4,7 @@
  * Module dependencies.
  */
 var express = require('express'),
+    http = require('http'),
     fs = require('fs');
 
 /**
@@ -48,6 +49,13 @@ var walk = function(path) {
 };
 walk(routes_path);
 
+var server = http.createServer(app);
+
+// Start the app by listening on <port>
+var port = process.env.PORT || config.port;
+server.listen(port);
+console.log('Express app started on port ' + port);
+
 // Start services
 var services_path = __dirname + '/app/services';
 var walk = function(path) {
@@ -56,7 +64,7 @@ var walk = function(path) {
         var stat = fs.statSync(newPath);
         if (stat.isFile()) {
             if (/(.*)\.(js$)/.test(file)) {
-                require(newPath);
+                require(newPath)(app, server);
             }
         // We skip the app/routes/middlewares directory as it is meant to be
         // used and shared by routes as further middlewares and is not a 
@@ -67,11 +75,6 @@ var walk = function(path) {
     });
 };
 walk(services_path);
-
-// Start the app by listening on <port>
-var port = process.env.PORT || config.port;
-app.listen(port);
-console.log('Express app started on port ' + port);
 
 // Expose app
 exports = module.exports = app;

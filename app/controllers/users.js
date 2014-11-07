@@ -6,40 +6,58 @@ var _ = require('lodash'),
 	ninjablocks = require('../apis/ninjablocks.js'),
 	User = mongoose.model('User');
 	
-exports.logIn = function(req, res) {
-};
 
 exports.create = function(req, res) {
-	var userAccessToken = req.body.userAccessToken;
+
+	if (!req.body.ninjablocks) 
+		return;
+
+	var userAccessToken = req.body.ninjablocks.userAccessToken;
 	
-	if (userAccessToken != undefined) {
-		//TODO : ceci est pour test seulement
-		User.createDefault( function(user) {
-			user.save(function(err) {
-				if (err) {
-					return res.json(500, {
-						error: err //"Can't create the user"
-					});
-				}
-				res.json({ token: user._id });
-			});
-		});
-	}
-	else {
+	if (!userAccessToken) 
+		return;
+
+	function createUser(userAccessToken) {
 		var nb = new ninjablocks({userAccessToken : userAccessToken});
 		nb.user( function(ninjaUser) {
-			User.fromNinjaBlocks(ninjaUser, ninjaUser.id, userAccessToken, function(user) {
+			User.fromNinjaBlocks(ninjaUser, userAccessToken, function(user) {
 				user.save(function(err) {
 					if (err) {
 						return res.json(500, {
-							error: err //"Can't create the user"
+							status: false,
+							error: err
 						});
 					}
-					res.json({ token: user._id });
+					return user;
 				});
 			});
 		});
 	}
+
+	function updateUser(user) {
+		// TODO: Update values of user from NB
+		return user;
+	}
+
+	User.findOne({ 'ninjablocks.userAccessToken': userAccessToken }).exec(function(err, user) {
+		if (err) {
+			return res.json(500, {
+				status: false,
+				error: err
+			});
+		}
+
+		user = user ? updateUser(user) : createUser(userAccessToken);
+
+		// Start Ninja Blocks crawling
+		new ninjacrawler({ userId : user._id }).fetchAll( function(err, result)  { } );
+
+		res.json({
+			status: true,
+			error: null,
+			token: user._id
+		});		
+	});
 };
 
 exports.fetchAll = function(req, res) {
