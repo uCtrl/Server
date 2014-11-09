@@ -38,12 +38,12 @@ UserSchema.statics.createDefault = function (cb) {
  * Receives the block (from NB) and will call the cb when mapped.
  * To logic here is only to do the mapping
  */
-UserSchema.statics.fromNinjaBlocks = function (ninjaUser, ninjaUserId, ninjaUserAccessToken, cb) {
+UserSchema.statics.fromNinjaBlocks = function (ninjaUser, ninjaUserAccessToken, cb) {
 	var User = mongoose.model('User');
 	// Mapping Ninja to uCtrl
 	var user = new User({
 		id : uuid.v1(),
-		tpId : ninjaUserId, 
+		tpId : ninjaUser.id, 
 		name : ninjaUser.name,
 		email : ninjaUser.email,
 		ninjablocks: { 
