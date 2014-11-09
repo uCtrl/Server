@@ -15,14 +15,17 @@ var UScenarioSchema = new Schema({
 		required: true,
 		unique: true
 	},
+	parentId: {
+		type: String,
+		required: true
+	},
 	tpId: String,
 	name: String,
 	enabled : Boolean,
 	lastUpdated: Number,
 	_device: {
 		type: Schema.Types.ObjectId, 
-		ref: 'UDevice',
-		required: true
+		ref: 'UDevice'
 	},
 	_tasks: [{
 		type: Schema.Types.ObjectId, 
@@ -37,13 +40,9 @@ UScenarioSchema.post('save', function (scenario) {
 		{ $addToSet: { _scenarios: scenario._id } }, 
 		{ safe: true },
 		function (err, num) { if (err) console.log("Error: ", err) });
-		
-	this.db.model('UScenario').emit('create', scenario);
 })
 
-UScenarioSchema.post('findOneAndUpdate', function (scenario) {
-	this.db.model(UScenario).emit('update', scenario);
-});
+// Can't use middleware on findAndUpdate functions
 
 UScenarioSchema.post('remove', function (scenario) {
 	var UDevice = mongoose.model('UDevice');
@@ -62,8 +61,6 @@ UScenarioSchema.post('remove', function (scenario) {
 		}
 		_(tasks).forEach(function(task) { task.remove() } );
 	});
-	
-	this.db.model('UScenario').emit('destroy', scenario);
 })
 
 /*

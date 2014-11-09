@@ -15,6 +15,8 @@ exports.all = function(req, res) {
 				error: err//"Can't list the scenarios for device " + deviceId
 			});
 	    }
+		
+		UScenario.emit('all', scenarios);
 		res.json({
 			status: true,
 			error: null,
@@ -42,6 +44,8 @@ exports.create = function(req, res) {
 					error: err//"Can't create the scenario"
 				});
 			}
+			
+			UScenario.emit('create', scenario);
 			res.json({
 				status: true,
 				error: null,
@@ -58,13 +62,15 @@ exports.update = function(req, res) {
 	UScenario.findOne(
 		{ id: scenarioId }, 
 		req.body,
-		function (err, platform) {
+		function (err, scenario) {
 			if (err) {
 				return res.json(500, {
 					status: false,
 					error: err//"Can't update scenario " + scenarioId
 				});
 			}
+			
+			UScenario.emit('update', scenario);
 			res.json({
 				status: true,
 				error: null,
@@ -84,6 +90,8 @@ exports.destroy = function(req, res) {
 				error: err//"Can't delete scenario " + scenarioId
 			});
 		}
+		
+		UScenario.emit('destroy', scenario);
 		res.json({
 			status: true,
 			error: null,
@@ -102,6 +110,8 @@ exports.show = function(req, res) {
 				error: err//"Can't retrieve scenario " + scenarioId
 			});
 		}
+		
+		UScenario.emit('show', scenario);
 	    res.json({
 			status: true,
 			error: null,

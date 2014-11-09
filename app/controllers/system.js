@@ -2,11 +2,14 @@
 
 var _ = require('lodash'),
 	mongoose = require('mongoose'),
+	ninjacrawler = require('../apis/ninjacrawler.js'),
+	ninjablocks = require('../apis/ninjablocks.js'),
 	UPlatform = mongoose.model('UPlatform'),
 	UDevice = mongoose.model('UDevice'),
 	UScenario = mongoose.model('UScenario'),
 	UTask = mongoose.model('UTask'),
-	UCondition = mongoose.model('UCondition');
+	UCondition = mongoose.model('UCondition'),
+	User = mongoose.model('User');
 
 exports.all = function(req, res) {
 
@@ -80,5 +83,49 @@ exports.all = function(req, res) {
 				});
 			});
 		});
+	});
+};
+
+exports.fetchAll = function(req, res) {
+	var token = req.params.token;
+
+	User.findById(token, function(err, user) {
+		if (err) {
+			return res.json(500, {
+				error: err
+			});
+		}
+		if (user) {
+			var crawler = new ninjacrawler({userAccessToken : user.ninjablocks.userAccessToken});
+			crawler.fetchAll( function(err, results)  {
+				res.json({
+					status: true,
+					error: err,
+					result: "Completed - " + results
+				});
+			});
+		}
+	});
+};
+
+exports.pushAll = function(req, res) {
+	var token = req.params.token;
+	
+	User.findById(token, function(err, user) {
+		if (err) {
+			return res.json(500, {
+				error: err
+			});
+		}
+		if (user) {
+			var crawler = new ninjacrawler({userAccessToken : user.ninjablocks.userAccessToken});
+			crawler.pushAll( function(err, result)  {
+				res.json({
+					status: true,
+					error: err,
+					results: "Completed - " + results
+				});
+			});
+		} 
 	});
 };

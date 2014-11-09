@@ -6,7 +6,6 @@ var _ = require('lodash'),
 	ninjablocks = require('../apis/ninjablocks.js'),
 	User = mongoose.model('User');
 	
-
 exports.create = function(req, res) {
 
 	if (!req.body.ninjablocks) 

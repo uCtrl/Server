@@ -25,7 +25,11 @@ module.exports = function(app) {
 		.put(users.pushAll);
 
     app.route('/system')
-        .get(system.all)
+        .get(system.all);
+		
+	app.route('/system/:token')
+		.get(system.fetchAll)
+		.put(system.pushAll);
 
     app.route('/platforms')
         .get(platforms.all)
