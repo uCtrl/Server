@@ -13,7 +13,7 @@ exports.all = function(req, res) {
 			});
 	    }
 		
-		UPlatform.emit('all', platforms);
+		UPlatform.emit('all', req.uCtrl_User, platforms);
 		res.json({
 			status: true,
 			error: null,
@@ -32,7 +32,7 @@ exports.create = function(req, res) {
 			});
 		}
 		
-		UPlatform.emit('create', platform);
+		UPlatform.emit('create', req.uCtrl_User, platform);
 		res.json({
 			status: true,
 			error: null,
@@ -56,7 +56,7 @@ exports.update = function(req, res) {
 				});
 			}
 			
-			UPlatform.emit('update', platform);
+			UPlatform.emit('update', req.uCtrl_User, platform);
 			res.json({
 				status: true,
 				error: null,
@@ -77,7 +77,7 @@ exports.destroy = function(req, res) {
 			});
 		}
 		
-		UPlatform.emit('destroy', platform);
+		UPlatform.emit('destroy', req.uCtrl_User, platform);
 		res.json({
 			status: true,
 			error: null,
@@ -97,7 +97,7 @@ exports.show = function(req, res) {
 			});
 		}
 		
-		UPlatform.emit('show', platform);
+		UPlatform.emit('show', req.uCtrl_User, platform);
 		res.json({
 			status: true,
 			error: null,

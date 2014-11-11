@@ -16,7 +16,7 @@ exports.all = function(req, res) {
 			});
 	    }
 		
-		UTask.emit('all', tasks);
+		UTask.emit('all', req.uCtrl_User, tasks);
 		res.json({
 			status: true,
 			error: null,
@@ -45,7 +45,7 @@ exports.create = function(req, res) {
 				});
 			}
 			
-			UTask.emit('create', task);
+			UTask.emit('create', req.uCtrl_User, task);
 			res.json({
 				status: true,
 				error: null,
@@ -69,7 +69,7 @@ exports.update = function(req, res) {
 				});
 			}
 			
-			UTask.emit('update', task);
+			UTask.emit('update', req.uCtrl_User, task);
 			res.json({
 				status: true,
 				error: null,
@@ -90,7 +90,7 @@ exports.destroy = function(req, res) {
 			});
 		}
 		
-		UTask.emit('destroy', task);
+		UTask.emit('destroy', req.uCtrl_User, task);
 		res.json({
 			status: true,
 			error: null,
@@ -110,7 +110,7 @@ exports.show = function(req, res) {
 			});
 		}
 		
-		UTask.emit('show', task);
+		UTask.emit('show', req.uCtrl_User, task);
 	    res.json({
 			status: true,
 			error: null,

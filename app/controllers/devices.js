@@ -18,7 +18,7 @@ exports.all = function(req, res) {
 			});
 	    }
 		
-		UDevice.emit('all', platform._devices);
+		UDevice.emit('all', req.uCtrl_User, platform._devices);
 	    res.json({
 			status: true,
 			error: null,
@@ -48,7 +48,7 @@ exports.create = function(req, res) {
 				});
 			}
 			
-			UDevice.emit('create', device);
+			UDevice.emit('create', req.uCtrl_User, device);
 			res.json({
 				status: true,
 				error: null,
@@ -73,7 +73,7 @@ exports.update = function(req, res) {
 				});
 			}
 			
-			UDevice.emit('update', device);
+			UDevice.emit('update', req.uCtrl_User, device);
 			res.json({
 				status: true,
 				error: null,
@@ -94,7 +94,7 @@ exports.destroy = function(req, res) {
 			});
 		}
 		
-		UDevice.emit('destroy', device);
+		UDevice.emit('destroy', req.uCtrl_User, device);
 		res.json({
 			status: true,
 			error: null,
@@ -114,7 +114,7 @@ exports.show = function(req, res) {
 			});
 		}
 		
-		UDevice.emit('show', device);
+		UDevice.emit('show', req.uCtrl_User, device);
 	    res.json({
 			status: true,
 			error: null,

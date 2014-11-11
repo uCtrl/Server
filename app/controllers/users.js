@@ -49,6 +49,8 @@ exports.create = function(req, res) {
 
 		console.log("new ninjacrawler instanciated");
 
+		User.emit('create', req.uCtrl_User, u);
+		
 		res.json({
 			status: true,
 			error: null,
@@ -67,41 +69,3 @@ exports.create = function(req, res) {
 		user ? updateUser(user, doSomethingWithUser) : createUser(userAccessToken, doSomethingWithUser);
 	});
 };
-
-/*TODO : to delete. This job is done by the system's controller.
-exports.fetchAll = function(req, res) {
-	var token = req.params.token;
-
-	User.findById(token, function(err, user) {
-		if (err) {
-			return res.json(500, {
-				error: err
-			});
-		}
-		if (user) {
-			var crawler = new ninjacrawler({userId : user._id});
-			crawler.fetchAll( function(err, result)  {
-				res.json("Completed");
-			});
-		}
-	});
-};
-
-exports.pushAll = function(req, res) {
-	var token = req.params.token;
-	
-	User.findById(token, function(err, user) {
-		if (err) {
-			return res.json(500, {
-				error: err
-			});
-		}
-		if (user) {
-			var crawler = new ninjacrawler({userId : user._id});
-			crawler.pushAll( function(err, result)  {
-				res.json("Completed");
-			});
-		} 
-	});
-};
-*/

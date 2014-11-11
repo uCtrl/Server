@@ -35,35 +35,37 @@ var request = require('request'),
 /*
  * User events
  */
-User.on('create', function() {
+User.on('create', function(uCtrl_User, user) {
 	console.log('--event : no NinjaBlock action to do.');
 });
-User.on('update', function() {
+User.on('update', function(uCtrl_User, user) {
 	console.log('--event : no NinjaBlock action to do.');
 });
-User.on('destroy', function() {
+User.on('destroy', function(uCtrl_User, user) {
 	console.log('--event : no NinjaBlock action to do.');
 });
 
 /*
  * UPlatform events
  */
-UPlatform.on('create', function() {
+UPlatform.on('create', function(uCtrl_User, platform) {
+	console.log(uCtrl_User);
+	console.log(platform);
 	//TODO : pair block and delete all devices and rules related.
 	console.log('--event : TODO : pair block and delete all devices and rules related.');
 });
-UPlatform.on('update', function() {
+UPlatform.on('update', function(uCtrl_User, platform) {
 	console.log('--event : no NinjaBlock action to do.');
 });
-UPlatform.on('destroy', function() {
+UPlatform.on('destroy', function(uCtrl_User, platform) {
 	//TODO : unpair block and delete all devices and rules related.
 		console.log('--event : TODO : unpair block and delete all devices and rules related.');
 });
 /*
  * UDevice events
  */
-UDevice.on('create', function(deviceObj) {
-	var nb = new ninjablocks({userAccessToken : '107f6f460bed2dbb10f0a93b994deea7fe07dad5'});
+UDevice.on('create', function(uCtrl_User, deviceObj) {
+	var nb = new ninjablocks({userAccessToken : uCtrl_User.ninjablocks.userAccessToken});
 	UDevice.toNinjaBlocks(deviceObj, function(ninjaDevice, ninjaSubdevice){
 		if (ninjaSubdevice != null) { //If it's a subdevice
 			nb.device(ninjaDevice.guid).subdevice().create(ninjaSubdevice, function(err, result){
@@ -77,8 +79,8 @@ UDevice.on('create', function(deviceObj) {
 	});
 });
 
-UDevice.on('update', function(deviceObj) {
-	var nb = new ninjablocks({userAccessToken : '107f6f460bed2dbb10f0a93b994deea7fe07dad5'});
+UDevice.on('update', function(uCtrl_User, deviceObj) {
+	var nb = new ninjablocks({userAccessToken : uCtrl_User.ninjablocks.userAccessToken});
 	UDevice.toNinjaBlocks(deviceObj, function(ninjaDevice, ninjaSubdevice){
 		if (ninjaSubdevice != null) { //If it's a subdevice
 			console.log('--event : TODO : subdevice update with the subdevice tpId.');
@@ -96,8 +98,8 @@ UDevice.on('update', function(deviceObj) {
 	});
 });
 
-UDevice.on('destroy', function(deviceObj) {
-	var nb = new ninjablocks({userAccessToken : '107f6f460bed2dbb10f0a93b994deea7fe07dad5'});
+UDevice.on('destroy', function(uCtrl_User, deviceObj) {
+	var nb = new ninjablocks({userAccessToken : uCtrl_User.ninjablocks.userAccessToken});
 	UDevice.toNinjaBlocks(deviceObj, function(ninjaDevice, ninjaSubdevice){
 		if (ninjaSubdevice != null) { //If it's a subdevice
 			console.log('--event : TODO : subdevice delete with the subdevice tpId.');
@@ -126,8 +128,8 @@ UDevice.on('destroy', function(deviceObj) {
  */
 UScenario.on('create', defaultEvent);
 UScenario.on('update', defaultEvent);
-UScenario.on('destroy', function(scenarioObj) {
-	var nb = new ninjablocks({userAccessToken : '107f6f460bed2dbb10f0a93b994deea7fe07dad5'});
+UScenario.on('destroy', function(uCtrl_User, scenarioObj) {
+	var nb = new ninjablocks({userAccessToken : uCtrl_User.ninjablocks.userAccessToken});
 	_(scenarioObj._tasks).forEach(function(taskId, taskIndex) {
 		UTask.findById(taskId, function(err, taskObj) {
 			nb.rule(taskObj.tpId).delete(function(err, result) {
@@ -141,8 +143,8 @@ UScenario.on('destroy', function(scenarioObj) {
 /*
  * UTask events
  */
-UTask.on('create', function(taskObj) {
-	var nb = new ninjablocks({userAccessToken : '107f6f460bed2dbb10f0a93b994deea7fe07dad5'});
+UTask.on('create', function(uCtrl_User, taskObj) {
+	var nb = new ninjablocks({userAccessToken : uCtrl_User.ninjablocks.userAccessToken});
 	UTask.toNinjaBlocks(taskObj, function(ninjaRule) {
 		nb.rule(taskObj.tpId).create(ninjaRule, function(err, result) {
 			//TODO : chande task tpId with the one provided.
@@ -151,8 +153,8 @@ UTask.on('create', function(taskObj) {
 	});
 });
 
-UTask.on('update', function(taskObj) {
-	var nb = new ninjablocks({userAccessToken : '107f6f460bed2dbb10f0a93b994deea7fe07dad5'});
+UTask.on('update', function(uCtrl_User, taskObj) {
+	var nb = new ninjablocks({userAccessToken : uCtrl_User.ninjablocks.userAccessToken});
 	UTask.toNinjaBlocks(taskObj, function(ninjaRule) {
 		nb.rule(taskObj.tpId).update(ninjaRule, function(err, result) {
 			console.log('--event : NinjaBlock rule ' + taskObj.tpId + ' updated.');
@@ -160,8 +162,8 @@ UTask.on('update', function(taskObj) {
 	});
 });
 
-UTask.on('destroy', function(taskObj) {
-	var nb = new ninjablocks({userAccessToken : '107f6f460bed2dbb10f0a93b994deea7fe07dad5'});
+UTask.on('destroy', function(uCtrl_User, taskObj) {
+	var nb = new ninjablocks({userAccessToken : uCtrl_User.ninjablocks.userAccessToken});
 	nb.rule(taskObj.tpId).delete(function(err, result) {
 		console.log('--event : NinjaBlock rule ' + taskObj.tpId + ' deleted.');
 	});
@@ -171,8 +173,8 @@ UTask.on('destroy', function(taskObj) {
 /*
  * UCondition events
  */
-UCondition.on('create', function(conditionObj) {
-	var nb = new ninjablocks({userAccessToken : '107f6f460bed2dbb10f0a93b994deea7fe07dad5'});
+UCondition.on('create', function(uCtrl_User, conditionObj) {
+	var nb = new ninjablocks({userAccessToken : uCtrl_User.ninjablocks.userAccessToken});
 	UTask.findById(conditionObj._task, function(err, taskObj) {
 		UTask.toNinjaBlocks(taskObj, function(ninjaRule){
 			//TODO : chande condition tpId with the new index.
@@ -186,8 +188,8 @@ UCondition.on('create', function(conditionObj) {
 	});
 });
 
-UCondition.on('update', function(conditionObj) {
-	var nb = new ninjablocks({userAccessToken : '107f6f460bed2dbb10f0a93b994deea7fe07dad5'});
+UCondition.on('update', function(uCtrl_User, conditionObj) {
+	var nb = new ninjablocks({userAccessToken : uCtrl_User.ninjablocks.userAccessToken});
 	UTask.findById(conditionObj._task, function(err, taskObj) {
 		UTask.toNinjaBlocks(taskObj, function(ninjaRule){
 			var conditionTpIdSplit = conditionObj.tpId.split(":"); //precondition index stored into tpId.
@@ -202,8 +204,8 @@ UCondition.on('update', function(conditionObj) {
 	});
 });
 
-UCondition.on('destroy', function(conditionObj) {
-	var nb = new ninjablocks({userAccessToken : '107f6f460bed2dbb10f0a93b994deea7fe07dad5'});
+UCondition.on('destroy', function(uCtrl_User, conditionObj) {
+	var nb = new ninjablocks({userAccessToken : uCtrl_User.ninjablocks.userAccessToken});
 	UTask.findById(conditionObj._task, function(err, taskObj) {
 		UTask.toNinjaBlocks(taskObj, function(ninjaRule){
 			var conditionTpIdSplit = conditionObj.tpId.split(":"); //precondition index stored into tpId.

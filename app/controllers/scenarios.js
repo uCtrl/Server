@@ -16,7 +16,7 @@ exports.all = function(req, res) {
 			});
 	    }
 		
-		UScenario.emit('all', scenarios);
+		UScenario.emit('all', req.uCtrl_User, scenarios);
 		res.json({
 			status: true,
 			error: null,
@@ -45,7 +45,7 @@ exports.create = function(req, res) {
 				});
 			}
 			
-			UScenario.emit('create', scenario);
+			UScenario.emit('create', req.uCtrl_User, scenario);
 			res.json({
 				status: true,
 				error: null,
@@ -70,7 +70,7 @@ exports.update = function(req, res) {
 				});
 			}
 			
-			UScenario.emit('update', scenario);
+			UScenario.emit('update', req.uCtrl_User, scenario);
 			res.json({
 				status: true,
 				error: null,
@@ -91,7 +91,7 @@ exports.destroy = function(req, res) {
 			});
 		}
 		
-		UScenario.emit('destroy', scenario);
+		UScenario.emit('destroy', req.uCtrl_User, scenario);
 		res.json({
 			status: true,
 			error: null,
@@ -111,7 +111,7 @@ exports.show = function(req, res) {
 			});
 		}
 		
-		UScenario.emit('show', scenario);
+		UScenario.emit('show', req.uCtrl_User, scenario);
 	    res.json({
 			status: true,
 			error: null,
