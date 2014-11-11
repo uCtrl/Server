@@ -12,6 +12,8 @@ exports.all = function(req, res) {
 				error: err//"Can't list the platforms"
 			});
 	    }
+		
+		UPlatform.emit('all', req.uCtrl_User, platforms);
 		res.json({
 			status: true,
 			error: null,
@@ -29,6 +31,8 @@ exports.create = function(req, res) {
 				error: err//"Can't create the platform"
 			});
 		}
+		
+		UPlatform.emit('create', req.uCtrl_User, platform);
 		res.json({
 			status: true,
 			error: null,
@@ -51,6 +55,8 @@ exports.update = function(req, res) {
 					error: err//"Can't update platform " + platformId
 				});
 			}
+			
+			UPlatform.emit('update', req.uCtrl_User, platform);
 			res.json({
 				status: true,
 				error: null,
@@ -70,6 +76,8 @@ exports.destroy = function(req, res) {
 				error: err//"Can't delete platform " + platformId
 			});
 		}
+		
+		UPlatform.emit('destroy', req.uCtrl_User, platform);
 		res.json({
 			status: true,
 			error: null,
@@ -88,6 +96,8 @@ exports.show = function(req, res) {
 				error: err//"Can't retrieve platform " + platformId
 			});
 		}
+		
+		UPlatform.emit('show', req.uCtrl_User, platform);
 		res.json({
 			status: true,
 			error: null,

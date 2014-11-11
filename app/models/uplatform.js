@@ -7,6 +7,16 @@ var mongoose = require('mongoose'),
 	uuid = require('node-uuid');
 
 /**
+ * Constants
+ */
+var UEStatus = {//TODO : review status code.
+	OK : 1,
+	Error : 2,
+	Disconnected : 3
+	//...
+};
+
+/**
  * UPlatform Schema
  */
 var UPlatformSchema = new Schema({
@@ -35,19 +45,9 @@ var UPlatformSchema = new Schema({
 });
 
 UPlatformSchema.post('save', function (platform) {
-	/*
-	 * ref : http://grokbase.com/t/gg/mongoose-orm/1235c1mjsq/mongoose-emitting-an-event-in-a-middleware-function
-	 * use:
-			MyModel.on('new', function(mymodel) {
-				io.sockets.emit('new_my_model', mymodel.toJSON());
-			});
-	*/
-	this.db.model('UPlatform').emit('create', platform);
 });
 
-UPlatformSchema.post('findOneAndUpdate', function (platform) {
-	this.db.model('UPlatform').emit('update', platform);
-});
+// Can't use middleware on findAndUpdate functions
 
 UPlatformSchema.post('remove', function (platform) {
 	var UDevice = mongoose.model('UDevice');
@@ -57,8 +57,6 @@ UPlatformSchema.post('remove', function (platform) {
 			return;
 		}
 		_(devices).forEach(function(device) { device.remove() } );
-		
-		this.db.model('UPlatform').emit('destroy', platform);
 	});
 });
 
@@ -73,14 +71,14 @@ UPlatformSchema.statics.fromNinjaBlocks = function (ninjaBlock, ninjaBlockId, cb
 	var platform = new UPlatform({
 		id : uuid.v1(),
 		tpId : ninjaBlockId,
-		firmwareVersion : null,
+		firmwareVersion : '3.813',
 		name : ninjaBlock.short_name,
 		ip : null,
-		port : null,
+		port : 443,
 		room : null,
-		status : null,
+		status : UEStatus.OK,
 		enabled : true,
-		lastUpdated : null,
+		lastUpdated : ninjaBlock.date_created,
 	});
 	
 	cb(platform);

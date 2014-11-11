@@ -15,6 +15,8 @@ exports.all = function (req, res) {
 				error: err//"Can't list the tasks for task " + taskId
 			});
 		}
+		
+		UCondition.emit('all', conditions);
 		res.json({
 			status: true,
 			error: null,
@@ -42,6 +44,8 @@ exports.create = function(req, res) {
 					error: err//"Can't create the condition"
 				});
 			}
+			
+			UCondition.emit('create', condition);
 			res.json({
 				status: true,
 				error: null,
@@ -57,13 +61,15 @@ exports.update = function(req, res) {
 	UCondition.findOneAndUpdate(
 		{ id: conditionId }, 
 		req.body,
-		function (err, platform) {
+		function (err, condition) {
 			if (err) {
 				return res.json(500, {
 					status: false,
 					error: err//"Can't update condition " + conditionId
 				});
 			}
+			
+			UCondition.emit('update', condition);
 			res.json({
 				status: true,
 				error: null,
@@ -83,6 +89,8 @@ exports.destroy = function(req, res) {
 				error: err//"Can't delete condition " + conditionId
 			});
 		}
+		
+		UCondition.emit('destroy', condition);
 		res.json({
 			status: true,
 			error: null,
@@ -101,6 +109,8 @@ exports.show = function(req, res) {
 				error: err//"Can't retrieve condition " + conditionId
 			});
 		}
+		
+		UCondition.emit('show', condition);
 	    res.json({
 			status: true,
 			error: null,

@@ -6,9 +6,9 @@ var _ = require('lodash'),
 	ninjablocks = require('../apis/ninjablocks.js'),
 	User = mongoose.model('User');
 	
-
 exports.create = function(req, res) {
-
+	console.log(req.body);
+	
 	if (!req.body.ninjablocks) 
 		return;
 
@@ -17,9 +17,10 @@ exports.create = function(req, res) {
 	if (!userAccessToken) 
 		return;
 
-	function createUser(userAccessToken) {
+	function createUser(userAccessToken, cb) {
 		var nb = new ninjablocks({userAccessToken : userAccessToken});
-		nb.user( function(ninjaUser) {
+		console.log(userAccessToken);
+		nb.user( function(err, ninjaUser) {
 			User.fromNinjaBlocks(ninjaUser, userAccessToken, function(user) {
 				user.save(function(err) {
 					if (err) {
@@ -28,15 +29,33 @@ exports.create = function(req, res) {
 							error: err
 						});
 					}
-					return user;
+
+					if (cb) cb(user, userAccessToken);
 				});
 			});
 		});
 	}
 
-	function updateUser(user) {
+	function updateUser(user, cb) {
 		// TODO: Update values of user from NB
-		return user;
+		if (cb) cb(user); 
+	}
+
+	function doSomethingWithUser(u, token) {
+		// Start Ninja Blocks crawling
+		new ninjacrawler({ userId : u._id, userAccessToken: token }).fetchAll( function(err, result) {
+			console.log("done 'fetchAll'");
+		});
+
+		console.log("new ninjacrawler instanciated");
+
+		User.emit('create', req.uCtrl_User, u);
+		
+		res.json({
+			status: true,
+			error: null,
+			token: u._id
+		});		
 	}
 
 	User.findOne({ 'ninjablocks.userAccessToken': userAccessToken }).exec(function(err, user) {
@@ -46,52 +65,7 @@ exports.create = function(req, res) {
 				error: err
 			});
 		}
-
-		user = user ? updateUser(user) : createUser(userAccessToken);
-
-		// Start Ninja Blocks crawling
-		new ninjacrawler({ userId : user._id }).fetchAll( function(err, result)  { } );
-
-		res.json({
-			status: true,
-			error: null,
-			token: user._id
-		});		
-	});
-};
-
-exports.fetchAll = function(req, res) {
-	var token = req.params.token;
-
-	User.findById(token, function(err, user) {
-		if (err) {
-			return res.json(500, {
-				error: err
-			});
-		}
-		if (user) {
-			var crawler = new ninjacrawler({userId : user._id});
-			crawler.fetchAll( function(err, result)  {
-				res.json("Completed");
-			});
-		}
-	});
-};
-
-exports.pushAll = function(req, res) {
-	var token = req.params.token;
-	
-	User.findById(token, function(err, user) {
-		if (err) {
-			return res.json(500, {
-				error: err
-			});
-		}
-		if (user) {
-			var crawler = new ninjacrawler({userId : user._id});
-			crawler.pushAll( function(err, result)  {
-				res.json("Completed");
-			});
-		} 
+		console.log("user : " + user);
+		user ? updateUser(user, doSomethingWithUser) : createUser(userAccessToken, doSomethingWithUser);
 	});
 };

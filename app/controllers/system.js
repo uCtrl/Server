@@ -2,14 +2,16 @@
 
 var _ = require('lodash'),
 	mongoose = require('mongoose'),
+	ninjacrawler = require('../apis/ninjacrawler.js'),
+	ninjablocks = require('../apis/ninjablocks.js'),
 	UPlatform = mongoose.model('UPlatform'),
 	UDevice = mongoose.model('UDevice'),
 	UScenario = mongoose.model('UScenario'),
 	UTask = mongoose.model('UTask'),
-	UCondition = mongoose.model('UCondition');
+	UCondition = mongoose.model('UCondition'),
+	User = mongoose.model('User');
 
 exports.all = function(req, res) {
-
 	var mapPrivToPub = {
 	    "_devices": "devices",
 	    "_scenarios": "scenarios",
@@ -81,4 +83,17 @@ exports.all = function(req, res) {
 			});
 		});
 	});
+};
+
+exports.fetchAll = function(req, res) {
+	if(req.uCtrl_User.ninjablocks.userAccessToken)
+	{
+		new ninjacrawler({ userAccessToken: req.uCtrl_NB_UserAccessToken }).fetchAll( function(err, result) {
+			res.json({
+				status: true,
+				error: err,
+				result: "Completed - " + results
+			});
+		});
+	}
 };

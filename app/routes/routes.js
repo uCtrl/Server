@@ -9,23 +9,38 @@ var tasks = require(__base + 'app/controllers/tasks.js');
 var conditions = require(__base + 'app/controllers/conditions.js');
 var users = require(__base + 'app/controllers/users.js');
 var stats = require(__base + 'app/controllers/stats.js');
+var mongoose = require('mongoose');
+var User = mongoose.model('User');
 
 module.exports = function(app) {
 
-    app.get('/logs', logs.read);
+	app.use(function(req, res, next){
+		var uCtrl_Token = req.get("X-uCtrl-Token");
+		if(uCtrl_Token) {
+			User.findById(uCtrl_Token, function(err, userObj) {
+				if(userObj) {
+					req.uCtrl_User = userObj
+				}
+				next();
+			});
+		}
+		else
+			next();
+	});
+
+	app.get('/logs', logs.read);
 
     app.route('/stats')
        .get(stats.read);
 
     app.route('/users')
         .post(users.create);
-		
-	app.route('/users/:token')
-		.get(users.fetchAll)
-		.put(users.pushAll);
 
     app.route('/system')
-        .get(system.all)
+        .get(system.all);
+		
+	app.route('/system/fetchAll')
+		.get(system.fetchAll)
 
     app.route('/platforms')
         .get(platforms.all)

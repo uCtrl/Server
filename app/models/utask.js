@@ -1,3 +1,4 @@
+// The rules engine from NinjaBlocks is experimental.
 'use strict';
 
 var mongoose = require('mongoose'),
@@ -15,6 +16,10 @@ var UTaskSchema = new Schema({
 		required: true,
 		unique: true
 	},
+	parentId: {
+		type: String,
+		required: true
+	},
 	tpId: {
 		type: String,
 		required: true,
@@ -26,8 +31,7 @@ var UTaskSchema = new Schema({
 	lastUpdated: Number,
 	_scenario: {
 		type: Schema.Types.ObjectId, 
-		ref: 'UScenario',
-		required: true
+		ref: 'UScenario'
 	},
 	_conditions: [{
 		type: Schema.Types.ObjectId, 
@@ -45,13 +49,9 @@ UTaskSchema.post('save', function (task) {
 		{ $addToSet: { _tasks: task._id } }, 
 		{ safe: true },
 		function(err, num) { if (err) console.log("Error: ", err) });
-		
-	this.db.model('UTask').emit('create', task);
 })
 
-UTaskSchema.post('findOneAndUpdate', function (task) {
-	this.db.model('UTask').emit('update', task);
-});
+// Can't use middleware on findAndUpdate functions
 
 UTaskSchema.post('remove', function (task) {
 	var UScenario = mongoose.model('UScenario');
@@ -70,8 +70,6 @@ UTaskSchema.post('remove', function (task) {
 		}
 		_(conditions).forEach(function(condition) { condition.remove() } );
 	});
-	
-	this.db.model('UTask').emit('destroy', task);
 })
 
 /*
@@ -87,7 +85,7 @@ UTaskSchema.statics.fromNinjaBlocks = function (ninjaRule, ninjaRuleId, cb) {
 		tpId : ninjaRuleId,
 		name : ninjaRule.shortName,
 		value : _(ninjaRule.actions).first().params.da || null,
-		enabled : ninjaRule.suspended,
+		enabled : !ninjaRule.suspended,
 		lastUpdated : null,
 	});
 	cb(task);
