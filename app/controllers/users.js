@@ -7,7 +7,8 @@ var _ = require('lodash'),
 	User = mongoose.model('User');
 	
 exports.create = function(req, res) {
-
+	console.log(req.body);
+	
 	if (!req.body.ninjablocks) 
 		return;
 
@@ -18,6 +19,7 @@ exports.create = function(req, res) {
 
 	function createUser(userAccessToken, cb) {
 		var nb = new ninjablocks({userAccessToken : userAccessToken});
+		console.log(userAccessToken);
 		nb.user( function(err, ninjaUser) {
 			User.fromNinjaBlocks(ninjaUser, userAccessToken, function(user) {
 				user.save(function(err) {
@@ -61,10 +63,12 @@ exports.create = function(req, res) {
 				error: err
 			});
 		}
+		console.log("user : " + user);
 		user ? updateUser(user, doSomethingWithUser) : createUser(userAccessToken, doSomethingWithUser);
 	});
 };
 
+/*TODO : to delete. This job is done by the system's controller.
 exports.fetchAll = function(req, res) {
 	var token = req.params.token;
 
@@ -100,3 +104,4 @@ exports.pushAll = function(req, res) {
 		} 
 	});
 };
+*/

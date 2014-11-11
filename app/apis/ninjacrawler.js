@@ -495,11 +495,12 @@ function ninjaCrawler(options) {
 		});
 	};
 	
-	/**
+	/** TODO : need to review this code.
 	 * Push all data to NinjaBlocks (asynchronous calls)
 	 * Can't do a callback
-	 * TODO : need to review this code.
+	 * 
 	 */
+	 /*
 	this.pushAll = function() {
 		// map platforms to NinjaBlocks blocks
 		UPlatform.find({}, function(err, platforms) {
@@ -517,7 +518,6 @@ function ninjaCrawler(options) {
 					// update devices infos (automatically created)
 					console.log(ninjaDevice);
 					console.log(ninjaSubdevice);
-					/*
 					nb.device(ninjaDevice.guid).update(ninjaDevice, function(err, result){
 						if (ninjaSubdevice != null) {
 							// create subdevices if any
@@ -526,7 +526,6 @@ function ninjaCrawler(options) {
 							});
 						}
 					});
-					*/
 				});
 			});
 		});
@@ -549,12 +548,10 @@ function ninjaCrawler(options) {
 								// rule fully mapped synchronously
 								// nb rules can be created before the nb devices (asynchronous).
 								console.log(ninjaRule);
-								/*
 								nb.rule().create(ninjaRule, function(err, result){
 									console.log(err);
 									console.log(result);
 								});
-								*/
 							});
 						});
 					});
@@ -562,6 +559,7 @@ function ninjaCrawler(options) {
 			});
 		});
 	};
+	*/
 };
 
 

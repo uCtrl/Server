@@ -20,9 +20,11 @@ module.exports = function(app) {
     app.route('/users')
         .post(users.create);
 		
+	/*TODO : to delete. This job is done by the system's controller.
 	app.route('/users/:token')
 		.get(users.fetchAll)
 		.put(users.pushAll);
+	*/
 
     app.route('/system')
         .get(system.all);
