@@ -35,13 +35,13 @@ var request = require('request'),
 /*
  * User events
  */
-User.on('create', function(uCtrl_User, user) {
+User.on('create', function(user) {
 	console.log('--event : no NinjaBlock action to do.');
 });
-User.on('update', function(uCtrl_User, user) {
+User.on('update', function(user) {
 	console.log('--event : no NinjaBlock action to do.');
 });
-User.on('destroy', function(uCtrl_User, user) {
+User.on('destroy', function(user) {
 	console.log('--event : no NinjaBlock action to do.');
 });
 
@@ -49,8 +49,8 @@ User.on('destroy', function(uCtrl_User, user) {
  * UPlatform events
  */
 UPlatform.on('create', function(uCtrl_User, platform) {
-	console.log(uCtrl_User);
-	console.log(platform);
+	//console.log(uCtrl_User);
+	//console.log(platform);
 	//TODO : pair block and delete all devices and rules related.
 	console.log('--event : TODO : pair block and delete all devices and rules related.');
 });
@@ -237,7 +237,6 @@ function ninjaCrawler(options) {
 	 * @param  {Function} callback Callback when request finished or error found
 	 */
 	this.fetchAll = function(callback) {
-		
 		var arrObjectsToSave = [];
 		
 		/**
@@ -284,7 +283,7 @@ function ninjaCrawler(options) {
 			// fetch NinjaBlocks blocks
 			nb.blocks( function(err, blocks) {
 				self._fromNinjaBlocks.blocks = blocks;
-
+				
 				// fetch NinjaBlocks devices
 				nb.devices(function(err, devices) {
 					self._fromNinjaBlocks.devices = devices;
@@ -303,7 +302,7 @@ function ninjaCrawler(options) {
 		 * Third step : Index the data after the fetch
 		 * @param  {Function} callback Callback when request finished or error found
 		 */
-		var indexData = function(callback){
+		var indexData = function(callback){		
 			// create platforms entries
 			_(self._fromNinjaBlocks.blocks).forEach(function (blockObj, blockId) {
 				UPlatform.fromNinjaBlocks(blockObj, blockId, function(platform) {
@@ -330,9 +329,11 @@ function ninjaCrawler(options) {
 														arrObjectsToSave.push(task);
 														// create conditions under this task
 														_(ruleObj.preconditions).forEach(function(preconditionObj, preconditionId) {
-															UCondition.fromNinjaBlocks(preconditionObj, task.tpId + ':' + preconditionId, function(condition){
-																condition['parentId'] = task.id;
-																arrObjectsToSave.push(condition);
+															UCondition.fromNinjaBlocks(preconditionObj, task.tpId + ':' + preconditionId, function(lstCondition){
+																_(lstCondition).forEach(function(condition){
+																	condition['parentId'] = task.id;
+																	arrObjectsToSave.push(condition);
+																});
 															});
 														});
 													});
@@ -360,9 +361,11 @@ function ninjaCrawler(options) {
 													arrObjectsToSave.push(task);
 													// create conditions under this task
 													_(ruleObj.preconditions).forEach(function(preconditionObj, preconditionId) {
-														UCondition.fromNinjaBlocks(preconditionObj, task.tpId + ':' + preconditionId, function(condition){
-															condition['parentId'] = task.id;
-															arrObjectsToSave.push(condition);
+														UCondition.fromNinjaBlocks(preconditionObj, task.tpId + ':' + preconditionId, function(lstCondition){
+															_(lstCondition).forEach(function(condition){
+																condition['parentId'] = task.id;
+																arrObjectsToSave.push(condition);
+															});
 														});
 													});
 												});
@@ -460,13 +463,15 @@ function ninjaCrawler(options) {
 					UCondition.find({}, function(err, conditions) {
 						var countConditions = _(conditions).size();
 						_(conditions).forEach(function(conditionObj) {
-							UDevice.findOne({ tpId : conditionObj.deviceTpId }, function(err, deviceObj) {
-								conditionObj.deviceId = deviceObj.id;
-								conditionObj.save(function(err){
-									countConditions--;
-									if (countConditions==0) callback(null, 'bind condition step 2 done');
+							if (conditionObj.deviceTpId != null) {
+								UDevice.findOne({ tpId : conditionObj.deviceTpId }, function(err, deviceObj) {
+									conditionObj.deviceId = deviceObj.id;
+									conditionObj.save(function(err){
+										countConditions--;
+										if (countConditions==0) callback(null, 'bind condition step 2 done');
+									});
 								});
-							});
+							}
 						});
 					});
 				}				

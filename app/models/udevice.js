@@ -11,6 +11,13 @@ var mongoose = require('mongoose'),
  * use http://shop.ninjablocks.com/pages/device-ids
  */
 var UEType = {
+	0 : {
+		typeName : 'NONE',
+		maxValue : null,
+		minValue : null,
+		precision: null,
+		unitLabel: null
+	},
 	5 : {
 		typeName : 'PushButton',
 		maxValue : null,
@@ -108,6 +115,13 @@ var UEType = {
 		minValue : '0',
 		precision: '1',
 		unitLabel: 'brightness'
+	},
+	9990 : {//TODO : Door sensor type?
+		typeName : 'Door captor',
+		maxValue : null,
+		minValue : null,
+		precision: null,
+		unitLabel: null
 	}
 	//...
 };
@@ -122,10 +136,10 @@ var UESubdeviceType = {//We don't have this info from NinjaBlocks.
 	'110110101101101011011100' : 1009,
 	'110110101101101011010100' : 1009,
 	'010101010101010101010101' : 7,
-	'010101011111000101010000' : 206,//TODO : Door sensor type?
-	'010000010101110101010000' : 206,
-	'111101010101011101010000' : 206,
-	'110111011101010101010000' : 206
+	'010101011111000101010000' : 9990,
+	'010000010101110101010000' : 9990,
+	'111101010101011101010000' : 9990, 
+	'110111011101010101010000' : 9990
 	//...
 };
 
@@ -216,6 +230,11 @@ UDeviceSchema.post('remove', function (device) {
  */
 UDeviceSchema.statics.fromNinjaBlocks = function (ninjaDevice, ninjaDeviceId, ninjaSubdevice, ninjaSubdeviceId, cb) {
 	var UDevice = mongoose.model('UDevice');
+	
+	var getDeviceInfo = function(did){
+		return UEType[did] != undefined ? UEType[did] : UEType[0];
+	}
+	
 	// Mapping NinjaBlocks to uCtrl  
 	var device = new UDevice({
 		id : uuid.v1(),
@@ -223,12 +242,12 @@ UDeviceSchema.statics.fromNinjaBlocks = function (ninjaDevice, ninjaDeviceId, ni
 		name : ninjaDevice.shortName,		
 		type : ninjaDevice.did,//check UEType
 		description : null,
-		maxValue : UEType[ninjaDevice.did].maxValue || null,
-		minValue : UEType[ninjaDevice.did].minValue || null,
-		value : ninjaDevice.last_data.DA || null,
-		precision : UEType[ninjaDevice.did].precision || null,
+		maxValue : getDeviceInfo(ninjaDevice.did).maxValue,
+		minValue : getDeviceInfo(ninjaDevice.did).minValue,
+		value : ninjaDevice.last_data.DA != undefined ? ninjaDevice.last_data.DA : null,
+		precision : getDeviceInfo(ninjaDevice.did).precision,
 		status : UEStatus.OK,
-		unitLabel : UEType[ninjaDevice.did].unitLabel || null,
+		unitLabel : getDeviceInfo(ninjaDevice.did).unitLabel,
 		enabled : true,
 		lastUpdated : ninjaDevice.last_data.timestamp,
 	});

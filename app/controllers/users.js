@@ -7,8 +7,6 @@ var _ = require('lodash'),
 	User = mongoose.model('User');
 	
 exports.create = function(req, res) {
-	console.log(req.body);
-	
 	if (!req.body.ninjablocks) 
 		return;
 
@@ -19,7 +17,6 @@ exports.create = function(req, res) {
 
 	function createUser(userAccessToken, cb) {
 		var nb = new ninjablocks({userAccessToken : userAccessToken});
-		console.log(userAccessToken);
 		nb.user( function(err, ninjaUser) {
 			User.fromNinjaBlocks(ninjaUser, userAccessToken, function(user) {
 				user.save(function(err) {
@@ -29,7 +26,7 @@ exports.create = function(req, res) {
 							error: err
 						});
 					}
-
+					User.emit('create', user);
 					if (cb) cb(user, userAccessToken);
 				});
 			});
@@ -38,19 +35,15 @@ exports.create = function(req, res) {
 
 	function updateUser(user, cb) {
 		// TODO: Update values of user from NB
-		if (cb) cb(user); 
+		if (cb) cb(user, user.ninjablocks.userAccessToken); 
 	}
 
 	function doSomethingWithUser(u, token) {
 		// Start Ninja Blocks crawling
-		new ninjacrawler({ userId : u._id, userAccessToken: token }).fetchAll( function(err, result) {
-			console.log("done 'fetchAll'");
+		new ninjacrawler({ userAccessToken: token }).fetchAll( function(err, result) {
+			console.log("--NinjaCrawler : done 'fetchAll'");
 		});
 
-		console.log("new ninjacrawler instanciated");
-
-		User.emit('create', req.uCtrl_User, u);
-		
 		res.json({
 			status: true,
 			error: null,
@@ -65,7 +58,6 @@ exports.create = function(req, res) {
 				error: err
 			});
 		}
-		console.log("user : " + user);
 		user ? updateUser(user, doSomethingWithUser) : createUser(userAccessToken, doSomethingWithUser);
 	});
 };
