@@ -159,13 +159,10 @@ var UDeviceSchema = new Schema({
 		required: true,
 		unique: true
 	},
-	parentId: {
-		type: String,
-		required: true
-	},
+	parentId: String,
 	tpId: {
 		type: String,
-		required: true,
+		//required: true,
 		unique: true
 	},
 	name: String,
@@ -253,12 +250,12 @@ UDeviceSchema.statics.fromNinjaBlocks = function (ninjaDevice, ninjaDeviceId, ni
 	});
 	// If it's a subdevice mapping
 	if (ninjaSubdevice != null) {
-		device.tpId = device.tpId + ':' + ninjaSubdeviceId;	//id = deviceGUID:subdeviceID
+		device.tpId = device.tpId + ':' + ninjaSubdeviceId;//id = deviceGUID:subdeviceID
 		device.name = ninjaSubdevice.shortName;
-		device.subdeviceType = ninjaSubdevice.type; //Allowed: "actuator" or "sensor" 
+		device.subdeviceType = ninjaSubdevice.type;//allowed: "actuator" or "sensor" 
 		device.type = UESubdeviceType[ninjaSubdevice.data];
-		device.maxValue = ninjaSubdevice.data;
-		device.minValue = ninjaSubdevice.data;
+		device.maxValue = getDeviceInfo(UESubdeviceType[ninjaSubdevice.data]).maxValue;
+		device.minValue = getDeviceInfo(UESubdeviceType[ninjaSubdevice.data]).minValue;
 		device.value = ninjaSubdevice.data;
 	}
 	cb(device);
@@ -277,20 +274,20 @@ UDeviceSchema.statics.toNinjaBlocks = function (device, cb) {
 	var ninjaDevice = {
 		guid : device.tpId,
 		default_name : device.name,
-		shortName : device.name,//Can be updated
-		DA : device.value,//When sending command
+		shortName : device.name,//can be updated
+		DA : device.value,//when sending command
 		unit : device.unitLabel,
 	}
 	var ninjaSubdevice = null;
 	
 	// If it's a subdevice mapping (RF433)
 	if (device.type == 11) {
-		var deviceTpIdSplit = device.tpId.split(":");//Subdevice data stored into tpId.
+		var deviceTpIdSplit = device.tpId.split(":");//subdevice data stored into tpId.
 		ninjaDevice.guid = deviceTpIdSplit[0];
 		ninjaSubdevice = {
 			guid : deviceTpIdSplit[0],
-			category : "rf",//Allowed: "rf", "webhook", "sms"
-			type : device.subdeviceType,//Allowed: "actuator" or "sensor" 
+			category : "rf",//allowed: "rf", "webhook", "sms"
+			type : device.subdeviceType,//allowed: "actuator" or "sensor" 
 			shortName : device.name,
 			data : deviceTpIdSplit[1],									
 		}

@@ -27,7 +27,7 @@ var UPlatformSchema = new Schema({
 	},
 	tpId: {
 		type: String,
-		required: true,
+		//required: true,
 		unique: true
 	},
 	firmwareVersion: String,

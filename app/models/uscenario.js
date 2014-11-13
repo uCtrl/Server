@@ -15,10 +15,7 @@ var UScenarioSchema = new Schema({
 		required: true,
 		unique: true
 	},
-	parentId: {
-		type: String,
-		required: true
-	},
+	parentId: String,
 	tpId: String,
 	name: String,
 	enabled : Boolean,

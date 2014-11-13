@@ -23,8 +23,9 @@ var ENUMCOMPARISONTYPE = {
 	LesserThan: 0x2,
 	Equals: 0x4,
 	InBetween: 0x8,
-	Not: 0x16
+	Not: 0x10
 };
+var DAYSECONDS = 86400;
 
 /**
  * UCondition Schema
@@ -35,13 +36,10 @@ var UConditionSchema = new Schema({
 		required: true,
 		unique: true
 	},
-	parentId: {
-		type: String,
-		required: true
-	},
+	parentId: String,
 	tpId: {
 		type: String,
-		required: true,
+		//required: true,
 		unique: true
 	},
 	type: {
@@ -108,7 +106,7 @@ UConditionSchema.statics.fromNinjaBlocks = function (ninjaPrecondition, ninjaPre
 		var result = lstPeriodSize == 14 ? true : false;
 		while(result && (i <= lstPeriodSize-4))
 		{
-			result = lstPeriod[i+2] == lstPeriod[i] + 86400 ? true : false;
+			result = lstPeriod[i+2] == lstPeriod[i] + DAYSECONDS ? true : false;
 			i+=2;
 		}
 		return result;
@@ -226,34 +224,48 @@ UConditionSchema.statics.fromNinjaBlocks = function (ninjaPrecondition, ninjaPre
  * ref: https://github.com/ninjablocks/ninjablocks.github.com/wiki/Rules-Engine-Documentation
  */
 UConditionSchema.statics.toNinjaBlocks = function (condition, cb) {
-	var deviceTpIdSplit = condition.deviceTpId.split(":");	//Subdevice id, if one, is stored into id.
-	
 	var ninjaPrecondition = { 
 		handler: null, 
 		params: { 
 			equality : null,
-			guid : deviceTpIdSplit[0],
+			guid : null,
 			to : null,
 			value : null,
 			between : null,
 			and : null,
 			shortName : null,
 			times : null,
-			timezone : null,
+			timezone : null
 		}
 	}
-
 	switch (condition.type) {
+		case ENUMCONDITIONTYPE.None :
+			break;
 		case ENUMCONDITIONTYPE.Date :
-		case ENUMCONDITIONTYPE.Time :
+			break;//no mapping possible
+		case ENUMCONDITIONTYPE.Day ://weekly periodic
 			ninjaPrecondition.handler = 'weeklyTimePeriod';
-			ninjaPrecondition.params.timezone = "America/Montreal"
+			ninjaPrecondition.params.guid = "time";
+			ninjaPrecondition.params.timezone = "America/Montreal";
+			ninjaPrecondition.params.times = [];
 			ninjaPrecondition.params.times.push(condition.beginValue);
 			ninjaPrecondition.params.times.push(condition.endValue);
+		case ENUMCONDITIONTYPE.Time ://daily periodic
+			ninjaPrecondition.handler = 'weeklyTimePeriod';
+			ninjaPrecondition.params.guid = "time";
+			ninjaPrecondition.params.timezone = "America/Montreal";
+			ninjaPrecondition.params.times = [];
+			for (var i=0; i<=6; i++) {
+				var beginVal = parseInt(condition.beginValue) + (i * DAYSECONDS);
+				var endVal = parseInt(condition.endValue) + (i * DAYSECONDS);
+				ninjaPrecondition.params.times.push(beginVal);
+				ninjaPrecondition.params.times.push(endVal);
+			}
 			break;
 		case ENUMCONDITIONTYPE.Device :
+			var deviceTpIdSplit = condition.deviceTpId.split(":");//subdevice id, if one, is stored into id.
+			ninjaPrecondition.params.guid = deviceTpIdSplit[0];
 			switch (condition.comparisonType) {
-				//When condition include a rf subdevice.
 				case ENUMCOMPARISONTYPE.None :
 					ninjaPrecondition.handler = 'ninjaChange';
 					ninjaPrecondition.params.to	= condition.deviceValue;

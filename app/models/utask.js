@@ -16,13 +16,10 @@ var UTaskSchema = new Schema({
 		required: true,
 		unique: true
 	},
-	parentId: {
-		type: String,
-		required: true
-	},
+	parentId: String,
 	tpId: {
 		type: String,
-		required: true,
+		//required: true,
 		unique: true
 	},
 	name : String,
@@ -98,30 +95,41 @@ UTaskSchema.statics.fromNinjaBlocks = function (ninjaRule, ninjaRuleId, cb) {
 UTaskSchema.statics.toNinjaBlocks = function (task, cb) {
 	var UScenario = mongoose.model('UScenario');
 	var UDevice = mongoose.model('UDevice');
-	var NB_TIMEOUT = 2;
+	var UCondition = mongoose.model('UCondition');
 	var NB_ACTIONHANDLER = "ninjaSendCommand";
-	var deviceTpIdSplit = null;
+	var NB_TIMEOUT = 2;
+	
+	var ninjaRule = {
+		rid : task.tpId,
+		shortName : task.name,
+		timeout : NB_TIMEOUT,
+		preconditions : [],//filled below if any
+		actions : [{ 
+			handler: NB_ACTIONHANDLER, 
+			params: { 
+				guid : null,//mapped below
+				to : null,//mapped below
+				da : task.status
+			} 
+		}]
+	}
 	
 	UScenario.findById(task._scenario, function(err, scenario){
 		UDevice.findById(scenario._device, function(err, device){
-			deviceTpIdSplit = device.tpId.split(":");	//Subdevice data, if one, is stored into id.
+			var deviceTpIdSplit = device.tpId.split(":");//subdevice data, if one, is stored into id.
+			ninjaRule.actions[0].params.guid = deviceTpIdSplit[0];
+			ninjaRule.actions[0].params.to = device.value;
 			
-			var ninjaRule = {
-				rid : task.tpId,
-				shortName : task.name,
-				timeout : NB_TIMEOUT,
-				preconditions : [], //need to be filled with ucondition objects
-				actions : [{ 
-					handler: NB_ACTIONHANDLER, 
-					params: { 
-						guid : deviceTpIdSplit[0],
-						to : (deviceTpIdSplit.length > 1 ? deviceTpIdSplit[1] : null),
-						da : task.status,
-					} 
-				}]
-			}
-
-			cb(ninjaRule);
+			UCondition.find({_task : task._id}, function(err, conditions){
+				if (conditions){
+					_(conditions).forEach(function(conditionObj){
+						UCondition.toNinjaBlocks(conditionObj, function(ninjaPrecondition){
+							ninjaRule.preconditions.push(ninjaPrecondition);
+						});
+					});
+				}
+				cb(ninjaRule);//TODO : review if async ok.
+			});
 		});
 	});
 };
