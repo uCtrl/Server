@@ -117,7 +117,7 @@ UDevice.on('destroy', function(uCtrl_User, deviceObj) {
 			});
 		}
 	});
-	//event to delete all children (rules from scenarios)
+	//event to delete children (rules from scenarios)
 	_(deviceObj._scenarios).forEach(function(scenarioId, scenarioIndex) {
 		UScenario.findById(scenarioId, function(err, scenarioObj) {
 			UScenario.emit('destroy', scenario);
@@ -139,8 +139,27 @@ UScenario.on('destroy', function(uCtrl_User, scenarioObj) {
 				console.log('--event : NinjaBlock rule ' + taskObj.tpId + ' deleted.');
 			});
 		});
+	});//no children to delete (rules from this scenario are deleted)
+});
+UScenario.on('enable', function(uCtrl_User, scenarioObj) {
+	var nb = new ninjablocks({userAccessToken : uCtrl_User.ninjablocks.userAccessToken});
+	//delete NB rules from the last active scenario(s)
+	_(scenarioObj._device._scenarios).forEach(function(scenarioId, scenarioIndex) {
+		UScenario.findById(scenarioId, function(err, scenarioObjToWork) {
+			_(scenarioObjToWork._tasks).forEach(function(taskId, taskIndex) {
+				UTask.findById(taskId, function(err, taskObj) {
+					UTask.emit('destroy', uCtrl_User, taskObj);
+				});
+			});
+		});
 	});
-	//no children to delete (rules from this scenario are deleted)
+	//create NB rules for the current active scenario
+	_(scenarioObj._tasks).forEach(function(taskId, taskIndex) {
+		UTask.findById(taskId, function(err, taskObj) {
+			//TODO : CHANDE TASK TPID WITH THE ONE PROVIDED.
+			UTask.emit('create', uCtrl_User, taskObj);
+		});
+	});
 });
 
 /*
@@ -151,7 +170,7 @@ UTask.on('create', function(uCtrl_User, taskObj) {
 	var nb = new ninjablocks({userAccessToken : uCtrl_User.ninjablocks.userAccessToken});
 	UTask.toNinjaBlocks(taskObj, function(ninjaRule) {
 		nb.rule(taskObj.tpId).create(ninjaRule, function(err, result) {
-			//TODO : chande task tpId with the one provided.
+			//TODO : CHANDE TASK TPID WITH THE ONE PROVIDED.
 			console.log('--event : NinjaBlock rule ' + taskObj.tpId + ' created.');
 		});
 	});
@@ -172,8 +191,7 @@ UTask.on('destroy', function(uCtrl_User, taskObj) {
 	var nb = new ninjablocks({userAccessToken : uCtrl_User.ninjablocks.userAccessToken});
 	nb.rule(taskObj.tpId).delete(function(err, result) {
 		console.log('--event : NinjaBlock rule ' + taskObj.tpId + ' deleted.');
-	});
-	//no children to delete (preconditions are in rules)
+	});//no children to delete (preconditions are in rules)
 });
 
 /*
@@ -199,7 +217,7 @@ UCondition.on('update', function(uCtrl_User, conditionObj) {
 	UTask.findById(conditionObj._task, function(err, taskObj) {
 		UTask.toNinjaBlocks(taskObj, function(ninjaRule){
 			//TODO : change condition tpId with the new index.
-			//conditions is already mapped
+			//conditions are already mapped
 			nb.rule(taskObj.tpId).update(ninjaRule, function(err, result) {
 				console.log('--event : NinjaBlock rule ' + taskObj.tpId + ' updated.');
 			});
@@ -220,8 +238,7 @@ UCondition.on('destroy', function(uCtrl_User, conditionObj) {
 				console.log('--event : NinjaBlock rule ' + taskObj.tpId + ' updated.');
 			});
 		});
-	});
-	//no children to delete
+	});//no children to delete
 });
 
 /*

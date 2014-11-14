@@ -32,6 +32,14 @@ var UScenarioSchema = new Schema({
 
 UScenarioSchema.post('save', function (scenario) {
 	var UDevice = mongoose.model('UDevice');
+//TODO : test this code below
+	if (scenario.enabled) {//set other scenarios to disabled
+		UScenario.update(
+			{ _device: scenario._device, _id: { $ne: scenario._id} }, 
+			{ $set: { enabled : false } }, 
+			{ safe: true },
+			function (err, num) { if (err) console.log("Error: ", err) });
+	}
 	UDevice.update(
 		{ _id: scenario._device }, 
 		{ $addToSet: { _scenarios: scenario._id } }, 

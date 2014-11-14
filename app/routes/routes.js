@@ -95,6 +95,9 @@ module.exports = function(app) {
         .put(scenarios.update)
         .delete(scenarios.destroy); 
     
+	app.route('/platforms/:platformId/devices/:deviceId/scenarios/:scenarioId/enable')
+        .post(scenarios.enable);
+		
     app.route('/platforms/:platformId/devices/:deviceId/scenarios/:scenarioId/tasks')
 	    .get(tasks.all)
         .post(tasks.create);
