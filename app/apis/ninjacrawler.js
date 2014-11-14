@@ -4,8 +4,7 @@
 
 'use strict';
 
-var request = require('request'),
-	_ = require('lodash'),
+var _ = require('lodash'),
 	util = require('util'),
 	ninjablocks = require('./ninjablocks.js'),
 	mongoose = require('mongoose'),
@@ -16,17 +15,11 @@ var request = require('request'),
 	UTask = mongoose.model('UTask'),
 	UCondition = mongoose.model('UCondition'),
 	uuid = require('node-uuid'),
-	Q = require('q'),
 	async = require('async');
 
 /**
  * Model events listener
  * CRUD for NinjaBlocks on model's events
-	 * ref : http://grokbase.com/t/gg/mongoose-orm/1235c1mjsq/mongoose-emitting-an-event-in-a-middleware-function
-	 * use:
-			MyModel.on('new', function(mymodel) {
-				io.sockets.emit('new_my_model', mymodel.toJSON());
-			});
  */
  var defaultEvent = function() {
 	console.log('--event : no NinjaBlock action to do.');

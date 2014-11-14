@@ -34,8 +34,14 @@ exports.create = function(req, res) {
 	}
 
 	function updateUser(user, cb) {
-		// TODO: Update values of user from NB
-		if (cb) cb(user, user.ninjablocks.userAccessToken); 
+		//TODO: Update values of user from NB. 
+		//AND DO NOT REFETCH ALL : this will change all ids
+		//if (cb) cb(user, user.ninjablocks.userAccessToken);
+		res.json({
+			status: false,
+			error: 'Update fonction need to be implemented',
+			token: user._id
+		});	
 	}
 
 	function doSomethingWithUser(u, token) {
@@ -58,6 +64,6 @@ exports.create = function(req, res) {
 				error: err
 			});
 		}
-		user ? updateUser(user, doSomethingWithUser) : createUser(userAccessToken, doSomethingWithUser);
+		user ? updateUser(user, null) : createUser(userAccessToken, doSomethingWithUser);
 	});
 };
