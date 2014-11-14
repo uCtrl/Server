@@ -64,7 +64,7 @@ UPlatform.on('update', function(uCtrl_User, platform) {
 //TODO : review & test
 UPlatform.on('destroy', function(uCtrl_User, platform) {
 	//TODO : unpair block and delete all devices and rules related.
-		console.log('--event : TODO : unpair block and delete all devices and rules related.');
+	console.log('--event : TODO : unpair block and delete all devices and rules related.');
 });
 
 /*
@@ -124,10 +124,10 @@ UDevice.on('destroy', function(uCtrl_User, deviceObj) {
 			});
 		}
 	});
-	
+	//event to delete all children (rules from scenarios)
 	_(deviceObj._scenarios).forEach(function(scenarioId, scenarioIndex) {
 		UScenario.findById(scenarioId, function(err, scenarioObj) {
-			UScenario.emit('destroy', scenario); //event to delete all children (rules from scenarios)
+			UScenario.emit('destroy', scenario);
 		});
 	});
 });
@@ -192,13 +192,10 @@ UCondition.on('create', function(uCtrl_User, conditionObj) {
 	UTask.findById(conditionObj._task, function(err, taskObj) {
 		UTask.toNinjaBlocks(taskObj, function(ninjaRule){
 			//TODO : change condition tpId with the new index.
-			//condition is already included
-			//UCondition.toNinjaBlocks(conditionObj, function(ninjaPrecondition) {
-			//	ninjaRule.preconditions.push(ninjaPrecondition); //add the precondition
+			//new condition is already included
 			nb.rule(taskObj.tpId).update(ninjaRule, function(err, result) {
 				console.log('--event : NinjaBlock rule ' + taskObj.tpId + ' updated.');
 			});
-			//});
 		});
 	});
 });
@@ -209,13 +206,10 @@ UCondition.on('update', function(uCtrl_User, conditionObj) {
 	UTask.findById(conditionObj._task, function(err, taskObj) {
 		UTask.toNinjaBlocks(taskObj, function(ninjaRule){
 			//TODO : change condition tpId with the new index.
-			//condition is already included
-			//UCondition.toNinjaBlocks(conditionObj, function(ninjaPrecondition) {
-			//	ninjaRule.preconditions.push(ninjaPrecondition); //add the precondition
+			//conditions is already mapped
 			nb.rule(taskObj.tpId).update(ninjaRule, function(err, result) {
 				console.log('--event : NinjaBlock rule ' + taskObj.tpId + ' updated.');
 			});
-			//});
 		});
 	});
 });
