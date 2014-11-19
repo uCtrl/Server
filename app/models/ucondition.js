@@ -8,7 +8,6 @@ var mongoose = require('mongoose'),
 
 /**
  * Constants
- * TODO : Déterminer les constantes ici.
  */
 var ENUMCONDITIONTYPE = {
 	None: -1,
@@ -24,8 +23,10 @@ var ENUMCOMPARISONTYPE = {
 	LesserThan: 0x2,
 	Equals: 0x4,
 	InBetween: 0x8,
-	Not: 0x16
+	Not: 0x10
 };
+var DAYSECONDS = 86400;
+var WEEKSECONDS = 604800;
 
 /**
  * UCondition Schema
@@ -36,13 +37,10 @@ var UConditionSchema = new Schema({
 		required: true,
 		unique: true
 	},
-	parentId: {
-		type: String,
-		required: true
-	},
+	parentId: String,
 	tpId: {
 		type: String,
-		required: true,
+		//required: true,
 		unique: true
 	},
 	type: {
@@ -57,6 +55,7 @@ var UConditionSchema = new Schema({
 	endValue: String,
 	deviceId: String,
 	deviceTpId: String,
+	deviceValue: String,
 	enabled: Boolean,
 	lastUpdated: Number,
 	_task: {
@@ -90,132 +89,253 @@ UConditionSchema.post('remove', function (condition) {
 })
 
 /*
- * Receives the block (from NB) and will call the cb when mapped.
- * To logic here is only to do the mapping
+ * Receives the precondition (from NB) and will call the cb when mapped.
  * ref: https://github.com/ninjablocks/ninjablocks.github.com/wiki/Rules-Engine-Documentation
  */
 UConditionSchema.statics.fromNinjaBlocks = function (ninjaPrecondition, ninjaPreconditionId, cb) {
 	var UCondition = mongoose.model('UCondition');
 	var UDevice = mongoose.model('UDevice');
-	// Mapping Ninja to uCtrl
-	var condition = new UCondition({
-		id : uuid.v1(),
-		tpId : ninjaPreconditionId,
-		type : null,
-		comparisonType : null,
-		beginValue : null,
-		endValue : null,
-		deviceId : null,
-		deviceTpId : null,
-		deviceValue : null,
-		enabled : true,
-		lastUpdated : null,
-	});
+	var lstCondition = [];
+	
+	/* 
+	 * Verify if the precondition is a daily periodic. 
+	 * It will contain 14 elements and be 86400 seconds periodic 
+	*/
+	var isDailyPeriodic = function(lstPeriod) {
+		var lstPeriodSize = lstPeriod.length;
+		var i = 0;
+		var result = lstPeriodSize == 14 ? true : false;
+		while(result && (i <= lstPeriodSize-4))
+		{
+			result = lstPeriod[i+2] == lstPeriod[i] + DAYSECONDS ? true : false;
+			i+=2;
+		}
+		return result;
+	}
+	
+	/* 
+	 * Change seconds to hh:mm:ss 
+	*/
+	var secondToTime = function(second) {
+		var hours = parseInt( second / 3600 ) % 24;
+		var minutes = parseInt( second / 60 ) % 60;
+		var seconds = second % 60;
+		return (hours < 10 ? "0" + hours : hours) + "-" + (minutes < 10 ? "0" + minutes : minutes) + "-" + (seconds  < 10 ? "0" + seconds : seconds);
+	}
 	
 	switch (ninjaPrecondition.handler) {
-		case 'weeklyTimePeriod'://time or date
-			condition.type = ENUMCONDITIONTYPE.Time;
-			condition.beginValue = ninjaPrecondition.params.times[0];
-			condition.endValue = ninjaPrecondition.params.times[1];
+		case 'weeklyTimePeriod'://time (weekly, by seconds)
+			var lstPeriodSize = ninjaPrecondition.params.times.length;
+			
+			if (isDailyPeriodic(ninjaPrecondition.params.times)) {//if daily periodic
+				// Mapping Ninja to uCtrl
+				var condition = new UCondition({
+					id : uuid.v1(),
+					tpId : ninjaPreconditionId,
+					type : ENUMCONDITIONTYPE.Time,
+					comparisonType : ENUMCOMPARISONTYPE.InBetween,
+					beginValue : ninjaPrecondition.params.times[0],
+					endValue : ninjaPrecondition.params.times[1],
+					deviceId : null,
+					deviceTpId : null,
+					deviceValue : null,
+					enabled : true,
+					lastUpdated : null,
+				});
+				lstCondition.push(condition);
+			}
+			else {//if weekday periodic
+				for(var i = 0; i <= lstPeriodSize-2; i+=2) {
+					// Mapping Ninja to uCtrl
+					var weekcondition = new UCondition({
+						id : uuid.v1(),
+						tpId : ninjaPreconditionId + ':' + i,
+						type : ENUMCONDITIONTYPE.Day,
+						comparisonType : ENUMCOMPARISONTYPE.InBetween,
+						beginValue : ninjaPrecondition.params.times[i],
+						endValue : ninjaPrecondition.params.times[i+1],
+						deviceId : null,
+						deviceTpId : null,
+						deviceValue : null,
+						enabled : true,
+						lastUpdated : null,
+					});
+					lstCondition.push(weekcondition);
+				}
+			}
 			break;
 		case 'ninjaChange':
 		case 'ninjaEquality':
 		case 'ninjaThreshold':
-		case 'ninjaRangeToggle':
-			//TODO can't obtain de device.id if the device isn't in the database yet. Asynchronous fetching problem.
-			UDevice.findOne({tpId : ninjaPrecondition.params.guid}, function(err, device){
-				condition.deviceId = (err != null ? device.id : null);
-				condition.type = ENUMCONDITIONTYPE.Device;
-				
-				switch (ninjaPrecondition.handler) {
-					//When condition include a rf subdevice.
-					case 'ninjaChange' : 	
-						condition.deviceTpId = ninjaPrecondition.params.guid + ':' + ninjaPrecondition.params.to; //TODO don't have access to subdevice id
-						condition.comparisonType = ENUMCOMPARISONTYPE.None;
-						condition.deviceValue = ninjaPrecondition.params.to;
-						break;
-					case 'ninjaEquality' : 
-					case 'ninjaThreshold' : 
-						condition.deviceTpId = ninjaPrecondition.params.guid;
-						switch (ninjaPrecondition.params.equality) {
-							case 'GT' :
-							case 'GTE' :
-								condition.comparisonType = ENUMCOMPARISONTYPE.GreaterThan;
-								break;
-							case 'LT' :
-							case 'LTE' :
-								condition.comparisonType = ENUMCOMPARISONTYPE.LesserThan;
-								break;
-							case 'EQ' :
-								condition.comparisonType = ENUMCOMPARISONTYPE.Equals;
-								break;
-						}
-						condition.deviceValue = ninjaPrecondition.params.value;
-						break;
-					case 'ninjaRangeToggle' : 
-						condition.deviceTpId = ninjaPrecondition.params.guid;
-						condition.comparisonType = ENUMCOMPARISONTYPE.InBetween;
-						condition.beginValue = ninjaPrecondition.params.between;
-						condition.endValue = ninjaPrecondition.params.and;
-						break;
-				}
-				
-				cb(condition);
+		case 'ninjaRangeToggle'://device
+			var condition = new UCondition({
+				id : uuid.v1(),
+				tpId : ninjaPreconditionId,
+				type : ENUMCONDITIONTYPE.Device,
+				comparisonType : null,
+				beginValue : null,
+				endValue : null,
+				deviceId : null,
+				deviceTpId : null,
+				deviceValue : null,
+				enabled : true,
+				lastUpdated : null,
 			});
+			switch (ninjaPrecondition.handler) {
+				//when condition includes a rf subdevice.
+				case 'ninjaChange' : 	
+					condition.deviceTpId = ninjaPrecondition.params.guid + ':' + ninjaPrecondition.params.to; //TODO don't have access to subdevice id
+					condition.comparisonType = ENUMCOMPARISONTYPE.None;
+					condition.deviceValue = ninjaPrecondition.params.to;
+					break;
+				case 'ninjaEquality' : 
+				case 'ninjaThreshold' : 
+					condition.deviceTpId = ninjaPrecondition.params.guid;
+					switch (ninjaPrecondition.params.equality) {
+						case 'GT' :
+						case 'GTE' :
+							condition.comparisonType = ENUMCOMPARISONTYPE.GreaterThan;
+							break;
+						case 'LT' :
+						case 'LTE' :
+							condition.comparisonType = ENUMCOMPARISONTYPE.LesserThan;
+							break;
+						case 'EQ' :
+							condition.comparisonType = ENUMCOMPARISONTYPE.Equals;
+							break;
+					}
+					condition.deviceValue = ninjaPrecondition.params.value;
+					break;
+				case 'ninjaRangeToggle' : 
+					condition.deviceTpId = ninjaPrecondition.params.guid;
+					condition.comparisonType = ENUMCOMPARISONTYPE.InBetween;
+					condition.beginValue = ninjaPrecondition.params.between;
+					condition.endValue = ninjaPrecondition.params.and;
+					break;
+			}
+			lstCondition.push(condition);
 			break;
 	}
+	
+	cb(lstCondition);
 };
 
 /*
- * Receives the task (from MongoDB) and will call the cb when mapped
- * To logic here is only to do the mapping
+ * Receives the ucondition (from MongoDB) and will call the cb when mapped
  * ref: https://github.com/ninjablocks/ninjablocks.github.com/wiki/Rules-Engine-Documentation
  */
 UConditionSchema.statics.toNinjaBlocks = function (condition, cb) {
-	var deviceTpIdSplit = condition.deviceTpId.split(":");	//Subdevice id, if one, is stored into id.
-	
 	var ninjaPrecondition = { 
 		handler: null, 
 		params: { 
 			equality : null,
-			guid : deviceTpIdSplit[0],
+			guid : null,
 			to : null,
 			value : null,
 			between : null,
 			and : null,
 			shortName : null,
 			times : null,
-			timezone : null,
+			timezone : null
 		}
 	}
-
 	switch (condition.type) {
+		case ENUMCONDITIONTYPE.None :
+			break;//no mapping possible
 		case ENUMCONDITIONTYPE.Date :
-		case ENUMCONDITIONTYPE.Time :
+			break;//no mapping possible
+		case ENUMCONDITIONTYPE.Day ://weekly periodic
 			ninjaPrecondition.handler = 'weeklyTimePeriod';
-			ninjaPrecondition.params.timezone = "America/Montreal"
-			ninjaPrecondition.params.times.push(condition.beginValue);
-			ninjaPrecondition.params.times.push(condition.endValue);
+			ninjaPrecondition.params.guid = "time";
+			ninjaPrecondition.params.timezone = "America/Montreal";
+			ninjaPrecondition.params.times = [];
+			switch (condition.comparisonType) {
+				case ENUMCOMPARISONTYPE.GreaterThan :
+					ninjaPrecondition.params.times.push(condition.beginValue);
+					ninjaPrecondition.params.times.push(WEEKSECONDS-1);//end of week
+					break;
+				case ENUMCOMPARISONTYPE.LesserThan :
+					ninjaPrecondition.params.times.push(0);//beginning of week
+					ninjaPrecondition.params.times.push(condition.endValue);
+					break;
+				case ENUMCOMPARISONTYPE.Not :
+					var beginVal = parseInt(condition.endValue) + 1;
+					var endVal = parseInt(condition.beginValue) - 1;
+					ninjaPrecondition.params.times.push(beginVal);
+					ninjaPrecondition.params.times.push(endVal);
+					break;
+				case ENUMCOMPARISONTYPE.None :
+				case ENUMCOMPARISONTYPE.InBetween :
+				case ENUMCOMPARISONTYPE.Equals :
+				default :
+					ninjaPrecondition.params.times.push(condition.beginValue);
+					ninjaPrecondition.params.times.push(condition.endValue);
+					break;
+			}
+			break;
+		case ENUMCONDITIONTYPE.Time ://daily periodic
+			ninjaPrecondition.handler = 'weeklyTimePeriod';
+			ninjaPrecondition.params.guid = "time";
+			ninjaPrecondition.params.timezone = "America/Montreal";
+			ninjaPrecondition.params.times = [];
+			switch (condition.comparisonType) {
+				case ENUMCOMPARISONTYPE.GreaterThan :
+					for (var i=0; i<=6; i++) {
+						var beginVal = parseInt(condition.beginValue) + (i * DAYSECONDS);
+						var endVal = DAYSECONDS + (i * DAYSECONDS) - 1;//end of day
+						ninjaPrecondition.params.times.push(beginVal);
+						ninjaPrecondition.params.times.push(endVal);
+					}
+					break;
+				case ENUMCOMPARISONTYPE.LesserThan :
+					for (var i=0; i<=6; i++) {
+						var beginVal = 0 + (i * DAYSECONDS);//beginning of day
+						var endVal = parseInt(condition.endValue) + (i * DAYSECONDS);
+						ninjaPrecondition.params.times.push(beginVal);
+						ninjaPrecondition.params.times.push(endVal);
+					}
+					break;
+				case ENUMCOMPARISONTYPE.Not :
+					for (var i=0; i<=6; i++) {
+						var beginVal = parseInt(condition.endValue) + (i * DAYSECONDS) + 1;
+						var endVal = parseInt(condition.beginValue) + (i * DAYSECONDS) - 1;
+						ninjaPrecondition.params.times.push(beginVal);
+						ninjaPrecondition.params.times.push(endVal);
+					}
+					break;
+				case ENUMCOMPARISONTYPE.None :
+				case ENUMCOMPARISONTYPE.InBetween :
+				case ENUMCOMPARISONTYPE.Equals :
+				default :
+					for (var i=0; i<=6; i++) {
+						var beginVal = parseInt(condition.beginValue) + (i * DAYSECONDS);
+						var endVal = parseInt(condition.endValue) + (i * DAYSECONDS);
+						ninjaPrecondition.params.times.push(beginVal);
+						ninjaPrecondition.params.times.push(endVal);
+					}
+					break;
+			}
 			break;
 		case ENUMCONDITIONTYPE.Device :
+			var deviceTpIdSplit = condition.deviceTpId.split(":");//subdevice id, if one, is stored into id.
+			ninjaPrecondition.params.guid = deviceTpIdSplit[0];
 			switch (condition.comparisonType) {
-				//When condition include a rf subdevice.
 				case ENUMCOMPARISONTYPE.None :
 					ninjaPrecondition.handler = 'ninjaChange';
 					ninjaPrecondition.params.to	= condition.deviceValue;
 					break;
 				case ENUMCOMPARISONTYPE.GreaterThan :
-					ninjaPrecondition.handler = 'ninjaEquality';	//it can be ninjaThreshold
+					ninjaPrecondition.handler = 'ninjaEquality';//can be ninjaThreshold
 					ninjaPrecondition.params.equality = 'GT';
 					ninjaPrecondition.params.value = condition.deviceValue;
 					break;
 				case ENUMCOMPARISONTYPE.LesserThan :
-					ninjaPrecondition.handler = 'ninjaEquality';	//it can be ninjaThreshold
+					ninjaPrecondition.handler = 'ninjaEquality';//can be ninjaThreshold
 					ninjaPrecondition.params.equality = 'LT';	
 					ninjaPrecondition.params.value = condition.deviceValue;
 					break;
 				case ENUMCOMPARISONTYPE.Equals :
-					ninjaPrecondition.handler = 'ninjaEquality';	//it can be ninjaThreshold
+					ninjaPrecondition.handler = 'ninjaEquality';//can be ninjaThreshold
 					ninjaPrecondition.params.equality = 'EQ';
 					ninjaPrecondition.params.value = condition.deviceValue;
 					break;

@@ -59,7 +59,7 @@ exports.create = function(req, res) {
 exports.update = function(req, res) {
 	var scenarioId = req.params.scenarioId;
 
-	UScenario.findOne(
+	UScenario.findOneAndUpdate(
 		{ id: scenarioId }, 
 		req.body,
 		function (err, scenario) {
@@ -118,4 +118,36 @@ exports.show = function(req, res) {
 			scenario: scenario
 		});
 	});
+};
+
+exports.enable = function(req, res) {
+	var scenarioId = req.params.scenarioId;
+
+	UScenario.findOneAndUpdate(
+		{ id: scenarioId }, 
+		{ enabled : true },
+		function (err, scenario) {
+			if (err) {
+				return res.json(500, {
+					status: false,
+					error: err//"Can't update scenario " + scenarioId
+				});
+			}
+			
+			UScenario.emit('enable', req.uCtrl_User, scenario);
+//TODO : test this code below
+			UScenario.update(//set other scenarios to disabled
+				{ _device: scenario._device, _id: { $ne: scenario._id} }, 
+				{ $set: { enabled : false } }, 
+				{ safe: true },
+				function (err, num) { 
+					if (err) console.log("Error: ", err) });
+			
+			res.json({
+				status: true,
+				error: null,
+				scenario: scenario
+			});
+		}
+	);
 };

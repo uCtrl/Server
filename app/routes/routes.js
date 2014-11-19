@@ -20,12 +20,32 @@ module.exports = function(app) {
 			User.findById(uCtrl_Token, function(err, userObj) {
 				if(userObj) {
 					req.uCtrl_User = userObj
+					next();
 				}
-				next();
+				else {
+					var err = 'Bad X-uCtrl-Token provided. No user found.';
+					console.log('--request : ' + err);
+					res.json({
+						status: false,
+						error: err,
+						data: null
+					});
+				}
 			});
 		}
-		else
+		else if (req.url.indexOf("/users") > -1 && req.method.toUpperCase() == 'POST') {
+			//case of creating user
 			next();
+		}
+		else {
+			var err = 'No X-uCtrl-Token in Headers';
+			console.log('--request : ' + err);
+			res.json({
+				status: false,
+				error: err,
+				data: null
+			});
+		}
 	});
 
 	app.get('/logs', logs.read);
@@ -75,6 +95,9 @@ module.exports = function(app) {
         .put(scenarios.update)
         .delete(scenarios.destroy); 
     
+	app.route('/platforms/:platformId/devices/:deviceId/scenarios/:scenarioId/enable')
+        .post(scenarios.enable);
+		
     app.route('/platforms/:platformId/devices/:deviceId/scenarios/:scenarioId/tasks')
 	    .get(tasks.all)
         .post(tasks.create);

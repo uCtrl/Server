@@ -4,8 +4,7 @@
 
 'use strict';
 
-var request = require('request'),
-	_ = require('lodash'),
+var _ = require('lodash'),
 	util = require('util'),
 	ninjablocks = require('./ninjablocks.js'),
 	mongoose = require('mongoose'),
@@ -16,17 +15,11 @@ var request = require('request'),
 	UTask = mongoose.model('UTask'),
 	UCondition = mongoose.model('UCondition'),
 	uuid = require('node-uuid'),
-	Q = require('q'),
 	async = require('async');
 
 /**
  * Model events listener
  * CRUD for NinjaBlocks on model's events
-	 * ref : http://grokbase.com/t/gg/mongoose-orm/1235c1mjsq/mongoose-emitting-an-event-in-a-middleware-function
-	 * use:
-			MyModel.on('new', function(mymodel) {
-				io.sockets.emit('new_my_model', mymodel.toJSON());
-			});
  */
  var defaultEvent = function() {
 	console.log('--event : no NinjaBlock action to do.');
@@ -35,35 +28,42 @@ var request = require('request'),
 /*
  * User events
  */
-User.on('create', function(uCtrl_User, user) {
+User.on('create', function(user) {
 	console.log('--event : no NinjaBlock action to do.');
 });
-User.on('update', function(uCtrl_User, user) {
+User.on('update', function(user) {
 	console.log('--event : no NinjaBlock action to do.');
 });
-User.on('destroy', function(uCtrl_User, user) {
+User.on('destroy', function(user) {
 	console.log('--event : no NinjaBlock action to do.');
 });
 
 /*
  * UPlatform events
  */
+//TODO : review & test
 UPlatform.on('create', function(uCtrl_User, platform) {
-	console.log(uCtrl_User);
-	console.log(platform);
+	//console.log(uCtrl_User);
+	//console.log(platform);
 	//TODO : pair block and delete all devices and rules related.
 	console.log('--event : TODO : pair block and delete all devices and rules related.');
 });
+
+//TODO : review & test
 UPlatform.on('update', function(uCtrl_User, platform) {
 	console.log('--event : no NinjaBlock action to do.');
 });
+
+//TODO : review & test
 UPlatform.on('destroy', function(uCtrl_User, platform) {
 	//TODO : unpair block and delete all devices and rules related.
-		console.log('--event : TODO : unpair block and delete all devices and rules related.');
+	console.log('--event : TODO : unpair block and delete all devices and rules related.');
 });
+
 /*
  * UDevice events
  */
+//TODO : review & test.. add if(uCtrl_User)
 UDevice.on('create', function(uCtrl_User, deviceObj) {
 	var nb = new ninjablocks({userAccessToken : uCtrl_User.ninjablocks.userAccessToken});
 	UDevice.toNinjaBlocks(deviceObj, function(ninjaDevice, ninjaSubdevice){
@@ -79,6 +79,7 @@ UDevice.on('create', function(uCtrl_User, deviceObj) {
 	});
 });
 
+//TODO : review & test
 UDevice.on('update', function(uCtrl_User, deviceObj) {
 	var nb = new ninjablocks({userAccessToken : uCtrl_User.ninjablocks.userAccessToken});
 	UDevice.toNinjaBlocks(deviceObj, function(ninjaDevice, ninjaSubdevice){
@@ -98,6 +99,7 @@ UDevice.on('update', function(uCtrl_User, deviceObj) {
 	});
 });
 
+//TODO : review & test
 UDevice.on('destroy', function(uCtrl_User, deviceObj) {
 	var nb = new ninjablocks({userAccessToken : uCtrl_User.ninjablocks.userAccessToken});
 	UDevice.toNinjaBlocks(deviceObj, function(ninjaDevice, ninjaSubdevice){
@@ -115,10 +117,10 @@ UDevice.on('destroy', function(uCtrl_User, deviceObj) {
 			});
 		}
 	});
-	
+	//event to delete children (rules from scenarios)
 	_(deviceObj._scenarios).forEach(function(scenarioId, scenarioIndex) {
 		UScenario.findById(scenarioId, function(err, scenarioObj) {
-			UScenario.emit('destroy', scenario); //event to delete all children (rules from scenarios)
+			UScenario.emit('destroy', scenario);
 		});
 	});
 });
@@ -126,6 +128,7 @@ UDevice.on('destroy', function(uCtrl_User, deviceObj) {
 /*
  * UScenario events
  */
+//TODO : review & test
 UScenario.on('create', defaultEvent);
 UScenario.on('update', defaultEvent);
 UScenario.on('destroy', function(uCtrl_User, scenarioObj) {
@@ -136,23 +139,44 @@ UScenario.on('destroy', function(uCtrl_User, scenarioObj) {
 				console.log('--event : NinjaBlock rule ' + taskObj.tpId + ' deleted.');
 			});
 		});
+	});//no children to delete (rules from this scenario are deleted)
+});
+UScenario.on('enable', function(uCtrl_User, scenarioObj) {
+	var nb = new ninjablocks({userAccessToken : uCtrl_User.ninjablocks.userAccessToken});
+	//delete NB rules from the last active scenario(s)
+	_(scenarioObj._device._scenarios).forEach(function(scenarioId, scenarioIndex) {
+		UScenario.findById(scenarioId, function(err, scenarioObjToWork) {
+			_(scenarioObjToWork._tasks).forEach(function(taskId, taskIndex) {
+				UTask.findById(taskId, function(err, taskObj) {
+					UTask.emit('destroy', uCtrl_User, taskObj);
+				});
+			});
+		});
 	});
-	//no children to delete (rules from this scenario are deleted)
+	//create NB rules for the current active scenario
+	_(scenarioObj._tasks).forEach(function(taskId, taskIndex) {
+		UTask.findById(taskId, function(err, taskObj) {
+			//TODO : CHANDE TASK TPID WITH THE ONE PROVIDED.
+			UTask.emit('create', uCtrl_User, taskObj);
+		});
+	});
 });
 
 /*
  * UTask events
  */
+//TODO : review & test
 UTask.on('create', function(uCtrl_User, taskObj) {
 	var nb = new ninjablocks({userAccessToken : uCtrl_User.ninjablocks.userAccessToken});
 	UTask.toNinjaBlocks(taskObj, function(ninjaRule) {
 		nb.rule(taskObj.tpId).create(ninjaRule, function(err, result) {
-			//TODO : chande task tpId with the one provided.
+			//TODO : CHANDE TASK TPID WITH THE ONE PROVIDED.
 			console.log('--event : NinjaBlock rule ' + taskObj.tpId + ' created.');
 		});
 	});
 });
 
+//TODO : review & test
 UTask.on('update', function(uCtrl_User, taskObj) {
 	var nb = new ninjablocks({userAccessToken : uCtrl_User.ninjablocks.userAccessToken});
 	UTask.toNinjaBlocks(taskObj, function(ninjaRule) {
@@ -162,61 +186,59 @@ UTask.on('update', function(uCtrl_User, taskObj) {
 	});
 });
 
+//TODO : review & test
 UTask.on('destroy', function(uCtrl_User, taskObj) {
 	var nb = new ninjablocks({userAccessToken : uCtrl_User.ninjablocks.userAccessToken});
 	nb.rule(taskObj.tpId).delete(function(err, result) {
 		console.log('--event : NinjaBlock rule ' + taskObj.tpId + ' deleted.');
-	});
-	//no children to delete (preconditions are in rules)
+	});//no children to delete (preconditions are in rules)
 });
 
 /*
  * UCondition events
  */
+//TODO : review & test
 UCondition.on('create', function(uCtrl_User, conditionObj) {
 	var nb = new ninjablocks({userAccessToken : uCtrl_User.ninjablocks.userAccessToken});
 	UTask.findById(conditionObj._task, function(err, taskObj) {
 		UTask.toNinjaBlocks(taskObj, function(ninjaRule){
-			//TODO : chande condition tpId with the new index.
-			UCondition.toNinjaBlocks(conditionObj, function(ninjaPrecondition) {
-				ninjaRule.preconditions.push(ninjaPrecondition); //add the precondition
-				nb.rule(taskObj.tpId).update(ninjaRule, function(err, result) {
-					console.log('--event : NinjaBlock rule ' + taskObj.tpId + ' updated.');
-				});
-			});
-		});
-	});
-});
-
-UCondition.on('update', function(uCtrl_User, conditionObj) {
-	var nb = new ninjablocks({userAccessToken : uCtrl_User.ninjablocks.userAccessToken});
-	UTask.findById(conditionObj._task, function(err, taskObj) {
-		UTask.toNinjaBlocks(taskObj, function(ninjaRule){
-			var conditionTpIdSplit = conditionObj.tpId.split(":"); //precondition index stored into tpId.
-			var preconditionIndex = conditionTpIdSplit[1];
-			UCondition.toNinjaBlocks(conditionObj, function(ninjaPrecondition) {
-				ninjaRule.preconditions[preconditionIndex] = ninjaPrecondition; //update the precondition
-				nb.rule(taskObj.tpId).update(ninjaRule, function(err, result) {
-					console.log('--event : NinjaBlock rule ' + taskObj.tpId + ' updated.');
-				});
-			});
-		});
-	});
-});
-
-UCondition.on('destroy', function(uCtrl_User, conditionObj) {
-	var nb = new ninjablocks({userAccessToken : uCtrl_User.ninjablocks.userAccessToken});
-	UTask.findById(conditionObj._task, function(err, taskObj) {
-		UTask.toNinjaBlocks(taskObj, function(ninjaRule){
-			var conditionTpIdSplit = conditionObj.tpId.split(":"); //precondition index stored into tpId.
-			var preconditionIndex = conditionTpIdSplit[1];
-			ninjaRule.preconditions.splice(preconditionIndex, 1); //remove the precondition from the rule
+			//TODO : change condition tpId with the new index.
+			//new condition is already included
 			nb.rule(taskObj.tpId).update(ninjaRule, function(err, result) {
 				console.log('--event : NinjaBlock rule ' + taskObj.tpId + ' updated.');
 			});
 		});
 	});
-	//no children to delete
+});
+
+//TODO : review & test
+UCondition.on('update', function(uCtrl_User, conditionObj) {
+	var nb = new ninjablocks({userAccessToken : uCtrl_User.ninjablocks.userAccessToken});
+	UTask.findById(conditionObj._task, function(err, taskObj) {
+		UTask.toNinjaBlocks(taskObj, function(ninjaRule){
+			//TODO : change condition tpId with the new index.
+			//conditions are already mapped
+			nb.rule(taskObj.tpId).update(ninjaRule, function(err, result) {
+				console.log('--event : NinjaBlock rule ' + taskObj.tpId + ' updated.');
+			});
+		});
+	});
+});
+
+
+//TODO : review & test
+UCondition.on('destroy', function(uCtrl_User, conditionObj) {
+	var nb = new ninjablocks({userAccessToken : uCtrl_User.ninjablocks.userAccessToken});
+	UTask.findById(conditionObj._task, function(err, taskObj) {
+		UTask.toNinjaBlocks(taskObj, function(ninjaRule){
+			var conditionTpIdSplit = conditionObj.tpId.split(":");//precondition index stored into tpId.
+			var preconditionIndex = conditionTpIdSplit[1];
+			ninjaRule.preconditions.splice(preconditionIndex, 1);//remove the precondition from the rule
+			nb.rule(taskObj.tpId).update(ninjaRule, function(err, result) {
+				console.log('--event : NinjaBlock rule ' + taskObj.tpId + ' updated.');
+			});
+		});
+	});//no children to delete
 });
 
 /*
@@ -237,7 +259,6 @@ function ninjaCrawler(options) {
 	 * @param  {Function} callback Callback when request finished or error found
 	 */
 	this.fetchAll = function(callback) {
-		
 		var arrObjectsToSave = [];
 		
 		/**
@@ -284,7 +305,7 @@ function ninjaCrawler(options) {
 			// fetch NinjaBlocks blocks
 			nb.blocks( function(err, blocks) {
 				self._fromNinjaBlocks.blocks = blocks;
-
+				
 				// fetch NinjaBlocks devices
 				nb.devices(function(err, devices) {
 					self._fromNinjaBlocks.devices = devices;
@@ -303,7 +324,7 @@ function ninjaCrawler(options) {
 		 * Third step : Index the data after the fetch
 		 * @param  {Function} callback Callback when request finished or error found
 		 */
-		var indexData = function(callback){
+		var indexData = function(callback){		
 			// create platforms entries
 			_(self._fromNinjaBlocks.blocks).forEach(function (blockObj, blockId) {
 				UPlatform.fromNinjaBlocks(blockObj, blockId, function(platform) {
@@ -330,9 +351,11 @@ function ninjaCrawler(options) {
 														arrObjectsToSave.push(task);
 														// create conditions under this task
 														_(ruleObj.preconditions).forEach(function(preconditionObj, preconditionId) {
-															UCondition.fromNinjaBlocks(preconditionObj, task.tpId + ':' + preconditionId, function(condition){
-																condition['parentId'] = task.id;
-																arrObjectsToSave.push(condition);
+															UCondition.fromNinjaBlocks(preconditionObj, task.tpId + ':' + preconditionId, function(lstCondition){
+																_(lstCondition).forEach(function(condition){
+																	condition['parentId'] = task.id;
+																	arrObjectsToSave.push(condition);
+																});
 															});
 														});
 													});
@@ -360,9 +383,11 @@ function ninjaCrawler(options) {
 													arrObjectsToSave.push(task);
 													// create conditions under this task
 													_(ruleObj.preconditions).forEach(function(preconditionObj, preconditionId) {
-														UCondition.fromNinjaBlocks(preconditionObj, task.tpId + ':' + preconditionId, function(condition){
-															condition['parentId'] = task.id;
-															arrObjectsToSave.push(condition);
+														UCondition.fromNinjaBlocks(preconditionObj, task.tpId + ':' + preconditionId, function(lstCondition){
+															_(lstCondition).forEach(function(condition){
+																condition['parentId'] = task.id;
+																arrObjectsToSave.push(condition);
+															});
 														});
 													});
 												});
@@ -405,11 +430,13 @@ function ninjaCrawler(options) {
 						var count = _(devices).size();
 						_(devices).forEach(function(deviceObj) {
 							UPlatform.findOne({ id : deviceObj.parentId }, function(err, platformObj) {
-								deviceObj['_platform'] = platformObj._id;
-								deviceObj.save(function(err){
-									count--;
-									if (count==0) callback(null, 'bind devices done');
-								});
+								if (platformObj) {
+									deviceObj['_platform'] = platformObj._id;
+									deviceObj.save(function(err){
+										count--;
+										if (count==0) callback(null, 'bind devices done');
+									});
+								}
 							});
 						});
 					});
@@ -419,11 +446,13 @@ function ninjaCrawler(options) {
 						var count = _(scenarios).size();
 						_(scenarios).forEach(function(scenarioObj) {
 							UDevice.findOne({ id : scenarioObj.parentId }, function(err, deviceObj) {
-								scenarioObj['_device'] = deviceObj._id;
-								scenarioObj.save(function(err){
-									count--;
-									if (count==0) callback(null, 'bind scenarios done');
-								});
+								if (deviceObj) {
+									scenarioObj['_device'] = deviceObj._id;
+									scenarioObj.save(function(err){
+										count--;
+										if (count==0) callback(null, 'bind scenarios done');
+									});
+								}
 							});
 						});
 					});
@@ -433,11 +462,13 @@ function ninjaCrawler(options) {
 						var count = _(tasks).size();
 						_(tasks).forEach(function(taskObj) {
 							UScenario.findOne({ id : taskObj.parentId }, function(err, scenarioObj) {
-								taskObj['_scenario'] = scenarioObj._id;
-								taskObj.save(function(err){
-									count--;
-									if (count==0) callback(null, 'bind tasks done');
-								});
+								if (scenarioObj) {
+									taskObj['_scenario'] = scenarioObj._id;
+									taskObj.save(function(err){
+										count--;
+										if (count==0) callback(null, 'bind tasks done');
+									});
+								}
 							});
 						});
 					});
@@ -447,11 +478,13 @@ function ninjaCrawler(options) {
 						var count = _(conditions).size();
 						_(conditions).forEach(function(conditionObj) {
 							UTask.findOne({ id : conditionObj.parentId }, function(err, taskObj) {
-								conditionObj['_task'] = taskObj._id;
-								conditionObj.save(function(err){
-									count--;
-									if (count==0) callback(null, 'bind conditions step 1 done');
-								});
+								if (taskObj) {
+									conditionObj['_task'] = taskObj._id;
+									conditionObj.save(function(err){
+										count--;
+										if (count==0) callback(null, 'bind conditions step 1 done');
+									});
+								}
 							});
 						});
 					});
@@ -460,13 +493,17 @@ function ninjaCrawler(options) {
 					UCondition.find({}, function(err, conditions) {
 						var countConditions = _(conditions).size();
 						_(conditions).forEach(function(conditionObj) {
-							UDevice.findOne({ tpId : conditionObj.deviceTpId }, function(err, deviceObj) {
-								conditionObj.deviceId = deviceObj.id;
-								conditionObj.save(function(err){
-									countConditions--;
-									if (countConditions==0) callback(null, 'bind condition step 2 done');
+							if (conditionObj.deviceTpId != null) {
+								UDevice.findOne({ tpId : conditionObj.deviceTpId }, function(err, deviceObj) {
+									if (deviceObj) {
+										conditionObj.deviceId = deviceObj.id;
+										conditionObj.save(function(err){
+											countConditions--;
+											if (countConditions==0) callback(null, 'bind condition step 2 done');
+										});
+									}
 								});
-							});
+							}
 						});
 					});
 				}				
