@@ -2,6 +2,7 @@
 
 var mongoose = require('mongoose'),
 	Schema   = mongoose.Schema,
+	cleanJson = require('./cleanJson.js'),
 	_ = require('lodash'),
 	uuid = require('node-uuid');
 
@@ -13,7 +14,29 @@ var UserSchema = new Schema({
 	ninjablocks: {
 		userAccessToken: String,
 		pusherChannelToken: String
-	}
+	},
+	_platforms : [{
+		type: Schema.Types.ObjectId, 
+		ref: 'UPlatform'
+	}]
+});
+
+UserSchema.post('save', function (user) {
+	//Nothing to do
+});
+
+// Can't use middleware on findAndUpdate functions
+
+UserSchema.post('remove', function (user) {
+	var UPlatform = mongoose.model('UPlatform');
+	
+	UPlatform.find({ _id: { $in: user._platforms } }, function(err, platforms) {
+		if (err) {
+			console.log("Error: ", err);
+			return;
+		}
+		_(platforms).forEach(function(platform) { platform.remove() } );
+	});
 });
 
 /*
@@ -54,4 +77,5 @@ UserSchema.statics.fromNinjaBlocks = function (ninjaUser, ninjaUserAccessToken, 
 	cb(user);
 };
 
+UserSchema.plugin(cleanJson);
 mongoose.model('User', UserSchema);
