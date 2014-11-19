@@ -2,10 +2,11 @@
 
 var _ = require('lodash'),
 	mongoose = require('mongoose'),
+	User = mongoose.model('User'),
 	UPlatform = mongoose.model('UPlatform');
 
 exports.all = function(req, res) {
-	UPlatform.find().sort('id').exec(function(err, platforms) {
+	User.findOne({ _id: req.uCtrl_User._id }).populate('_platforms').exec(function(err, platforms) {
 		if (err) {
 			return res.json(500, {
 				status: false,
@@ -24,6 +25,8 @@ exports.all = function(req, res) {
 
 exports.create = function(req, res) {
 	var platform = new UPlatform(req.body);
+	
+	platform["_user"] = req.uCtrl_User._id;
 	platform.save(function(err) {
 		if (err) {
 			return res.json(500, {
@@ -39,7 +42,6 @@ exports.create = function(req, res) {
 			platform: platform 
 		});
 	});
-	// Pair + activate is enough? Needs testing
 };
 
 exports.update = function(req, res) {

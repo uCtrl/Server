@@ -46,15 +46,15 @@ exports.create = function(req, res) {
 
 	function doSomethingWithUser(u, token) {
 		// Start Ninja Blocks crawling
-		new ninjacrawler({ userAccessToken: token }).fetchAll( function(err, result) {
+		new ninjacrawler({ user: u, userAccessToken: token }).fetchAll( function(err, result) {
 			console.log("--NinjaCrawler : done 'fetchAll'");
-		});
-
-		res.json({
-			status: true,
-			error: null,
-			token: u._id
-		});		
+			
+			res.json({
+				status: true,
+				error: null,
+				token: u._id
+			});
+		});	
 	}
 
 	User.findOne({ 'ninjablocks.userAccessToken': userAccessToken }).exec(function(err, user) {

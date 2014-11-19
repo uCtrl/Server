@@ -328,6 +328,7 @@ function ninjaCrawler(options) {
 			// create platforms entries
 			_(self._fromNinjaBlocks.blocks).forEach(function (blockObj, blockId) {
 				UPlatform.fromNinjaBlocks(blockObj, blockId, function(platform) {
+					platform['parentId'] = self._options.user.id;
 					arrObjectsToSave.push(platform);
 					// create devices under this platform
 					_(self._fromNinjaBlocks.devices).forEach(function (deviceObj, deviceId) { 
@@ -425,6 +426,22 @@ function ninjaCrawler(options) {
 		 */
 		var bindData = function(callback){
 			async.series([
+				function(callback){
+					UPlatform.find({}, function(err, platforms) {
+						var count = _(platforms).size();
+						_(platforms).forEach(function(platformObj) {
+							User.findOne({ id : platformObj.parentId }, function(err, userObj) {
+								if (userObj) {
+									platformObj['_user'] = userObj._id;
+									platformObj.save(function(err){
+										count--;
+										if (count==0) callback(null, 'bind platforms done');
+									});
+								}
+							});
+						});
+					});
+				},
 				function(callback){
 					UDevice.find({}, function(err, devices) {
 						var count = _(devices).size();

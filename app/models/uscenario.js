@@ -16,7 +16,10 @@ var UScenarioSchema = new Schema({
 		unique: true
 	},
 	parentId: String,
-	tpId: String,
+	tpId: {
+		type: String,
+		unique: true
+	},
 	name: String,
 	enabled : Boolean,
 	lastUpdated: Number,
@@ -32,6 +35,8 @@ var UScenarioSchema = new Schema({
 
 UScenarioSchema.post('save', function (scenario) {
 	var UDevice = mongoose.model('UDevice');
+	var UScenario = mongoose.model('UScenario');
+	
 //TODO : test this code below
 	if (scenario.enabled) {//set other scenarios to disabled
 		UScenario.update(

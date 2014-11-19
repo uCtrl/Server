@@ -16,6 +16,11 @@ var UEStatus = {//TODO : review status code.
 	//...
 };
 
+var DEFAULT_FIRMWAREVERSION = '3.813';
+var DEFAULT_IP = '192.168.X.X';
+var DEFAULT_PORT = 443;
+var DEFAULT_ROOM = 'Mon local';
+
 /**
  * UPlatform Schema
  */
@@ -25,9 +30,9 @@ var UPlatformSchema = new Schema({
 		required: true,
 		unique: true
 	},
+	parentId: String,
 	tpId: {
 		type: String,
-		//required: true,
 		unique: true
 	},
 	firmwareVersion: String,
@@ -38,19 +43,37 @@ var UPlatformSchema = new Schema({
 	status: Number,
 	enabled: Boolean,
 	lastUpdated: Number,
+	_user : {
+		type: Schema.Types.ObjectId, 
+		ref: 'User'
+	},
 	_devices : [{
 		type: Schema.Types.ObjectId, 
 		ref: 'UDevice'
-	}] 
+	}]
 });
 
 UPlatformSchema.post('save', function (platform) {
+	var User = mongoose.model('User');
+	User.update(
+		{ _id: platform._user }, 
+		{ $addToSet: { _platforms: platform._id } }, 
+		{ safe: true },
+		function (err, num) { if (err) console.log("Error: ", err) });
 });
 
 // Can't use middleware on findAndUpdate functions
 
 UPlatformSchema.post('remove', function (platform) {
+	var User = mongoose.model('User');
 	var UDevice = mongoose.model('UDevice');
+	
+	User.update(
+		{ _id: platform._user }, 
+		{ $pull: { _platforms: platform._id } }, 
+		{ safe: true },
+		function (err, num) { if (err) console.log("Error: ", err) });
+		
 	UDevice.find({ _id: { $in: platform._devices } }, function(err, devices) {
 		if (err) {
 			console.log("Error: ", err);
@@ -71,11 +94,11 @@ UPlatformSchema.statics.fromNinjaBlocks = function (ninjaBlock, ninjaBlockId, cb
 	var platform = new UPlatform({
 		id : uuid.v1(),
 		tpId : ninjaBlockId,
-		firmwareVersion : '3.813',
+		firmwareVersion : DEFAULT_FIRMWAREVERSION,
 		name : ninjaBlock.short_name,
-		ip : null,
-		port : 443,
-		room : null,
+		ip : DEFAULT_IP,
+		port : DEFAULT_PORT,
+		room : DEFAULT_ROOM,
 		status : UEStatus.OK,
 		enabled : true,
 		lastUpdated : ninjaBlock.date_created,

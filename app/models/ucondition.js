@@ -40,7 +40,6 @@ var UConditionSchema = new Schema({
 	parentId: String,
 	tpId: {
 		type: String,
-		//required: true,
 		unique: true
 	},
 	type: {
