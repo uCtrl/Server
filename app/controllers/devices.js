@@ -2,6 +2,7 @@
 
 var _ = require('lodash'),
 	mongoose = require('mongoose'),
+	uuid = require('node-uuid'),
 	UPlatform = mongoose.model('UPlatform'),
 	UDevice = mongoose.model('UDevice'),
 	Stats = mongoose.model('Stats'),
@@ -43,6 +44,7 @@ exports.create = function(req, res) {
 				error: err//"Can't find the associated platform " + platformId
 			});
 		}		
+		device["id"] = uuid.v1();
 		device["_platform"] = platform._id;
 		device.save(function(err) {
 			if (err) {

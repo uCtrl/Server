@@ -2,6 +2,7 @@
 
 var _ = require('lodash'),
 	mongoose = require('mongoose'),
+	uuid = require('node-uuid'),
 	ninjacrawler = require('../apis/ninjacrawler.js'),
 	ninjablocks = require('../apis/ninjablocks.js'),
 	User = mongoose.model('User');

@@ -28,37 +28,16 @@ var _ = require('lodash'),
 /*
  * User events
  */
-User.on('create', function(user) {
-	console.log('--event : no NinjaBlock action to do.');
-});
-User.on('update', function(user) {
-	console.log('--event : no NinjaBlock action to do.');
-});
-User.on('destroy', function(user) {
-	console.log('--event : no NinjaBlock action to do.');
-});
+User.on('create', defaultEvent);
+User.on('update', defaultEvent);
+User.on('destroy', defaultEvent);
 
 /*
  * UPlatform events
  */
-//TODO : review & test
-UPlatform.on('create', function(uCtrl_User, platform) {
-	//console.log(uCtrl_User);
-	//console.log(platform);
-	//TODO : pair block and delete all devices and rules related.
-	console.log('--event : TODO : pair block and delete all devices and rules related.');
-});
-
-//TODO : review & test
-UPlatform.on('update', function(uCtrl_User, platform) {
-	console.log('--event : no NinjaBlock action to do.');
-});
-
-//TODO : review & test
-UPlatform.on('destroy', function(uCtrl_User, platform) {
-	//TODO : unpair block and delete all devices and rules related.
-	console.log('--event : TODO : unpair block and delete all devices and rules related.');
-});
+UPlatform.on('create', defaultEvent);//TODO : pair block?
+UPlatform.on('update', defaultEvent);
+UPlatform.on('destroy', defaultEvent);//TODO : unpair block and delete all devices and rules related?
 
 /*
  * UDevice events
@@ -165,19 +144,11 @@ UScenario.on('enable', function(uCtrl_User, scenarioObj) {
 /*
  * UTask events
  */
-//TODO : review & test
 UTask.on('create', function(uCtrl_User, taskObj) {
-	var nb = new ninjablocks({userAccessToken : uCtrl_User.ninjablocks.userAccessToken});
-	UTask.toNinjaBlocks(taskObj, function(ninjaRule) {
-		nb.rule(taskObj.tpId).create(ninjaRule, function(err, result) {
-			//TODO : CHANDE TASK TPID WITH THE ONE PROVIDED.
-			console.log('--event : NinjaBlock rule ' + taskObj.tpId + ' created.');
-		});
-	});
+	console.log('--event : NinjaBlock rule can\'t be created without preconditions. It will be created in condition create event.');
 });
 
-//TODO : review & test
-UTask.on('update', function(uCtrl_User, taskObj) {
+UTask.on('update', function(uCtrl_User, taskObj) {//TODO : review & test, conditions..etc
 	var nb = new ninjablocks({userAccessToken : uCtrl_User.ninjablocks.userAccessToken});
 	UTask.toNinjaBlocks(taskObj, function(ninjaRule) {
 		nb.rule(taskObj.tpId).update(ninjaRule, function(err, result) {
@@ -186,8 +157,7 @@ UTask.on('update', function(uCtrl_User, taskObj) {
 	});
 });
 
-//TODO : review & test
-UTask.on('destroy', function(uCtrl_User, taskObj) {
+UTask.on('destroy', function(uCtrl_User, taskObj) {//TODO : review & test
 	var nb = new ninjablocks({userAccessToken : uCtrl_User.ninjablocks.userAccessToken});
 	nb.rule(taskObj.tpId).delete(function(err, result) {
 		console.log('--event : NinjaBlock rule ' + taskObj.tpId + ' deleted.');
@@ -346,7 +316,7 @@ function ninjaCrawler(options) {
 											arrObjectsToSave.push(scenario);
 											// create tasks under this scenario
 											_(self._fromNinjaBlocks.rules).forEach(function(ruleObj, ruleId) {
-												if (ruleObj.actions[0].params.guid == deviceId && ruleObj.actions[0].params.to == subdeviceObj.data) {
+												if (ruleObj.actions[0].params.guid == deviceId && ruleObj.actions[0].params.da == subdeviceObj.data) {
 													UTask.fromNinjaBlocks(ruleObj, ruleObj.rid, function(task){
 														task['parentId'] = scenario.id;
 														arrObjectsToSave.push(task);
