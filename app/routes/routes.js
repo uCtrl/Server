@@ -9,6 +9,7 @@ var tasks = require(__base + 'app/controllers/tasks.js');
 var conditions = require(__base + 'app/controllers/conditions.js');
 var users = require(__base + 'app/controllers/users.js');
 var stats = require(__base + 'app/controllers/stats.js');
+var recommendations = require(__base + 'app/controllers/recommendations.js');
 var mongoose = require('mongoose');
 var User = mongoose.model('User');
 
@@ -50,6 +51,10 @@ module.exports = function(app) {
 		
 	app.route('/system/fetchAll')
 		.get(hasAuthorization, system.fetchAll)
+
+    app.route('/recommendations')
+        .get(recommendations.read)
+        .post(recommendations.accept);
 
     app.route('/platforms')
         .get(hasAuthorization, platforms.all)
