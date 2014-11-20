@@ -17,10 +17,7 @@ var UTaskSchema = new Schema({
 		unique: true
 	},
 	parentId: String,
-	tpId: {
-		type: String,
-		unique: true
-	},
+	tpId: String,
 	name : String,
 	value : String,
 	enabled : Boolean,
@@ -107,8 +104,8 @@ UTaskSchema.statics.toNinjaBlocks = function (task, cb) {
 			handler: NB_ACTIONHANDLER, 
 			params: { 
 				guid : null,//mapped below
-				to : null,//mapped below
-				da : task.status
+				da : task.value,
+				shortName : task.value
 			} 
 		}]
 	}
@@ -117,7 +114,6 @@ UTaskSchema.statics.toNinjaBlocks = function (task, cb) {
 		UDevice.findById(scenario._device, function(err, device){
 			var deviceTpIdSplit = device.tpId.split(":");//subdevice data, if one, is stored into id.
 			ninjaRule.actions[0].params.guid = deviceTpIdSplit[0];
-			ninjaRule.actions[0].params.to = device.value;
 			
 			//mapping conditions here
 			//all times preconditions for a rule need to be mapped in only one precondition

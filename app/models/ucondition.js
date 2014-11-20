@@ -38,10 +38,7 @@ var UConditionSchema = new Schema({
 		unique: true
 	},
 	parentId: String,
-	tpId: {
-		type: String,
-		unique: true
-	},
+	tpId: String,
 	type: {
 		type: Number,
 		required: true
@@ -227,15 +224,15 @@ UConditionSchema.statics.toNinjaBlocks = function (condition, cb) {
 	var ninjaPrecondition = { 
 		handler: null, 
 		params: { 
-			equality : null,
+			//equality : null,
 			guid : null,
-			to : null,
-			value : null,
-			between : null,
-			and : null,
-			shortName : null,
-			times : null,
-			timezone : null
+			//to : null,
+			//value : null,
+			//between : null,
+			//and : null,
+			//shortName : null,
+			//times : null,
+			//timezone : null
 		}
 	}
 	switch (condition.type) {
@@ -322,19 +319,20 @@ UConditionSchema.statics.toNinjaBlocks = function (condition, cb) {
 				case ENUMCOMPARISONTYPE.None :
 					ninjaPrecondition.handler = 'ninjaChange';
 					ninjaPrecondition.params.to	= condition.deviceValue;
+					ninjaPrecondition.params.shortName	= 'TEST';//TODO, keep shortName of NB
 					break;
 				case ENUMCOMPARISONTYPE.GreaterThan :
-					ninjaPrecondition.handler = 'ninjaEquality';//can be ninjaThreshold
+					ninjaPrecondition.handler = 'ninjaThreshold';//can be ninjaEquality
 					ninjaPrecondition.params.equality = 'GT';
 					ninjaPrecondition.params.value = condition.deviceValue;
 					break;
 				case ENUMCOMPARISONTYPE.LesserThan :
-					ninjaPrecondition.handler = 'ninjaEquality';//can be ninjaThreshold
+					ninjaPrecondition.handler = 'ninjaThreshold';//can be ninjaEquality
 					ninjaPrecondition.params.equality = 'LT';	
 					ninjaPrecondition.params.value = condition.deviceValue;
 					break;
 				case ENUMCOMPARISONTYPE.Equals :
-					ninjaPrecondition.handler = 'ninjaEquality';//can be ninjaThreshold
+					ninjaPrecondition.handler = 'ninjaThreshold';//can be ninjaEquality
 					ninjaPrecondition.params.equality = 'EQ';
 					ninjaPrecondition.params.value = condition.deviceValue;
 					break;

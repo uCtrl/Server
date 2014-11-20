@@ -31,10 +31,7 @@ var UPlatformSchema = new Schema({
 		unique: true
 	},
 	parentId: String,
-	tpId: {
-		type: String,
-		unique: true
-	},
+	tpId: String,
 	firmwareVersion: String,
 	name: String,
 	ip: String,
