@@ -36,7 +36,8 @@ exports.create = function(req, res) {
 				status: false,
 				error: err//"Can't find the associated task " + taskId
 			});
-	    }		
+	    }
+		
 		condition["id"] = uuid.v1();
 		condition["_task"] = task._id;
 		condition.save(function(err) {
@@ -92,11 +93,20 @@ exports.destroy = function(req, res) {
 			});
 		}
 		
-		UCondition.emit('destroy', req.uCtrl_User, condition);
-		res.json({
-			status: true,
-			error: null,
-			condition: condition.remove()
+		condition.remove(function(err, conditionObj) {
+			if (err) {
+				return res.json(500, {
+					status: false,
+					error: err//"Can't delete condition " + conditionId
+				});
+			}
+			
+			UCondition.emit('destroy', req.uCtrl_User, conditionObj);
+			res.json({
+				status: true,
+				error: null,
+				condition : conditionObj
+			});
 		});
 	});
 };

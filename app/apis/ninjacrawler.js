@@ -151,9 +151,23 @@ UTask.on('create', function(uCtrl_User, taskObj) {
 UTask.on('update', function(uCtrl_User, taskObj) {//TODO : review & test, conditions..etc
 	var nb = new ninjablocks({userAccessToken : uCtrl_User.ninjablocks.userAccessToken});
 	UTask.toNinjaBlocks(taskObj, function(ninjaRule) {
-		nb.rule(taskObj.tpId).update(ninjaRule, function(err, result) {
-			console.log('--event : NinjaBlock rule ' + taskObj.tpId + ' updated.');
-		});
+		if (taskObj.tpId != undefined) {
+			nb.rule(taskObj.tpId).update(ninjaRule, function(err, result) {
+				console.log('--event : NinjaBlock rule ' + taskObj.tpId + ' updated.');
+			});
+		}
+		else {
+			nb.rule().create(ninjaRule, function(err, result) {
+				if(err) console.log('--ERROR : ' + err);
+				else {
+					taskObj.tpId = result.data.rid
+					taskObj.save(function(err) {
+						if(err) console.log('--ERROR : ' + err);
+						else console.log('--event : NinjaBlock rule ' + taskObj.tpId + ' created.');
+					});
+				}
+			});
+		}
 	});
 });
 
@@ -161,54 +175,28 @@ UTask.on('destroy', function(uCtrl_User, taskObj) {//TODO : review & test
 	var nb = new ninjablocks({userAccessToken : uCtrl_User.ninjablocks.userAccessToken});
 	nb.rule(taskObj.tpId).delete(function(err, result) {
 		console.log('--event : NinjaBlock rule ' + taskObj.tpId + ' deleted.');
-	});//no children to delete (preconditions are in rules)
+	});
 });
 
 /*
  * UCondition events
  */
-//TODO : review & test
 UCondition.on('create', function(uCtrl_User, conditionObj) {
-	var nb = new ninjablocks({userAccessToken : uCtrl_User.ninjablocks.userAccessToken});
 	UTask.findById(conditionObj._task, function(err, taskObj) {
-		UTask.toNinjaBlocks(taskObj, function(ninjaRule){
-			//TODO : change condition tpId with the new index.
-			//new condition is already included
-			nb.rule(taskObj.tpId).update(ninjaRule, function(err, result) {
-				console.log('--event : NinjaBlock rule ' + taskObj.tpId + ' updated.');
-			});
-		});
+		UTask.emit('update', uCtrl_User, taskObj);
 	});
 });
 
-//TODO : review & test
 UCondition.on('update', function(uCtrl_User, conditionObj) {
-	var nb = new ninjablocks({userAccessToken : uCtrl_User.ninjablocks.userAccessToken});
 	UTask.findById(conditionObj._task, function(err, taskObj) {
-		UTask.toNinjaBlocks(taskObj, function(ninjaRule){
-			//TODO : change condition tpId with the new index.
-			//conditions are already mapped
-			nb.rule(taskObj.tpId).update(ninjaRule, function(err, result) {
-				console.log('--event : NinjaBlock rule ' + taskObj.tpId + ' updated.');
-			});
-		});
+		UTask.emit('update', uCtrl_User, taskObj);
 	});
 });
 
-
-//TODO : review & test
 UCondition.on('destroy', function(uCtrl_User, conditionObj) {
-	var nb = new ninjablocks({userAccessToken : uCtrl_User.ninjablocks.userAccessToken});
 	UTask.findById(conditionObj._task, function(err, taskObj) {
-		UTask.toNinjaBlocks(taskObj, function(ninjaRule){
-			var conditionTpIdSplit = conditionObj.tpId.split(":");//precondition index stored into tpId.
-			var preconditionIndex = conditionTpIdSplit[1];
-			ninjaRule.preconditions.splice(preconditionIndex, 1);//remove the precondition from the rule
-			nb.rule(taskObj.tpId).update(ninjaRule, function(err, result) {
-				console.log('--event : NinjaBlock rule ' + taskObj.tpId + ' updated.');
-			});
-		});
-	});//no children to delete
+		UTask.emit('update', uCtrl_User, taskObj);
+	});
 });
 
 /*

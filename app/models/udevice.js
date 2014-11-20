@@ -167,10 +167,7 @@ var UDeviceSchema = new Schema({
 		unique: true
 	},
 	parentId: String,
-	tpId: {
-		type: String,
-		unique: true
-	},
+	tpId: String,
 	name: String,
 	type: { 
 		type: Number,
