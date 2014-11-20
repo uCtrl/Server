@@ -54,7 +54,7 @@ module.exports = function(app) {
 
     app.route('/recommendations')
         .get(recommendations.read)
-        .post(recommendations.accept);
+        .put(recommendations.accept);
 
     app.route('/platforms')
         .get(hasAuthorization, platforms.all)

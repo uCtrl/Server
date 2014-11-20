@@ -8,7 +8,7 @@ var _ = require('lodash'),
 	UTask = mongoose.model('UTask'),
 	UCondition = mongoose.model('UCondition'),
 	Recommendations = mongoose.model('Recommendations'),
-	helper = require('../controllers/helper.js');
+	helper = require('../controllers/helper.js'),
 	uuid = require('node-uuid');
 
 var analyzePlatforms = function(platforms) {
