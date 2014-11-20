@@ -80,7 +80,7 @@ UTaskSchema.statics.fromNinjaBlocks = function (ninjaRule, ninjaRuleId, cb) {
 		id : uuid.v1(),
 		tpId : ninjaRuleId,
 		name : ninjaRule.shortName,
-		value : _(ninjaRule.actions).first().params.da || null,
+		value : _(ninjaRule.actions).first().params.da != undefined ? _(ninjaRule.actions).first().params.da : null,
 		enabled : !ninjaRule.suspended,
 		lastUpdated : null,
 	});

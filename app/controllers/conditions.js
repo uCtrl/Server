@@ -2,6 +2,7 @@
 
 var _ = require('lodash'),
 	mongoose = require('mongoose'),
+	uuid = require('node-uuid'),
 	UTask = mongoose.model('UTask'),
 	UCondition = mongoose.model('UCondition');
 
@@ -36,6 +37,7 @@ exports.create = function(req, res) {
 				error: err//"Can't find the associated task " + taskId
 			});
 	    }		
+		condition["id"] = uuid.v1();
 		condition["_task"] = task._id;
 		condition.save(function(err) {
 			if (err) {

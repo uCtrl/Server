@@ -2,6 +2,7 @@
 
 var _ = require('lodash'),
 	mongoose = require('mongoose'),
+	uuid = require('node-uuid'),
 	UScenario = mongoose.model('UScenario'),
 	UTask = mongoose.model('UTask');
 		
@@ -36,6 +37,7 @@ exports.create = function(req, res) {
 				error: err//"Can't find the associated scenario " + scenarioId
 			});
 	    }		
+		task["id"] = uuid.v1();
 		task["_scenario"] = scenario._id;
 		task.save(function(err) {
 			if (err) {

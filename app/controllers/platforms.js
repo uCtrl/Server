@@ -2,6 +2,7 @@
 
 var _ = require('lodash'),
 	mongoose = require('mongoose'),
+	uuid = require('node-uuid'),
 	User = mongoose.model('User'),
 	UPlatform = mongoose.model('UPlatform');
 
@@ -26,6 +27,7 @@ exports.all = function(req, res) {
 exports.create = function(req, res) {
 	var platform = new UPlatform(req.body);
 	
+	platform["id"] = uuid.v1();
 	platform["_user"] = req.uCtrl_User._id;
 	platform.save(function(err) {
 		if (err) {

@@ -2,6 +2,7 @@
 
 var _ = require('lodash'),
 	mongoose = require('mongoose'),
+	uuid = require('node-uuid'),
 	UDevice = mongoose.model('UDevice'),
 	UScenario = mongoose.model('UScenario');
 
@@ -36,6 +37,7 @@ exports.create = function(req, res) {
 				error: err//"Can't find the associated device " + deviceId
 			});
 	    }		
+		scenario["id"] = uuid.v1();
 		scenario["_device"] = device._id;
 		scenario.save(function(err) {
 			if (err) {
