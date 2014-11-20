@@ -28,5 +28,9 @@ var LogSchema = new Schema({
     timestamp: { type: Number, required: true }
 });
 
+LogSchema.statics.LOGTYPE = ENUMLOGTYPE;
+LogSchema.statics.LOGSEVERITY = ENUMLOGSEVERITY;
+
+
 // Model creation
 var Logs = mongoose.model('Log', LogSchema);
