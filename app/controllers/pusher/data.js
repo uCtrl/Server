@@ -11,20 +11,20 @@ exports.save = function(data) {
 		deviceID = deviceID + ':' + data.DA;
 	}
 
-	UDevice.find({tpId: deviceID})
-	.select('id')
+	UDevice.findOne({tpId: deviceID})
+	.select('id name')
 	.exec(function (err, device) {
-		console.log("DATA from ", deviceID);
-
-		if (err || !device || !device.length) { 
+		//console.log(device);
+		if (err || !device) { 
 			console.log ("data in from Pusher. Can't find the related device.");
 			console.log(" ");
 			return;
 		}
 		
+		console.log("DATA from " + device.name + "  ("+deviceID+")"); 
 		var o = new Stats({
 			// Ninja equivalents
-			id: device[0].id,
+			id: device.id,
 			data: data.DA,
 			type: data.D,
 
@@ -36,8 +36,5 @@ exports.save = function(data) {
 		Stats.emit('create', o);
 
 	});
-
-
-	
 };
 

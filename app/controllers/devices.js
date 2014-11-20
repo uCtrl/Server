@@ -16,14 +16,18 @@ exports.all = function(req, res) {
 				status: false,
 				error: err//"Can't find the associated platform " + platformId
 			});
-	    }
+		}
 		
-		UDevice.emit('all', req.uCtrl_User, platform._devices);
-	    res.json({
-			status: true,
-			error: null,
-			devices: platform._devices
-		});
+		if (platform) {
+
+
+			UDevice.emit('all', req.uCtrl_User, platform._devices);
+			res.json({
+				status: true,
+				error: null,
+				devices: platform._devices
+			});
+		}
 	});
 };
 
@@ -38,7 +42,7 @@ exports.create = function(req, res) {
 				status: false,
 				error: err//"Can't find the associated platform " + platformId
 			});
-	    }		
+		}		
 		device["_platform"] = platform._id;
 		device.save(function(err) {
 			if (err) {
@@ -80,7 +84,7 @@ exports.update = function(req, res) {
 				device: device
 			});
 		}
-	);
+		);
 };
 
 exports.destroy = function(req, res) {
@@ -107,7 +111,7 @@ exports.show = function(req, res) {
 	var deviceId = req.params.deviceId;
 
 	UDevice.findOne({ id: deviceId }, function(err, device) {
-	    if (err) {
+		if (err) {
 			return res.json(500, {
 				status: false,
 				error: err//"Can't retrieve device " + deviceId
@@ -115,7 +119,7 @@ exports.show = function(req, res) {
 		}
 		
 		UDevice.emit('show', req.uCtrl_User, device);
-	    res.json({
+		res.json({
 			status: true,
 			error: null,
 			device: device

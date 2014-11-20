@@ -55,7 +55,7 @@ var UEType = {
 	},
 	31 : {
 		typeName : 'Temperature',
-		maxValue : '35.0',
+		maxValue : '40.0',
 		minValue : '-25.0',
 		precision: '0.1',
 		unitLabel: '°C'
