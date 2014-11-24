@@ -187,6 +187,11 @@ var UDeviceSchema = new Schema({
 		type: Schema.Types.ObjectId, 
 		ref: 'UPlatform'
 	},
+	_user : {
+		type: Schema.Types.ObjectId, 
+		ref: 'User',
+		required: true
+	},
 	_scenarios: [{
 		type: Schema.Types.ObjectId, 
 		ref: 'UScenario'

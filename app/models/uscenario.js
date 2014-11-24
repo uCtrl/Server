@@ -24,6 +24,11 @@ var UScenarioSchema = new Schema({
 		type: Schema.Types.ObjectId, 
 		ref: 'UDevice'
 	},
+	_user : {
+		type: Schema.Types.ObjectId, 
+		ref: 'User',
+		required: true
+	},
 	_tasks: [{
 		type: Schema.Types.ObjectId, 
 		ref: 'UTask'

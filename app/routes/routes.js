@@ -15,104 +15,93 @@ var User = mongoose.model('User');
 module.exports = function(app) {
 
 	app.use(function(req, res, next){
-		var uCtrl_Token = req.get("X-uCtrl-Token");
-		if(uCtrl_Token) {
-			User.findById(uCtrl_Token, function(err, userObj) {
-				if(userObj) {
-					req.uCtrl_User = userObj
-					next();
-				}
-				else {
-					var err = 'Bad X-uCtrl-Token provided. No user found.';
-					console.log('--request : ' + err);
-					res.json({
-						status: false,
-						error: err,
-						data: null
-					});
-				}
+		var uCtrlToken = req.get("X-uCtrl-Token");
+		if (uCtrlToken) {
+			User.findById(uCtrlToken, function(err, user) {
+				req.user = user;
+                next();
 			});
-		}
-		else if (req.url.indexOf("/users") > -1 && req.method.toUpperCase() == 'POST') {
-			//case of creating user
-			next();
-		}
-		else {
-			var err = 'No X-uCtrl-Token in Headers';
-			console.log('--request : ' + err);
-			res.json({
-				status: false,
-				error: err,
-				data: null
-			});
-		}
+		} else {
+            next();
+        }
 	});
 
-	app.get('/logs', logs.read);
+    var hasAuthorization = function(req, res, next) {
+        if (!req.user) {
+            return res.json(401, { 
+                status: false, 
+                error: "User unspecified" 
+            });
+        }
+        next();
+    };
+
+	app.route('/logs')
+       .get(hasAuthorization, logs.read);
 
     app.route('/stats')
-       .get(stats.read);
+       .get(hasAuthorization, stats.read);
 
     app.route('/users')
         .post(users.create);
 
     app.route('/system')
-        .get(system.all);
+        .get(hasAuthorization, system.all);
 		
 	app.route('/system/fetchAll')
-		.get(system.fetchAll)
+		.get(hasAuthorization, system.fetchAll)
 
     app.route('/platforms')
-        .get(platforms.all)
-        .post(platforms.create);
+        .get(hasAuthorization, platforms.all)
+        .post(hasAuthorization, platforms.create);
 
     app.route('/platforms/:platformId')
-        .get(platforms.show)
-        .put(platforms.update)
-        .delete(platforms.destroy);
+        .get(hasAuthorization, platforms.show)
+        .put(hasAuthorization, platforms.update)
+        .delete(hasAuthorization, platforms.destroy);
 
     app.route('/platforms/:platformId/devices')    
-        .get(devices.all)
-        .post(devices.create);
+        .get(hasAuthorization, devices.all)
+        .post(hasAuthorization, devices.create);
 
     app.route('/platforms/:platformId/devices/:deviceId')
-        .get(devices.show)
-        .put(devices.update)
-        .delete(devices.destroy);    
+        .get(hasAuthorization, devices.show)
+        .put(hasAuthorization, devices.update)
+        .delete(hasAuthorization, devices.destroy);    
 
     app.route('/platforms/:platformId/devices/:deviceId/stats')
-        .get(devices.stats);
+        .get(hasAuthorization, devices.stats);
 
     app.route('/platforms/:platformId/devices/:deviceId/logs')
-        .get(devices.logs);
+        .get(hasAuthorization, devices.logs);
 
     app.route('/platforms/:platformId/devices/:deviceId/scenarios')
-	    .get(scenarios.all)
-        .post(scenarios.create);
+	    .get(hasAuthorization, scenarios.all)
+        .post(hasAuthorization, scenarios.create);
 
     app.route('/platforms/:platformId/devices/:deviceId/scenarios/:scenarioId')
-        .get(scenarios.show)
-        .put(scenarios.update)
-        .delete(scenarios.destroy); 
+        .get(hasAuthorization, scenarios.show)
+        .put(hasAuthorization, scenarios.update)
+        .delete(hasAuthorization, scenarios.destroy); 
     
 	app.route('/platforms/:platformId/devices/:deviceId/scenarios/:scenarioId/enable')
-        .post(scenarios.enable);
+        .post(hasAuthorization, scenarios.enable);
 		
     app.route('/platforms/:platformId/devices/:deviceId/scenarios/:scenarioId/tasks')
-	    .get(tasks.all)
-        .post(tasks.create);
+	    .get(hasAuthorization, tasks.all)
+        .post(hasAuthorization, tasks.create);
 
     app.route('/platforms/:platformId/devices/:deviceId/scenarios/:scenarioId/tasks/:taskId')
-        .get(tasks.show)
-        .put(tasks.update)
-        .delete(tasks.destroy);
+        .get(hasAuthorization, tasks.show)
+        .put(hasAuthorization, tasks.update)
+        .delete(hasAuthorization, tasks.destroy);
 
     app.route('/platforms/:platformId/devices/:deviceId/scenarios/:scenarioId/tasks/:taskId/conditions')
-        .get(conditions.all)
-        .post(conditions.create);
+        .get(hasAuthorization, conditions.all)
+        .post(hasAuthorization, conditions.create);
 
     app.route('/platforms/:platformId/devices/:deviceId/scenarios/:scenarioId/tasks/:taskId/conditions/:conditionId')
-        .get(conditions.show)
-        .put(conditions.update)
-        .delete(conditions.destroy);
+        .get(hasAuthorization, conditions.show)
+        .put(hasAuthorization, conditions.update)
+        .delete(hasAuthorization, conditions.destroy);
 };

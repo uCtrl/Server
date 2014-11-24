@@ -369,6 +369,7 @@ function ninjaCrawler(options) {
 		 * @param  {Function} callback Callback when request finished or error found
 		 */
 		var saveData = function(index, callback){
+			arrObjectsToSave[index]["_user"] = self._options.user._id;
 			arrObjectsToSave[index].save(function(err) {
 				if(arrObjectsToSave[index+1] !== undefined) {
 					saveData(index+1, callback);

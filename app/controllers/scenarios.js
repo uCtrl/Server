@@ -9,19 +9,21 @@ var _ = require('lodash'),
 exports.all = function(req, res) {
 	var deviceId = req.params.deviceId;
 
-	UScenario.find({ _device: deviceId }).sort('id').exec(function(err, scenarios) {
-		if (err) {
-			return res.json(500, {
-				status: false,
-				error: err//"Can't list the scenarios for device " + deviceId
+	UDevice.findOne({ id: deviceId}, function(err, device) {
+		UScenario.find({ _device: device._id }, function(err, scenarios) {
+			if (err) {
+				return res.status(500).json({
+					status: false,
+					error: err
+				});
+		    }
+			
+			UScenario.emit('all', req.user, scenarios);
+			res.json({
+				status: true,
+				error: null,
+				scenarios: scenarios
 			});
-	    }
-		
-		UScenario.emit('all', req.uCtrl_User, scenarios);
-		res.json({
-			status: true,
-			error: null,
-			scenarios: scenarios
 		});
 	});
 };
@@ -32,22 +34,23 @@ exports.create = function(req, res) {
 
 	UDevice.findOne({ id: deviceId }).exec(function(err, device) {
 		if (err) {
-			return res.json(500, {
+			return res.status(500).json({
 				status: false,
-				error: err//"Can't find the associated device " + deviceId
+				error: err
 			});
 	    }		
 		scenario["id"] = uuid.v1();
 		scenario["_device"] = device._id;
+		scenario["_user"] = req.user._id;
 		scenario.save(function(err) {
 			if (err) {
-				return res.json(500, {
+				return res.status(500).json({
 					status: false,
-					error: err//"Can't create the scenario"
+					error: err
 				});
 			}
 			
-			UScenario.emit('create', req.uCtrl_User, scenario);
+			UScenario.emit('create', req.user, scenario);
 			res.json({
 				status: true,
 				error: null,
@@ -66,13 +69,13 @@ exports.update = function(req, res) {
 		req.body,
 		function (err, scenario) {
 			if (err) {
-				return res.json(500, {
+				return res.status(500).json({
 					status: false,
-					error: err//"Can't update scenario " + scenarioId
+					error: err
 				});
 			}
 			
-			UScenario.emit('update', req.uCtrl_User, scenario);
+			UScenario.emit('update', req.user, scenario);
 			res.json({
 				status: true,
 				error: null,
@@ -87,13 +90,13 @@ exports.destroy = function(req, res) {
 
 	UScenario.findOne({ id: scenarioId }, function(err, scenario) {
 		if (err) {
-			return res.json(500, {
+			return res.status(500).json({
 				status: false,
-				error: err//"Can't delete scenario " + scenarioId
+				error: err
 			});
 		}
 		
-		UScenario.emit('destroy', req.uCtrl_User, scenario);
+		UScenario.emit('destroy', req.user, scenario);
 		res.json({
 			status: true,
 			error: null,
@@ -107,13 +110,13 @@ exports.show = function(req, res) {
 
 	UScenario.findOne({ id: scenarioId }, function(err, scenario) {
 	    if (err) {
-			return res.json(500, {
+			return res.status(500).json({
 				status: false,
-				error: err//"Can't retrieve scenario " + scenarioId
+				error: err
 			});
 		}
 		
-		UScenario.emit('show', req.uCtrl_User, scenario);
+		UScenario.emit('show', req.user, scenario);
 	    res.json({
 			status: true,
 			error: null,
@@ -130,9 +133,9 @@ exports.enable = function(req, res) {
 		{ enabled : true },
 		function (err, scenario) {
 			if (err) {
-				return res.json(500, {
+				return res.status(500).json(500, {
 					status: false,
-					error: err//"Can't update scenario " + scenarioId
+					error: err
 				});
 			}
 			

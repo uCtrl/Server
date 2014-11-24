@@ -11,50 +11,49 @@ var _ = require('lodash'),
 exports.all = function(req, res) {
 	var platformId = req.params.platformId;
 
-	UPlatform.findOne({ id: platformId }).populate('_devices').exec(function(err, platform) {
-		if (err) {
-			return res.json(500, {
-				status: false,
-				error: err//"Can't find the associated platform " + platformId
-			});
-		}
-		
-		if (platform) {
-
-
-			UDevice.emit('all', req.uCtrl_User, platform._devices);
+	UPlatform.findOne({ id: platformId}, function(err, platform) {
+		UDevice.find({ _platform: platform._id }, function(err, devices) {
+			if (err) {
+				return res.status(500).json({
+					status: false,
+					error: err
+				});
+			}
+			
+			UDevice.emit('all', req.user, devices);
 			res.json({
 				status: true,
 				error: null,
-				devices: platform._devices
+				devices: devices
 			});
-		}
+		});
 	});
 };
 
+// UNUSED
 exports.create = function(req, res) {
-	// (FRY) Not sure if it's possible, may be for subdevices
 	var platformId = req.params.platformId;
 	var device = new UDevice(req.body);
 
 	UPlatform.findOne({ id: platformId }).exec(function(err, platform) {
 		if (err) {
-			return res.json(500, {
+			return res.status(500).json({
 				status: false,
-				error: err//"Can't find the associated platform " + platformId
+				error: err
 			});
 		}		
 		device["id"] = uuid.v1();
 		device["_platform"] = platform._id;
+		device["_user"] = req.user._id;
 		device.save(function(err) {
 			if (err) {
-				return res.json(500, {
+				return res.status(500).json({
 					status: false,
-					error: err//"Can't create the device"
+					error: err
 				});
 			}
 			
-			UDevice.emit('create', req.uCtrl_User, device);
+			UDevice.emit('create', req.user, device);
 			res.json({
 				status: true,
 				error: null,
@@ -73,13 +72,13 @@ exports.update = function(req, res) {
 		req.body,
 		function (err, device) {
 			if (err) {
-				return res.json(500, {
+				return res.status(500).json({
 					status: false,
-					error: err//"Can't update device " + deviceId
+					error: err
 				});
 			}
 			
-			UDevice.emit('update', req.uCtrl_User, device);
+			UDevice.emit('update', req.user, device);
 			res.json({
 				status: true,
 				error: null,
@@ -89,18 +88,19 @@ exports.update = function(req, res) {
 		);
 };
 
+// UNUSED
 exports.destroy = function(req, res) {
 	var deviceId = req.params.deviceId;
 
 	UDevice.findOne({ id: deviceId }, function(err, device) {
 		if (err) {
-			return res.json(500, {
+			return res.status(500).json({
 				status: false,
-				error: err//"Can't delete device " + deviceId
+				error: err
 			});
 		}
 		
-		UDevice.emit('destroy', req.uCtrl_User, device);
+		UDevice.emit('destroy', req.user, device);
 		res.json({
 			status: true,
 			error: null,
@@ -114,13 +114,13 @@ exports.show = function(req, res) {
 
 	UDevice.findOne({ id: deviceId }, function(err, device) {
 		if (err) {
-			return res.json(500, {
+			return res.status(500).json({
 				status: false,
-				error: err//"Can't retrieve device " + deviceId
+				error: err
 			});
 		}
 		
-		UDevice.emit('show', req.uCtrl_User, device);
+		UDevice.emit('show', req.user, device);
 		res.json({
 			status: true,
 			error: null,

@@ -9,19 +9,21 @@ var _ = require('lodash'),
 exports.all = function(req, res) {
 	var scenarioId = req.params.scenarioId;
 
-	UTask.find({ _scenario: scenarioId }).sort('id').exec(function(err, tasks) {
-		if (err) {
-			return res.json(500, {
-				status: false,
-				error: err//"Can't list the tasks for scenario " + scenarioId
+	UScenario.findOne({ id: scenarioId}, function(err, scenario) {
+		UTask.find({ _scenario: scenario._id }, function(err, tasks) {
+			if (err) {
+				return res.status(500).json({
+					status: false,
+					error: err
+				});
+		    }
+			
+			UTask.emit('all', req.user, tasks);
+			res.json({
+				status: true,
+				error: null,
+				tasks: tasks
 			});
-	    }
-		
-		UTask.emit('all', req.uCtrl_User, tasks);
-		res.json({
-			status: true,
-			error: null,
-			tasks: tasks
 		});
 	});
 };
@@ -32,22 +34,23 @@ exports.create = function(req, res) {
 
 	UScenario.findOne({ id: scenarioId }).exec(function(err, scenario) {
 		if (err) {
-			return res.json(500, {
+			return res.status(500).json({
 				status: false,
-				error: err//"Can't find the associated scenario " + scenarioId
+				error: err
 			});
 	    }		
 		task["id"] = uuid.v1();
 		task["_scenario"] = scenario._id;
+		task["_user"] = req.user._id;
 		task.save(function(err) {
 			if (err) {
-				return res.json(500, {
+				return res.status(500).json({
 					status: false,
-					error: err//"Can't create the scenario"
+					error: err
 				});
 			}
 			
-			UTask.emit('create', req.uCtrl_User, task);
+			UTask.emit('create', req.user, task);
 			res.json({
 				status: true,
 				error: null,
@@ -65,13 +68,13 @@ exports.update = function(req, res) {
 		req.body,
 		function (err, task) {
 			if (err) {
-				return res.json(500, {
+				return res.status(500).json({
 					status: false,
-					error: err//"Can't update task " + taskId
+					error: err
 				});
 			}
 			
-			UTask.emit('update', req.uCtrl_User, task);
+			UTask.emit('update', req.user, task);
 			res.json({
 				status: true,
 				error: null,
@@ -86,13 +89,13 @@ exports.destroy = function(req, res) {
 
 	UTask.findOne({ id: taskId }, function(err, task) {
 		if (err) {
-			return res.json(500, {
+			return res.status(500).json({
 				status: false,
-				error: err//"Can't delete task " + taskId
+				error: err
 			});
 		}
 		
-		UTask.emit('destroy', req.uCtrl_User, task);
+		UTask.emit('destroy', req.user, task);
 		res.json({
 			status: true,
 			error: null,
@@ -106,13 +109,13 @@ exports.show = function(req, res) {
 
 	UTask.findOne({ id: taskId }, function(err, task) {
 	    if (err) {
-			return res.json(500, {
+			return res.status(500).json({
 				status: false,
-				error: err//"Can't retrieve task " + taskId
+				error: err
 			});
 		}
 		
-		UTask.emit('show', req.uCtrl_User, task);
+		UTask.emit('show', req.user, task);
 	    res.json({
 			status: true,
 			error: null,

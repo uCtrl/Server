@@ -16,54 +16,53 @@ exports.create = function(req, res) {
 	if (!userAccessToken) 
 		return;
 
-	function createUser(userAccessToken, cb) {
+	function createUser(userAccessToken) {
 		var nb = new ninjablocks({userAccessToken : userAccessToken});
 		nb.user( function(err, ninjaUser) {
 			User.fromNinjaBlocks(ninjaUser, userAccessToken, function(user) {
 				user.save(function(err) {
 					if (err) {
-						return res.json(500, {
+						return res.status(500).json({
 							status: false,
 							error: err
 						});
 					}
 					User.emit('create', user);
-					if (cb) cb(user, userAccessToken);
+					startCrawler(user, userAccessToken)
 				});
 			});
 		});
 	}
 
 	function updateUser(user) {
-		//TODO: Update values of user from NB. 
-		//AND DO NOT REFETCH ALL : this will change all ids
+		//TODO: Update values of user from NB
 		res.json({
-			status: false,
-			error: 'Update fonction need to be implemented',
+			status: true,
+			error: null,
 			token: user._id
 		});	
 	}
 
-	function doSomethingWithUser(u, token) {
+	function startCrawler(user) {
 		// Start Ninja Blocks crawling
-		new ninjacrawler({ user: u, userAccessToken: token }).fetchAll( function(err, result) {
+		new ninjacrawler({ user: user, userAccessToken: user.ninjablocks.userAccessToken }).fetchAll( function(err, result) {
 			console.log("--NinjaCrawler : done 'fetchAll'");
-			
-			res.json({
-				status: true,
-				error: null,
-				token: u._id
-			});
 		});	
+
+		return res.json({
+			status: true,
+			error: null,
+			token: user._id
+		});
 	}
 
 	User.findOne({ 'ninjablocks.userAccessToken': userAccessToken }).exec(function(err, user) {
 		if (err) {
-			return res.json(500, {
+			return res.status(500).json({
 				status: false,
 				error: err
 			});
 		}
-		user ? updateUser(user) : createUser(userAccessToken, doSomethingWithUser);
+		user ? updateUser(user) : createUser(userAccessToken);
 	});
 };

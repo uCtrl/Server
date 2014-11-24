@@ -9,19 +9,21 @@ var _ = require('lodash'),
 exports.all = function (req, res) {
 	var taskId = req.params.taskId;
 
-	UCondition.find({ _task: taskId }).sort('id').exec(function(err, conditions) {
-		if (err) {
-			return res.json(500, {
-				status: false,
-				error: err//"Can't list the tasks for task " + taskId
+	UTask.findOne({ id: taskId}, function(err, task) {
+		UCondition.find({ _task: task._id }, function(err, conditions) {
+			if (err) {
+				return res.status(500).json({
+					status: false,
+					error: err
+				});
+			}
+			
+			UCondition.emit('all', req.user, conditions);
+			res.json({
+				status: true,
+				error: null,
+				conditions: conditions
 			});
-		}
-		
-		UCondition.emit('all', req.uCtrl_User, conditions);
-		res.json({
-			status: true,
-			error: null,
-			conditions: conditions
 		});
 	});
 };
@@ -32,23 +34,24 @@ exports.create = function(req, res) {
 
 	UTask.findOne({ id: taskId }).exec(function(err, task) {
 		if (err) {
-			return res.json(500, {
+			return res.status(500).json({
 				status: false,
-				error: err//"Can't find the associated task " + taskId
+				error: err
 			});
 	    }
 		
 		condition["id"] = uuid.v1();
 		condition["_task"] = task._id;
+		condition["_user"] = req.user
 		condition.save(function(err) {
 			if (err) {
-				return res.json(500, {
+				return res.status(500).json({
 					status: false,
-					error: err//"Can't create the condition"
+					error: err
 				});
 			}
 			
-			UCondition.emit('create', req.uCtrl_User, condition);
+			UCondition.emit('create', req.user, condition);
 			res.json({
 				status: true,
 				error: null,
@@ -66,13 +69,13 @@ exports.update = function(req, res) {
 		req.body,
 		function (err, condition) {
 			if (err) {
-				return res.json(500, {
+				return res.status(500).json({
 					status: false,
-					error: err//"Can't update condition " + conditionId
+					error: err
 				});
 			}
 			
-			UCondition.emit('update', req.uCtrl_User, condition);
+			UCondition.emit('update', req.user, condition);
 			res.json({
 				status: true,
 				error: null,
@@ -87,21 +90,21 @@ exports.destroy = function(req, res) {
 
 	UCondition.findOne({ id: conditionId }, function(err, condition) {
 		if (err) {
-			return res.json(500, {
+			return res.status(500).json({
 				status: false,
-				error: err//"Can't delete condition " + conditionId
+				error: err
 			});
 		}
 		
 		condition.remove(function(err, conditionObj) {
 			if (err) {
-				return res.json(500, {
+				return res.status(500).json({
 					status: false,
-					error: err//"Can't delete condition " + conditionId
+					error: err
 				});
 			}
 			
-			UCondition.emit('destroy', req.uCtrl_User, conditionObj);
+			UCondition.emit('destroy', req.user, conditionObj);
 			res.json({
 				status: true,
 				error: null,
@@ -116,13 +119,13 @@ exports.show = function(req, res) {
 
 	UCondition.findOne({ id: conditionId }, function(err, condition) {
 	    if (err) {
-			return res.json(500, {
+			return res.status(500).json({
 				status: false,
-				error: err//"Can't retrieve condition " + conditionId
+				error: err
 			});
 		}
 		
-		UCondition.emit('show', req.uCtrl_User, condition);
+		UCondition.emit('show', req.user, condition);
 	    res.json({
 			status: true,
 			error: null,

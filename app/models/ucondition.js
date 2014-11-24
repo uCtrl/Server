@@ -54,6 +54,11 @@ var UConditionSchema = new Schema({
 	deviceValue: String,
 	enabled: Boolean,
 	lastUpdated: Number,
+	_user : {
+		type: Schema.Types.ObjectId, 
+		ref: 'User',
+		required: true
+	},
 	_task: {
 		type: Schema.Types.ObjectId, 
 		ref: 'UTask'

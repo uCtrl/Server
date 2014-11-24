@@ -7,15 +7,15 @@ var _ = require('lodash'),
 	UPlatform = mongoose.model('UPlatform');
 
 exports.all = function(req, res) {
-	User.findOne({ _id: req.uCtrl_User._id }).populate('_platforms').exec(function(err, platforms) {
+	UPlatform.find({ _user: req.user._id }, function(err, platforms) {
 		if (err) {
-			return res.json(500, {
+			return res.status(500).json({
 				status: false,
-				error: err//"Can't list the platforms"
+				error: err
 			});
 	    }
 		
-		UPlatform.emit('all', req.uCtrl_User, platforms);
+		UPlatform.emit('all', req.user, platforms);
 		res.json({
 			status: true,
 			error: null,
@@ -24,20 +24,21 @@ exports.all = function(req, res) {
 	});
 };
 
+// UNUSED
 exports.create = function(req, res) {
 	var platform = new UPlatform(req.body);
 	
 	platform["id"] = uuid.v1();
-	platform["_user"] = req.uCtrl_User._id;
+	platform["_user"] = req.user._id;
 	platform.save(function(err) {
 		if (err) {
-			return res.json(500, {
+			return res.status(500).json({
 				status: false,
-				error: err//"Can't create the platform"
+				error: err
 			});
 		}
 		
-		UPlatform.emit('create', req.uCtrl_User, platform);
+		UPlatform.emit('create', req.user, platform);
 		res.json({
 			status: true,
 			error: null,
@@ -54,13 +55,13 @@ exports.update = function(req, res) {
 		req.body,
 		function (err, platform) {
 			if (err) {
-				return res.json(500, {
+				return res.status(500).json({
 					status: false,
-					error: err//"Can't update platform " + platformId
+					error: err
 				});
 			}
 			
-			UPlatform.emit('update', req.uCtrl_User, platform);
+			UPlatform.emit('update', req.user, platform);
 			res.json({
 				status: true,
 				error: null,
@@ -70,18 +71,19 @@ exports.update = function(req, res) {
 	);
 };
 
+// UNUSED
 exports.destroy = function(req, res) {
 	var platformId = req.params.platformId;
 
 	UPlatform.findOne({ id: platformId }, function(err, platform) {
 		if (err) {
-			return res.json(500, {
+			return res.status(500).json({
 				status: false,
-				error: err//"Can't delete platform " + platformId
+				error: err
 			});
 		}
 		
-		UPlatform.emit('destroy', req.uCtrl_User, platform);
+		UPlatform.emit('destroy', req.user, platform);
 		res.json({
 			status: true,
 			error: null,
@@ -95,13 +97,13 @@ exports.show = function(req, res) {
 
 	UPlatform.findOne({ id: platformId }, function(err, platform) {
 	    if (err) {
-			return res.json(500, {
+			return res.status(500).json({
 				status: false,
-				error: err//"Can't retrieve platform " + platformId
+				error: err
 			});
 		}
 		
-		UPlatform.emit('show', req.uCtrl_User, platform);
+		UPlatform.emit('show', req.user, platform);
 		res.json({
 			status: true,
 			error: null,
