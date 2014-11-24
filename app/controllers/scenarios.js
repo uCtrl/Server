@@ -139,8 +139,7 @@ exports.enable = function(req, res) {
 				});
 			}
 			
-			UScenario.emit('enable', req.uCtrl_User, scenario);
-//TODO : test this code below
+			UScenario.emit('enable', req.user, scenario);
 			UScenario.update(//set other scenarios to disabled
 				{ _device: scenario._device, _id: { $ne: scenario._id} }, 
 				{ $set: { enabled : false } }, 
