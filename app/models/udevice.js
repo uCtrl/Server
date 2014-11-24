@@ -219,6 +219,16 @@ UDeviceSchema.post('remove', function (device) {
 	});
 })
 
+UDeviceSchema.statics.isSwitch = function(d) {
+	return UESubdeviceType[d] == 1009;
+}
+UDeviceSchema.statics.switchOff = function(d) {
+	return (parseInt(d,2) & 0xFFFFF7).toString(2);
+}
+UDeviceSchema.statics.switchOn = function(d) {
+	return (parseInt(d,2) | 0x8).toString(2);
+}
+
 /*
  * Receives the device (from NB) and will call the cb when mapped.
  * To logic here is only to do the mapping

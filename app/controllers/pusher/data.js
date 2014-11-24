@@ -8,7 +8,11 @@ exports.save = function(data) {
 	var deviceID = data.GUID;
 	
 	if (data.D == 11) { // by RF, so has subdevices
-		deviceID = deviceID + ':' + data.DA;
+		if (UDevice.isSwitch(data.DA)) {
+			deviceID = deviceID + ':' + UDevice.switchOff(data.DA);
+		} else {
+			deviceID = deviceID + ':' + data.DA;
+		}
 	}
 
 	UDevice.findOne({tpId: deviceID})
@@ -16,8 +20,7 @@ exports.save = function(data) {
 	.exec(function (err, device) {
 		//console.log(device);
 		if (err || !device) { 
-			console.log ("data in from Pusher. Can't find the related device.");
-			console.log(" ");
+			console.log ("data in from Pusher. Can't find the related device.", data);
 			return;
 		}
 		
@@ -34,7 +37,6 @@ exports.save = function(data) {
 		o.save();
 
 		Stats.emit('create', o);
-
 	});
 };
 

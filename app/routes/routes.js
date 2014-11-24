@@ -83,9 +83,6 @@ module.exports = function(app) {
     app.route('/platforms/:platformId/devices/:deviceId/stats')
         .get(devices.stats);
 
-    app.route('/platforms/:platformId/devices/:deviceId/logs')
-        .get(devices.logs);
-
     app.route('/platforms/:platformId/devices/:deviceId/scenarios')
 	    .get(scenarios.all)
         .post(scenarios.create);
