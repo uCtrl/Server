@@ -221,6 +221,7 @@ UConditionSchema.statics.fromNinjaBlocks = function (ninjaPrecondition, ninjaPre
  * ref: https://github.com/ninjablocks/ninjablocks.github.com/wiki/Rules-Engine-Documentation
  */
 UConditionSchema.statics.toNinjaBlocks = function (condition, cb) {
+	var UDevice = mongoose.model('UDevice');
 	var ninjaPrecondition = { 
 		handler: null, 
 		params: { 
@@ -237,8 +238,10 @@ UConditionSchema.statics.toNinjaBlocks = function (condition, cb) {
 	}
 	switch (condition.type) {
 		case ENUMCONDITIONTYPE.None :
+			cb(ninjaPrecondition);
 			break;//no mapping possible
 		case ENUMCONDITIONTYPE.Date :
+			cb(ninjaPrecondition);
 			break;//no mapping possible
 		case ENUMCONDITIONTYPE.Day ://weekly periodic
 			ninjaPrecondition.handler = 'weeklyTimePeriod';
@@ -268,6 +271,7 @@ UConditionSchema.statics.toNinjaBlocks = function (condition, cb) {
 					ninjaPrecondition.params.times.push(condition.endValue);
 					break;
 			}
+			cb(ninjaPrecondition);
 			break;
 		case ENUMCONDITIONTYPE.Time ://daily periodic
 			ninjaPrecondition.handler = 'weeklyTimePeriod';
@@ -311,40 +315,48 @@ UConditionSchema.statics.toNinjaBlocks = function (condition, cb) {
 					}
 					break;
 			}
+			cb(ninjaPrecondition);
 			break;
 		case ENUMCONDITIONTYPE.Device :
-			var deviceTpIdSplit = condition.deviceTpId.split(":");//subdevice id, if one, is stored into id.
-			ninjaPrecondition.params.guid = deviceTpIdSplit[0];
-			switch (condition.comparisonType) {
-				case ENUMCOMPARISONTYPE.None :
-					ninjaPrecondition.handler = 'ninjaChange';
-					ninjaPrecondition.params.to	= condition.deviceValue;
-					ninjaPrecondition.params.shortName	= 'TEST';//TODO, keep shortName of NB
-					break;
-				case ENUMCOMPARISONTYPE.GreaterThan :
-					ninjaPrecondition.handler = 'ninjaThreshold';//can be ninjaEquality
-					ninjaPrecondition.params.equality = 'GT';
-					ninjaPrecondition.params.value = condition.deviceValue;
-					break;
-				case ENUMCOMPARISONTYPE.LesserThan :
-					ninjaPrecondition.handler = 'ninjaThreshold';//can be ninjaEquality
-					ninjaPrecondition.params.equality = 'LT';	
-					ninjaPrecondition.params.value = condition.deviceValue;
-					break;
-				case ENUMCOMPARISONTYPE.Equals :
-					ninjaPrecondition.handler = 'ninjaThreshold';//can be ninjaEquality
-					ninjaPrecondition.params.equality = 'EQ';
-					ninjaPrecondition.params.value = condition.deviceValue;
-					break;
-				case ENUMCOMPARISONTYPE.InBetween :
-					ninjaPrecondition.handler = 'ninjaRangeToggle';
-					ninjaPrecondition.params.between = condition.beginValue;
-					ninjaPrecondition.params.and = condition.endValue;
-					break;
-			}
+			UDevice.findOne({ id: condition.deviceId }).exec(function(err, device) {
+				if(err) console.log('--ERROR : ' + err);
+				else{
+					var deviceTpIdSplit = device.tpId.split(":");//subdevice id, if one, is stored into id.
+					console.log("device " + deviceTpIdSplit);
+					ninjaPrecondition.params.guid = deviceTpIdSplit[0];
+					switch (condition.comparisonType) {
+						case ENUMCOMPARISONTYPE.None :
+							ninjaPrecondition.handler = 'ninjaChange';
+							ninjaPrecondition.params.to	= condition.deviceValue;
+							ninjaPrecondition.params.shortName	= 'TEST';//TODO, keep shortName of NB
+							break;
+						case ENUMCOMPARISONTYPE.GreaterThan :
+							ninjaPrecondition.handler = 'ninjaThreshold';//can be ninjaEquality
+							ninjaPrecondition.params.equality = 'GT';
+							ninjaPrecondition.params.value = condition.deviceValue;
+							break;
+						case ENUMCOMPARISONTYPE.LesserThan :
+							ninjaPrecondition.handler = 'ninjaThreshold';//can be ninjaEquality
+							ninjaPrecondition.params.equality = 'LT';	
+							ninjaPrecondition.params.value = condition.deviceValue;
+							break;
+						case ENUMCOMPARISONTYPE.Equals :
+							ninjaPrecondition.handler = 'ninjaThreshold';//can be ninjaEquality
+							ninjaPrecondition.params.equality = 'EQ';
+							ninjaPrecondition.params.value = condition.deviceValue;
+							break;
+						case ENUMCOMPARISONTYPE.InBetween :
+							ninjaPrecondition.handler = 'ninjaRangeToggle';
+							ninjaPrecondition.params.between = condition.beginValue;
+							ninjaPrecondition.params.and = condition.endValue;
+							break;
+					}
+				}
+				console.log(ninjaPrecondition);
+				cb(ninjaPrecondition);
+			});
 			break;
 	}
-	cb(ninjaPrecondition);
 };
 
 UConditionSchema.plugin(cleanJson);

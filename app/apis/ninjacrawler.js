@@ -151,6 +151,7 @@ UTask.on('create', function(uCtrl_User, taskObj) {
 UTask.on('update', function(uCtrl_User, taskObj) {//TODO : review & test, conditions..etc
 	var nb = new ninjablocks({userAccessToken : uCtrl_User.ninjablocks.userAccessToken});
 	UTask.toNinjaBlocks(taskObj, function(ninjaRule) {
+		console.log('TEST' + JSON.stringify(ninjaRule));
 		if (taskObj.tpId != undefined) {
 			nb.rule(taskObj.tpId).update(ninjaRule, function(err, result) {
 				console.log('--event : NinjaBlock rule ' + taskObj.tpId + ' updated.');
