@@ -42,9 +42,8 @@ UPlatform.on('destroy', defaultEvent);//TODO : unpair block and delete all devic
 /*
  * UDevice events
  */
-//TODO : review & test.. add if(uCtrl_User)
-UDevice.on('create', function(uCtrl_User, deviceObj) {
-	var nb = new ninjablocks({userAccessToken : uCtrl_User.ninjablocks.userAccessToken});
+UDevice.on('create', defaultEvent);
+	/*var nb = new ninjablocks({userAccessToken : uCtrl_User.ninjablocks.userAccessToken});
 	UDevice.toNinjaBlocks(deviceObj, function(ninjaDevice, ninjaSubdevice){
 		if (ninjaSubdevice != null) { //If it's a subdevice
 			nb.device(ninjaDevice.guid).subdevice().create(ninjaSubdevice, function(err, result){
@@ -55,10 +54,7 @@ UDevice.on('create', function(uCtrl_User, deviceObj) {
 		else {
 			console.log('--event : Can\'t create a new NinjaBlock device.'); //
 		}
-	});
-});
-
-//TODO : review & test
+	});*/
 UDevice.on('update', function(uCtrl_User, deviceObj) {
 	var nb = new ninjablocks({userAccessToken : uCtrl_User.ninjablocks.userAccessToken});
 	UDevice.toNinjaBlocks(deviceObj, function(ninjaDevice, ninjaSubdevice){
@@ -77,18 +73,15 @@ UDevice.on('update', function(uCtrl_User, deviceObj) {
 		}
 	});
 });
-
-//TODO : review & test
-UDevice.on('destroy', function(uCtrl_User, deviceObj) {
-	var nb = new ninjablocks({userAccessToken : uCtrl_User.ninjablocks.userAccessToken});
+UDevice.on('destroy', defaultEvent);
+	/*var nb = new ninjablocks({userAccessToken : uCtrl_User.ninjablocks.userAccessToken});
 	UDevice.toNinjaBlocks(deviceObj, function(ninjaDevice, ninjaSubdevice){
 		if (ninjaSubdevice != null) { //If it's a subdevice
 			console.log('--event : TODO : subdevice delete with the subdevice tpId.');
-			/* TODO : subdevice delete with the subdevice tpId
+			// TODO : subdevice delete with the subdevice tpId
 			nb.device(ninjaDevice.guid).subdevice([TODO : subdeviceid]).delete(function(err, result){
 				console.log('--event : NinjaBlock subdevice deleted.');
 			});
-			*/
 		}
 		else {
 			nb.device(ninjaDevice.guid).delete(function(err, result){
@@ -102,7 +95,7 @@ UDevice.on('destroy', function(uCtrl_User, deviceObj) {
 			UScenario.emit('destroy', scenario);
 		});
 	});
-});
+	*/
 
 /*
  * UScenario events
@@ -389,99 +382,117 @@ function ninjaCrawler(options) {
 				function(callback){
 					UPlatform.find({}, function(err, platforms) {
 						var count = _(platforms).size();
-						_(platforms).forEach(function(platformObj) {
-							User.findOne({ id : platformObj.parentId }, function(err, userObj) {
-								if (userObj) {
-									platformObj['_user'] = userObj._id;
-									platformObj.save(function(err){
-										count--;
-										if (count==0) callback(null, 'bind platforms done');
-									});
-								}
+						if (count >=1 ) {
+							_(platforms).forEach(function(platformObj) {
+								User.findOne({ id : platformObj.parentId }, function(err, userObj) {
+									if (userObj) {
+										platformObj['_user'] = userObj._id;
+										platformObj.save(function(err){
+											count--;
+											if (count==0) callback(null, 'bind platforms done');
+										});
+									}
+								});
 							});
-						});
+						}
+						else callback(null, 'bind platforms done');
 					});
 				},
 				function(callback){
 					UDevice.find({}, function(err, devices) {
 						var count = _(devices).size();
-						_(devices).forEach(function(deviceObj) {
-							UPlatform.findOne({ id : deviceObj.parentId }, function(err, platformObj) {
-								if (platformObj) {
-									deviceObj['_platform'] = platformObj._id;
-									deviceObj.save(function(err){
-										count--;
-										if (count==0) callback(null, 'bind devices done');
-									});
-								}
+						if (count >=1 ) {
+							_(devices).forEach(function(deviceObj) {
+								UPlatform.findOne({ id : deviceObj.parentId }, function(err, platformObj) {
+									if (platformObj) {
+										deviceObj['_platform'] = platformObj._id;
+										deviceObj.save(function(err){
+											count--;
+											if (count==0) callback(null, 'bind devices done');
+										});
+									}
+								});
 							});
-						});
+						}
+						else callback(null, 'bind devices done');
 					});
 				},
 				function(callback){
 					UScenario.find({}, function(err, scenarios) {
 						var count = _(scenarios).size();
-						_(scenarios).forEach(function(scenarioObj) {
-							UDevice.findOne({ id : scenarioObj.parentId }, function(err, deviceObj) {
-								if (deviceObj) {
-									scenarioObj['_device'] = deviceObj._id;
-									scenarioObj.save(function(err){
-										count--;
-										if (count==0) callback(null, 'bind scenarios done');
-									});
-								}
+						if (count >=1 ) {
+							_(scenarios).forEach(function(scenarioObj) {
+								UDevice.findOne({ id : scenarioObj.parentId }, function(err, deviceObj) {
+									if (deviceObj) {
+										scenarioObj['_device'] = deviceObj._id;
+										scenarioObj.save(function(err){
+											count--;
+											if (count==0) callback(null, 'bind scenarios done');
+										});
+									}
+								});
 							});
-						});
+						}
+						else callback(null, 'bind scenarios done');
 					});
 				},
 				function(callback){
 					UTask.find({}, function(err, tasks) {
 						var count = _(tasks).size();
-						_(tasks).forEach(function(taskObj) {
-							UScenario.findOne({ id : taskObj.parentId }, function(err, scenarioObj) {
-								if (scenarioObj) {
-									taskObj['_scenario'] = scenarioObj._id;
-									taskObj.save(function(err){
-										count--;
-										if (count==0) callback(null, 'bind tasks done');
-									});
-								}
+						if (count >=1 ) {
+							_(tasks).forEach(function(taskObj) {
+								UScenario.findOne({ id : taskObj.parentId }, function(err, scenarioObj) {
+									if (scenarioObj) {
+										taskObj['_scenario'] = scenarioObj._id;
+										taskObj.save(function(err){
+											count--;
+											if (count==0) callback(null, 'bind tasks done');
+										});
+									}
+								});
 							});
-						});
+						}
+						else callback(null, 'bind tasks done');
 					});
 				},
 				function(callback){
 					UCondition.find({}, function(err, conditions) {
 						var count = _(conditions).size();
-						_(conditions).forEach(function(conditionObj) {
-							UTask.findOne({ id : conditionObj.parentId }, function(err, taskObj) {
-								if (taskObj) {
-									conditionObj['_task'] = taskObj._id;
-									conditionObj.save(function(err){
-										count--;
-										if (count==0) callback(null, 'bind conditions step 1 done');
-									});
-								}
+						if (count >=1 ) {
+							_(conditions).forEach(function(conditionObj) {
+								UTask.findOne({ id : conditionObj.parentId }, function(err, taskObj) {
+									if (taskObj) {
+										conditionObj['_task'] = taskObj._id;
+										conditionObj.save(function(err){
+											count--;
+											if (count==0) callback(null, 'bind conditions step 1 done');
+										});
+									}
+								});
 							});
-						});
+						}
+						else callback(null, 'bind conditions step 1 done');
 					});
 				},
 				function(callback){
 					UCondition.find({}, function(err, conditions) {
-						var countConditions = _(conditions).size();
-						_(conditions).forEach(function(conditionObj) {
-							if (conditionObj.deviceTpId != null) {
-								UDevice.findOne({ tpId : conditionObj.deviceTpId }, function(err, deviceObj) {
-									if (deviceObj) {
-										conditionObj.deviceId = deviceObj.id;
-										conditionObj.save(function(err){
-											countConditions--;
-											if (countConditions==0) callback(null, 'bind condition step 2 done');
-										});
-									}
-								});
-							}
-						});
+						var count = _(conditions).size();
+						if (count >=1 ) {
+							_(conditions).forEach(function(conditionObj) {
+								if (conditionObj.deviceTpId != null) {
+									UDevice.findOne({ tpId : conditionObj.deviceTpId }, function(err, deviceObj) {
+										if (deviceObj) {
+											conditionObj.deviceId = deviceObj.id;
+											conditionObj.save(function(err){
+												count--;
+												if (count==0) callback(null, 'bind condition step 2 done');
+											});
+										}
+									});
+								}
+							});
+						}
+						else callback(null, 'bind condition step 2 done');
 					});
 				}				
 			], function(err, results){//err and results from all callbacks
