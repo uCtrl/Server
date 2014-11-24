@@ -118,24 +118,32 @@ UTaskSchema.statics.toNinjaBlocks = function (task, cb) {
 			//mapping conditions here
 			//all times preconditions for a rule need to be mapped in only one precondition
 			UCondition.find({_task : task._id}, function(err, conditions){
-				if (conditions){
+				var conditionsSize = conditions.length;
+				if (conditionsSize >= 1){
+					var i = 0;
 					var ninjaPreconditionOneForTime = null;
 					_(conditions).forEach(function(conditionObj){
 						UCondition.toNinjaBlocks(conditionObj, function(ninjaPrecondition){
+							i++;
 							if (ninjaPrecondition.handler == 'weeklyTimePeriod') {
 								if (!ninjaPreconditionOneForTime)//instantiate the first one
 									ninjaPreconditionOneForTime = ninjaPrecondition;
 								else//add time elements. TODO : test this code.
 									ninjaPreconditionOneForTime.params.times.push.apply(ninjaPreconditionOneForTime.params.times, ninjaPrecondition.params.times);
 							}
-							else
+							else{
 								ninjaRule.preconditions.push(ninjaPrecondition);
+							}
+							if(i >= conditionsSize) {
+								if (ninjaPreconditionOneForTime != null) {
+									ninjaRule.preconditions.push(ninjaPreconditionOneForTime);
+								}
+								cb(ninjaRule);
+							}
 						});
 					});
-					if (ninjaPreconditionOneForTime != null)
-						ninjaRule.preconditions.push(ninjaPreconditionOneForTime);
+					
 				}
-				cb(ninjaRule);
 			});
 		});
 	});
