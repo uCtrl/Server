@@ -292,10 +292,29 @@ function ninjaCrawler(options) {
 					// create devices under this platform
 					_(self._fromNinjaBlocks.devices).forEach(function (deviceObj, deviceId) { 
 						if (deviceId.split("_")[0] == platform.tpId) {
-							if (deviceObj.has_subdevice_count >= 1) {
-								
+							if (deviceObj.has_subdevice_count) {
 								// if it contains subdevices
+
+								var processed_switches = [];
+
 								_(deviceObj.subDevices).forEach(function (subdeviceObj, subdeviceId) {
+
+									// Check if it's a on/off switch
+									if (UDevice.isSwitch(subdeviceObj.data)) {
+										var id = (parseInt(subdeviceObj.data,2) & 0x7).toString(2);
+										// Only save the device if it's a new switch, not the counter part of one.
+										if (!_.contains(processed_switches, id)){
+											var device_name = /(.+)(off|on)/i.exec(subdeviceObj.shortName);
+											if (device_name) {
+												subdeviceObj.shortName = device_name[1] + " switch";
+											}
+											processed_switches.push(id);
+											subdeviceObj.data = UDevice.switchOff(subdeviceObj.data);
+										} else {
+											return;
+										}
+									}
+
 									UDevice.fromNinjaBlocks(deviceObj, deviceId, subdeviceObj, subdeviceObj.data, function(device){
 										device['parentId'] = platform.id;
 										arrObjectsToSave.push(device);
