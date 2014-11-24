@@ -327,13 +327,12 @@ UConditionSchema.statics.toNinjaBlocks = function (condition, cb) {
 				if(err) console.log('--ERROR : ' + err);
 				else{
 					var deviceTpIdSplit = device.tpId.split(":");//subdevice id, if one, is stored into id.
-					console.log("device " + deviceTpIdSplit);
 					ninjaPrecondition.params.guid = deviceTpIdSplit[0];
 					switch (condition.comparisonType) {
 						case ENUMCOMPARISONTYPE.None :
 							ninjaPrecondition.handler = 'ninjaChange';
 							ninjaPrecondition.params.to	= condition.deviceValue;
-							ninjaPrecondition.params.shortName	= 'TEST';//TODO, keep shortName of NB
+							ninjaPrecondition.params.shortName	= condition.deviceValue;
 							break;
 						case ENUMCOMPARISONTYPE.GreaterThan :
 							ninjaPrecondition.handler = 'ninjaThreshold';//can be ninjaEquality
@@ -357,7 +356,6 @@ UConditionSchema.statics.toNinjaBlocks = function (condition, cb) {
 							break;
 					}
 				}
-				console.log(ninjaPrecondition);
 				cb(ninjaPrecondition);
 			});
 			break;

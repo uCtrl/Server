@@ -58,13 +58,8 @@ UDevice.on('create', defaultEvent);
 UDevice.on('update', function(uCtrl_User, deviceObj) {
 	var nb = new ninjablocks({userAccessToken : uCtrl_User.ninjablocks.userAccessToken});
 	UDevice.toNinjaBlocks(deviceObj, function(ninjaDevice, ninjaSubdevice){
-		if (ninjaSubdevice != null) { //If it's a subdevice
-			console.log('--event : TODO : subdevice update with the subdevice tpId.');
-			/* TODO : subdevice update with the subdevice tpId
-			nb.device(ninjaDevice.guid).subdevice([TODO : subdevice]).update(ninjaSubdevice, function(err, result){
-				console.log('--event : NinjaBlock subdevice updated.');
-			});
-			*/
+		if (ninjaSubdevice != null) {//if it's a subdevice
+			console.log('--event : no NinjaBlock action to do.');
 		}
 		else {
 			nb.device(ninjaDevice.guid).update(ninjaDevice, function(err, result){
@@ -101,35 +96,53 @@ UDevice.on('destroy', defaultEvent);
  * UScenario events
  */
 //TODO : review & test
-UScenario.on('create', defaultEvent);
-UScenario.on('update', defaultEvent);
+UScenario.on('create', function(uCtrl_User, scenarioObj) {
+	if (scenarioObj.enabled) 
+		UScenario.emit('enable', uCtrl_User, scenarioObj);
+	else
+		console.log('--event : no NinjaBlock action to do.');
+});
+
+UScenario.on('update', function(uCtrl_User, scenarioObj) {
+	if (scenarioObj.enabled) 
+		UScenario.emit('enable', uCtrl_User, scenarioObj);
+	else
+		console.log('--event : no NinjaBlock action to do.');
+});
+
 UScenario.on('destroy', function(uCtrl_User, scenarioObj) {
 	var nb = new ninjablocks({userAccessToken : uCtrl_User.ninjablocks.userAccessToken});
 	_(scenarioObj._tasks).forEach(function(taskId, taskIndex) {
 		UTask.findById(taskId, function(err, taskObj) {
-			nb.rule(taskObj.tpId).delete(function(err, result) {
-				console.log('--event : NinjaBlock rule ' + taskObj.tpId + ' deleted.');
-			});
+			UTask.emit('destroy', uCtrl_User, taskObj);
 		});
-	});//no children to delete (rules from this scenario are deleted)
+	});
 });
+
 UScenario.on('enable', function(uCtrl_User, scenarioObj) {
 	var nb = new ninjablocks({userAccessToken : uCtrl_User.ninjablocks.userAccessToken});
 	//delete NB rules from the last active scenario(s)
-	_(scenarioObj._device._scenarios).forEach(function(scenarioId, scenarioIndex) {
-		UScenario.findById(scenarioId, function(err, scenarioObjToWork) {
-			_(scenarioObjToWork._tasks).forEach(function(taskId, taskIndex) {
-				UTask.findById(taskId, function(err, taskObj) {
-					UTask.emit('destroy', uCtrl_User, taskObj);
+	UDevice.findById(scenarioObj._device, function(err, deviceObj) {
+		_(deviceObj._scenarios).forEach(function(scenarioId, scenarioIndex) {
+			UScenario.findById(scenarioId, function(err, scenarioObjToWork) {
+				_(scenarioObjToWork._tasks).forEach(function(taskId, taskIndex) {
+					UTask.findById(taskId, function(err, taskObj) {
+						nb.rule(taskObj.tpId).delete(function(err, result) {
+							taskObj.tpId = null;
+							taskObj.save(function(err) {
+								if(err) console.log('--ERROR : ' + err);
+								else console.log('--event : NinjaBlock rule ' + taskObj.tpId + ' deleted.');
+							});
+						});
+					});
 				});
 			});
 		});
 	});
-	//create NB rules for the current active scenario
+	//create/update NB rules for the current active scenario
 	_(scenarioObj._tasks).forEach(function(taskId, taskIndex) {
 		UTask.findById(taskId, function(err, taskObj) {
-			//TODO : CHANDE TASK TPID WITH THE ONE PROVIDED.
-			UTask.emit('create', uCtrl_User, taskObj);
+			UTask.emit('update', uCtrl_User, taskObj);
 		});
 	});
 });
@@ -144,8 +157,7 @@ UTask.on('create', function(uCtrl_User, taskObj) {
 UTask.on('update', function(uCtrl_User, taskObj) {//TODO : review & test, conditions..etc
 	var nb = new ninjablocks({userAccessToken : uCtrl_User.ninjablocks.userAccessToken});
 	UTask.toNinjaBlocks(taskObj, function(ninjaRule) {
-		console.log('TEST' + JSON.stringify(ninjaRule));
-		if (taskObj.tpId != undefined) {
+		if (taskObj.tpId) {//if NB rule doesn't exist
 			nb.rule(taskObj.tpId).update(ninjaRule, function(err, result) {
 				console.log('--event : NinjaBlock rule ' + taskObj.tpId + ' updated.');
 			});
