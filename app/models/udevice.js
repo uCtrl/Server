@@ -12,123 +12,156 @@ var mongoose = require('mongoose'),
  */
 var UEType = {
 	0 : {
-		typeName : 'NONE',
+		model : 'NONE',
 		maxValue : null,
 		minValue : null,
 		precision: null,
-		unitLabel: null
+		unitLabel: null,
+		enabled: true
 	},
 	1 : {
-		typeName : 'PowerSocketSwitch',
+		model : 'Ninja PowerSocketSwitch',
 		maxValue : 1,
 		minValue : 0,
 		precision: null,
-		unitLabel: null
+		unitLabel: null,
+		enabled: true
 	},
 	5 : {
-		typeName : 'PushButton',
+		model : 'Ninja PushButton',
 		maxValue : null,
 		minValue : null,
 		precision: null,
-		unitLabel: null
+		unitLabel: null,
+		enabled: true
 	},
 	6 : {
-		typeName : 'LightSensor',
+		model : 'Ninja LightSensor',
 		maxValue : null,
 		minValue : null,
 		precision: null,
-		unitLabel: null
+		unitLabel: null,
+		enabled: true
 	},
 	7 : {
-		typeName : 'PIRMotionSensor',
+		model : 'Ninja PIRMotionSensor',
 		maxValue : null,
 		minValue : null,
 		precision: null,
-		unitLabel: null
+		unitLabel: null,
+		enabled: true
 	},
 	11 : {
-		typeName : 'RF433',
+		model : 'Ninja RF433',
 		maxValue : null,
 		minValue : null,
 		precision: null,
-		unitLabel: null
+		unitLabel: null,
+		enabled: true
 	},
 	30 : {
-		typeName : 'Humidity',
+		model : 'Ninja Humidity',
 		maxValue : '100',
 		minValue : '0',
 		precision: '1',
-		unitLabel: '%'
+		unitLabel: '%',
+		enabled: true
 	},
 	31 : {
-		typeName : 'Temperature',
+		model : 'Ninja Temperature',
 		maxValue : '40.0',
 		minValue : '-25.0',
 		precision: '0.1',
-		unitLabel: '°C'
+		unitLabel: '°C',
+		enabled: true
 	},
 	206 : {
-		typeName : 'Switch',
+		model : 'Ninja Switch',
 		maxValue : null,
 		minValue : null,
 		precision: null,
-		unitLabel: null
+		unitLabel: null,
+		enabled: true
 	},
 	219 : {
-		typeName : 'ProximitySensor',
+		model : 'Ninja ProximitySensor',
 		maxValue : null,
 		minValue : null,
 		precision: null,
-		unitLabel: null
+		unitLabel: null,
+		enabled: true
 	},
 	233 : {
-		typeName : 'Light',
+		model : 'Ninja Light',
 		maxValue : null,
 		minValue : null,
 		precision: null,
-		unitLabel: null
+		unitLabel: null,
+		enabled: true
 	},
 	999 : {
-		typeName : 'StatusLight',
+		model : 'Ninja StatusLight',
 		maxValue : 'FFFFFF',
 		minValue : '000000',
 		precision: '1',
 		unitLabel: null,
+		enabled: false
 	},
 	1000 : {
-		typeName : 'OnBoardRGBLed',
+		model : 'Ninja OnBoardRGBLed',
 		maxValue : 'FFFFFF',
 		minValue : '000000',
 		precision: '1',
-		unitLabel: null
+		unitLabel: null,
+		enabled: false
 	},
 	1007 : {
-		typeName : 'NinjasEyes',
+		model : 'Ninja Ninas Eyes',
 		maxValue : 'FFFFFF',
 		minValue : '000000',
 		precision: '1',
-		unitLabel: null
+		unitLabel: null,
+		enabled: true
 	},
 	1009 : {
-		typeName : 'BelkinWeMoSocket',
+		model : 'Belkin WeMo Socket',
 		maxValue : null,
 		minValue : null,
 		precision: null,
-		unitLabel: null
+		unitLabel: null,
+		enabled: true
 	},
-	1012 : {//TODO : Special case of multiple variables (on, hue, bri, sat)
-		typeName : 'Limitless LED White',
+	1011 : {//TODO : Special case of multiple variables (on, hue, bri, sat)
+		model : 'LimitlessLED - Group all (rgbw)',
 		maxValue : '254',
 		minValue : '0',
 		precision: '1',
-		unitLabel: 'brightness'
+		unitLabel: 'brightness',
+		enabled: true
+	},
+	1012 : {//TODO : Special case of multiple variables (on, hue, bri, sat)
+		model : 'LimitlessLED - Group all (white)',
+		maxValue : '254',
+		minValue : '0',
+		precision: '1',
+		unitLabel: 'brightness',
+		enabled: true
+	},
+	1013 : {//TODO : Special case of multiple variables (on, hue, bri, sat)
+		model : 'LimitlessLED - Group all (rgbw)',
+		maxValue : '254',
+		minValue : '0',
+		precision: '1',
+		unitLabel: 'brightness',
+		enabled: true
 	},
 	9990 : {//TODO : Door sensor type?
-		typeName : 'Door captor',
+		model : 'Ninja Door captor',
 		maxValue : null,
 		minValue : null,
 		precision: null,
-		unitLabel: null
+		unitLabel: null,
+		enabled: true
 	}
 	//...
 };
@@ -150,10 +183,10 @@ var UESubdeviceType = {//We don't have this info from NinjaBlocks.
 	//...
 };
 
-var UEStatus = {//TODO : review status code.
-	OK : 1,
-	Error : 2,
-	Disconnected : 3
+var UEStatus = {
+	OK : 0,
+	Error : 1,
+	Disconnected : 2
 	//...
 };
 
@@ -174,6 +207,7 @@ var UDeviceSchema = new Schema({
 		required: true
 	},
 	subdeviceType : String,
+	model : String,
 	description: String,
 	maxValue: String,
 	minValue: String,
@@ -241,6 +275,7 @@ UDeviceSchema.statics.fromNinjaBlocks = function (ninjaDevice, ninjaDeviceId, ni
 		tpId : ninjaDeviceId,
 		name : ninjaDevice.shortName,		
 		type : ninjaDevice.did,//check UEType
+		model : getDeviceInfo(ninjaDevice.did).model,
 		description : null,
 		maxValue : getDeviceInfo(ninjaDevice.did).maxValue,
 		minValue : getDeviceInfo(ninjaDevice.did).minValue,
@@ -248,8 +283,8 @@ UDeviceSchema.statics.fromNinjaBlocks = function (ninjaDevice, ninjaDeviceId, ni
 		precision : getDeviceInfo(ninjaDevice.did).precision,
 		status : UEStatus.OK,
 		unitLabel : getDeviceInfo(ninjaDevice.did).unitLabel,
-		enabled : true,
-		lastUpdated : ninjaDevice.last_data.timestamp,
+		enabled : getDeviceInfo(ninjaDevice.did).enabled,
+		lastUpdated : ninjaDevice.last_data.timestamp
 	});
 	// If it's a subdevice mapping
 	if (ninjaSubdevice != null) {
@@ -257,9 +292,11 @@ UDeviceSchema.statics.fromNinjaBlocks = function (ninjaDevice, ninjaDeviceId, ni
 		device.name = ninjaSubdevice.shortName;
 		device.subdeviceType = ninjaSubdevice.type;//allowed: "actuator" or "sensor" 
 		device.type = UESubdeviceType[ninjaSubdevice.data];
+		device.model = getDeviceInfo(UESubdeviceType[ninjaSubdevice.data]).model;
 		device.maxValue = getDeviceInfo(UESubdeviceType[ninjaSubdevice.data]).maxValue;
 		device.minValue = getDeviceInfo(UESubdeviceType[ninjaSubdevice.data]).minValue;
 		device.value = ninjaSubdevice.data;
+		device.enabled = getDeviceInfo(UESubdeviceType[ninjaSubdevice.data]).enabled;
 	}
 	cb(device);
 };
@@ -276,10 +313,10 @@ UDeviceSchema.statics.toNinjaBlocks = function (device, cb) {
 	// Delete : Delete all informations about the specified device.
 	var ninjaDevice = {
 		guid : device.tpId,
-		default_name : device.name,
+		//default_name : device.name,
 		shortName : device.name,//can be updated
 		DA : device.value,//when sending command
-		unit : device.unitLabel,
+		//unit : device.unitLabel,
 	}
 	var ninjaSubdevice = null;
 	

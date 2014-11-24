@@ -9,10 +9,10 @@ var mongoose = require('mongoose'),
 /**
  * Constants
  */
-var UEStatus = {//TODO : review status code.
-	OK : 1,
-	Error : 2,
-	Disconnected : 3
+var UEStatus = {
+	OK : 0,
+	Error : 1,
+	Disconnected : 2
 	//...
 };
 
