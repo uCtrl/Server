@@ -36,7 +36,6 @@ exports.save = function(data) {
 					if (err) console.log("Error saving the task execution event log.");
 				})
 			});
-
 		} else {
 			console.log ("No task found");
 		}
