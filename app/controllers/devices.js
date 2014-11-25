@@ -175,15 +175,15 @@ exports.logs = function(req, res) {
 	.exec(function (err, logs) {
 		if (err) {
 			res.status(500).json({
-				status: !!err,
+				status: !err,
 				error: err,
-				logs: logs
+				history: logs
 			});
 		} else {
 			res.json({
-				status: !!err,
-				error: err,
-				logs: logs
+				status: !err,
+				error: null,
+				history: logs
 			});
 		}
 	});

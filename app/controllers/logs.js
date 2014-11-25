@@ -13,13 +13,13 @@ exports.read = function(req, res) {
 	.exec(function (err, logs) {
 		if (err) {
 			res.status(500).json({
-				status: !!err,
+				status: !err,
 				error: err,
 				history: logs
 			});
 		} else {
 			res.json({
-				status: !!err,
+				status: !err,
 				error: err,
 				history: logs
 			});
