@@ -84,8 +84,7 @@ exports.update = function(req, res) {
 				error: null,
 				device: device
 			});
-		}
-		);
+		});
 };
 
 // UNUSED
@@ -166,7 +165,26 @@ exports.stats = function(req, res) {
 };
 
 exports.logs = function(req, res) {
-	Logs.find({ id: req.params.deviceId }, function (err, logs) {
-		res.json(logs);
-	});	
-}
+	var columns = 'id type severity message timestamp';
+
+	Logs.find({
+		id: req.params.deviceId,
+		timestamp: {"$gte": req.query.from || 0, "$lt": req.query.to || Date.now()}
+	})
+	.select(columns)
+	.exec(function (err, logs) {
+		if (err) {
+			res.status(500).json({
+				status: !!err,
+				error: err,
+				logs: logs
+			});
+		} else {
+			res.json({
+				status: !!err,
+				error: err,
+				logs: logs
+			});
+		}
+	});
+};

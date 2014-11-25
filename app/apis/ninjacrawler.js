@@ -43,23 +43,14 @@ UPlatform.on('destroy', defaultEvent);//TODO : unpair block and delete all devic
  * UDevice events
  */
 UDevice.on('create', defaultEvent);
-	/*var nb = new ninjablocks({userAccessToken : uCtrl_User.ninjablocks.userAccessToken});
-	UDevice.toNinjaBlocks(deviceObj, function(ninjaDevice, ninjaSubdevice){
-		if (ninjaSubdevice != null) { //If it's a subdevice
-			nb.device(ninjaDevice.guid).subdevice().create(ninjaSubdevice, function(err, result){
-				console.log('--event : NinjaBlock subdevice created.');
-				//TODO : chande subdevice tpId with the one provided.
-			});
-		}
-		else {
-			console.log('--event : Can\'t create a new NinjaBlock device.'); //
-		}
-	});*/
+
 UDevice.on('update', function(uCtrl_User, deviceObj) {
 	var nb = new ninjablocks({userAccessToken : uCtrl_User.ninjablocks.userAccessToken});
+	
 	UDevice.toNinjaBlocks(deviceObj, function(ninjaDevice, ninjaSubdevice){
-		if (ninjaSubdevice != null) {//if it's a subdevice
-			console.log('--event : no NinjaBlock action to do.');
+		if (ninjaSubdevice) {//if it's a subdevice
+			console.log("There is a subdevice that should be updated on ninjablock.", ninjaSubdevice);
+			//defaultEvent();
 		}
 		else {
 			nb.device(ninjaDevice.guid).update(ninjaDevice, function(err, result){
@@ -69,28 +60,6 @@ UDevice.on('update', function(uCtrl_User, deviceObj) {
 	});
 });
 UDevice.on('destroy', defaultEvent);
-	/*var nb = new ninjablocks({userAccessToken : uCtrl_User.ninjablocks.userAccessToken});
-	UDevice.toNinjaBlocks(deviceObj, function(ninjaDevice, ninjaSubdevice){
-		if (ninjaSubdevice != null) { //If it's a subdevice
-			console.log('--event : TODO : subdevice delete with the subdevice tpId.');
-			// TODO : subdevice delete with the subdevice tpId
-			nb.device(ninjaDevice.guid).subdevice([TODO : subdeviceid]).delete(function(err, result){
-				console.log('--event : NinjaBlock subdevice deleted.');
-			});
-		}
-		else {
-			nb.device(ninjaDevice.guid).delete(function(err, result){
-				console.log('--event : NinjaBlock device ' + ninjaDevice.guid + ' deleted.');
-			});
-		}
-	});
-	//event to delete children (rules from scenarios)
-	_(deviceObj._scenarios).forEach(function(scenarioId, scenarioIndex) {
-		UScenario.findById(scenarioId, function(err, scenarioObj) {
-			UScenario.emit('destroy', scenario);
-		});
-	});
-	*/
 
 /*
  * UScenario events
