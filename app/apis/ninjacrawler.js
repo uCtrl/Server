@@ -298,7 +298,9 @@ function ninjaCrawler(options) {
 											arrObjectsToSave.push(scenario);
 											// create tasks under this scenario
 											_(self._fromNinjaBlocks.rules).forEach(function(ruleObj, ruleId) {
-												if (ruleObj.actions[0].params.guid == deviceId && ruleObj.actions[0].params.da == subdeviceObj.data) {
+												if (ruleObj.actions[0].params.guid == deviceId && 
+													UDevice.switchOff(ruleObj.actions[0].params.da) == subdeviceObj.data) {
+
 													UTask.fromNinjaBlocks(ruleObj, ruleObj.rid, function(task){
 														task['parentId'] = scenario.id;
 														arrObjectsToSave.push(task);
