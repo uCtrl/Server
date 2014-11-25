@@ -77,10 +77,10 @@ module.exports = function(app) {
         .delete(hasAuthorization, devices.destroy);    
 
     app.route('/platforms/:platformId/devices/:deviceId/stats')
-        .get(hasAuthorization, devices.stats);
+        .get(hasAuthorization, stats.read);
 
     app.route('/platforms/:platformId/devices/:deviceId/logs')
-        .get(hasAuthorization, devices.logs);
+        .get(hasAuthorization, logs.read);
 
     app.route('/platforms/:platformId/devices/:deviceId/scenarios')
 	    .get(hasAuthorization, scenarios.all)

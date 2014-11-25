@@ -280,7 +280,7 @@ function ninjaCrawler(options) {
 										if (!_.contains(processed_switches, id)){
 											var device_name = /(.+)(off|on)/i.exec(subdeviceObj.shortName);
 											if (device_name) {
-												subdeviceObj.shortName = device_name[1] + " switch";
+												subdeviceObj.shortName = device_name[1] + "switch";
 											}
 											processed_switches.push(id);
 											subdeviceObj.data = UDevice.switchOff(subdeviceObj.data);
