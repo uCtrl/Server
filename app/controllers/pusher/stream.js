@@ -27,7 +27,7 @@ exports.save = function(data) {
 				var l = new Logs({
 					type: Logs.LOGTYPE.Action, 
 					severity: Logs.LOGSEVERITY.Normal,  
-					message: "Task '" + task.name + "'' was executed.",
+					message: "Task '" + task.name + "' was executed.",
 					id: t._device.id,
 					timestamp: Date.now()
 				});
