@@ -43,23 +43,14 @@ UPlatform.on('destroy', defaultEvent);//TODO : unpair block and delete all devic
  * UDevice events
  */
 UDevice.on('create', defaultEvent);
-	/*var nb = new ninjablocks({userAccessToken : uCtrl_User.ninjablocks.userAccessToken});
-	UDevice.toNinjaBlocks(deviceObj, function(ninjaDevice, ninjaSubdevice){
-		if (ninjaSubdevice != null) { //If it's a subdevice
-			nb.device(ninjaDevice.guid).subdevice().create(ninjaSubdevice, function(err, result){
-				console.log('--event : NinjaBlock subdevice created.');
-				//TODO : chande subdevice tpId with the one provided.
-			});
-		}
-		else {
-			console.log('--event : Can\'t create a new NinjaBlock device.'); //
-		}
-	});*/
+
 UDevice.on('update', function(uCtrl_User, deviceObj) {
 	var nb = new ninjablocks({userAccessToken : uCtrl_User.ninjablocks.userAccessToken});
+	
 	UDevice.toNinjaBlocks(deviceObj, function(ninjaDevice, ninjaSubdevice){
-		if (ninjaSubdevice != null) {//if it's a subdevice
-			console.log('--event : no NinjaBlock action to do.');
+		if (ninjaSubdevice) {//if it's a subdevice
+			console.log("There is a subdevice that should be updated on ninjablock.", ninjaSubdevice);
+			//defaultEvent();
 		}
 		else {
 			nb.device(ninjaDevice.guid).update(ninjaDevice, function(err, result){
@@ -69,28 +60,6 @@ UDevice.on('update', function(uCtrl_User, deviceObj) {
 	});
 });
 UDevice.on('destroy', defaultEvent);
-	/*var nb = new ninjablocks({userAccessToken : uCtrl_User.ninjablocks.userAccessToken});
-	UDevice.toNinjaBlocks(deviceObj, function(ninjaDevice, ninjaSubdevice){
-		if (ninjaSubdevice != null) { //If it's a subdevice
-			console.log('--event : TODO : subdevice delete with the subdevice tpId.');
-			// TODO : subdevice delete with the subdevice tpId
-			nb.device(ninjaDevice.guid).subdevice([TODO : subdeviceid]).delete(function(err, result){
-				console.log('--event : NinjaBlock subdevice deleted.');
-			});
-		}
-		else {
-			nb.device(ninjaDevice.guid).delete(function(err, result){
-				console.log('--event : NinjaBlock device ' + ninjaDevice.guid + ' deleted.');
-			});
-		}
-	});
-	//event to delete children (rules from scenarios)
-	_(deviceObj._scenarios).forEach(function(scenarioId, scenarioIndex) {
-		UScenario.findById(scenarioId, function(err, scenarioObj) {
-			UScenario.emit('destroy', scenario);
-		});
-	});
-	*/
 
 /*
  * UScenario events
@@ -552,72 +521,6 @@ function ninjaCrawler(options) {
 			});
 		});
 	};
-	
-	/** TODO : need to review this code.
-	 * Push all data to NinjaBlocks (asynchronous calls)
-	 * Can't do a callback
-	 * 
-	 */
-	 /*
-	this.pushAll = function() {
-		// map platforms to NinjaBlocks blocks
-		UPlatform.find({}, function(err, platforms) {
-			_(platforms).forEach(function(platformObj, platformIndex){
-				UPlatform.toNinjaBlocks(platformObj, function(ninjaBlock){
-					// TODO : claim any block at this time ?
-				});
-			});
-		});
-		
-		// map and push devices to NinjaBlocks devices and subdevices
-		UDevice.find({}, function(err, devices) {
-			_(devices).forEach(function(deviceObj, deviceIndex){
-				UDevice.toNinjaBlocks(deviceObj, function(ninjaDevice, ninjaSubdevice){
-					// update devices infos (automatically created)
-					console.log(ninjaDevice);
-					console.log(ninjaSubdevice);
-					nb.device(ninjaDevice.guid).update(ninjaDevice, function(err, result){
-						if (ninjaSubdevice != null) {
-							// create subdevices if any
-							nb.device(ninjaDevice.guid).subdevice().create(ninjaSubdevice, function(err, result){
-								// TODO :  callback
-							});
-						}
-					});
-				});
-			});
-		});
-		
-		// map actives scenarios only (and their tasks and conditions) to NinjaBlocks rules
-		UScenario.find({ enabled : true }, function(err, scenarios) {
-			_(scenarios).forEach(function(scenarioObj, scenarioIndex){
-				_(scenarioObj._tasks).forEach(function(taskId, taskIndex){
-					UTask.findById(taskId, function(err, taskObj){
-						UTask.toNinjaBlocks(taskObj, function(ninjaRule){
-							// map preconditions for this rule.
-							// problem with asynchronous calls solved this way
-							UCondition.find({ _id: { $in: taskObj._conditions } }, function(err, conditions) {
-								_(conditions).forEach(function(conditionObj) {
-									UCondition.toNinjaBlocks(conditionObj, function(ninjaPrecondition){
-										ninjaRule.preconditions.push(ninjaPrecondition);
-									});
-								});
-								
-								// rule fully mapped synchronously
-								// nb rules can be created before the nb devices (asynchronous).
-								console.log(ninjaRule);
-								nb.rule().create(ninjaRule, function(err, result){
-									console.log(err);
-									console.log(result);
-								});
-							});
-						});
-					});
-				});
-			});
-		});
-	};
-	*/
 };
 
 

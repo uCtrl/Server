@@ -3,6 +3,8 @@
 var mongoose = require('mongoose');
 var Logs = mongoose.model('Log');
 var	UTask = mongoose.model('UTask');
+var	UDevice = mongoose.model('UDevice');
+var	UScenario = mongoose.model('UScenario');
 
 
 exports.save = function(data) {
@@ -14,25 +16,28 @@ exports.save = function(data) {
 	UTask.findOne({
 		name: name
 	})
+	.populate('_scenario')
 	.exec(function (err, task) {
 		if (err) console.log("Error finding related task that was executed on Ninja.");
 
 		if (task) {
-			//console.log(task);
-			var l = new Logs({
-				type: Logs.LOGTYPE.Action, 
-				severity: Logs.LOGSEVERITY.Normal,  
-				message: "Task '" + task.name + "'' was executed.",
-				timestamp: Date.now()
+			task._scenario.populate('_device', function(err, t) {
+				if (err) console.log("Error populating the scenario's device");
+
+				var l = new Logs({
+					type: Logs.LOGTYPE.Action, 
+					severity: Logs.LOGSEVERITY.Normal,  
+					message: "Task '" + task.name + "'' was executed.",
+					id: t._device.id,
+					timestamp: Date.now()
+				});
+
+				l.save(function(err) {
+					if (err) console.log("Error saving the task execution event log.");
+				})
 			});
-
-			l.save(function(err) {
-				if (err) console.log("Error saving the task execution event log.");
-				//else console.log("Task execution saved.");
-			})
-
 		} else {
-			//console.log ("No task found with rule name: ");
+			console.log ("No task found");
 		}
 	});
 };
