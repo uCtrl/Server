@@ -53,8 +53,10 @@ module.exports = function(app) {
 		.get(hasAuthorization, system.fetchAll)
 
     app.route('/recommendations')
-        .get(recommendations.read)
-        .put(recommendations.accept);
+        .get(hasAuthorization, recommendations.read);
+
+    app.route('/recommendations/:recommendationId')    
+        .put(hasAuthorization, recommendations.accept);
 
     app.route('/platforms')
         .get(hasAuthorization, platforms.all)

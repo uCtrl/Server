@@ -1,12 +1,16 @@
 'use strict';
 
-var mongoose = require('mongoose');
-var Recommendations = mongoose.model('Recommendations');
+var uuid = require('node-uuid'),
+	mongoose = require('mongoose'),
+	UScenario = mongoose.model('UScenario'),
+	UTask = mongoose.model('UTask'),
+	UCondition = mongoose.model('UCondition'),
+	Recommendations = mongoose.model('Recommendations');
 
 exports.read = function(req, res) {
-	Recommendations.find().sort('id').exec(function(err, recommendations) {
+	Recommendations.find({ _user: req.user._id, accepted: null }, function(err, recommendations) {
 		if (err) {
-			return res.json(500, {
+			return res.status(500).json({
 				status: false,
 				error: err
 			});
@@ -21,27 +25,34 @@ exports.read = function(req, res) {
 }
 
 exports.accept = function(req, res) {
-	var recommendation = res.body;
-	if (!recommendation.accepted) {
-		return res.json({
-			status: true,
-			error: null
-		});
-	}
+	var recommendationId = req.params.recommendationId;
 
-	Recommendation.findOne({'id': recommendation.id}, function (err, rec) {
-		if (err) {
-        	console.log(err);
-        	return;
-        }
+	Recommendations.findOneAndUpdate(
+		{ id: recommendationId }, 
+		req.body,
+		function (err, rec) {
+			if (err) {
+				return res.status(500).json({
+					status: false,
+					error: err
+				});
+			}
+			
+			if (rec.accepted) {
+				console.log("Creating scenario!");
+				createScenario(rec, req.user);
+			}
 
-        createScenario(rec);
-	});
+			res.json({
+				status: true,
+				error: null,
+				recommendation: rec
+			});
+		}
+	);
 };
 
-
-
-var createScenario = function(recommendation) {
+var createScenario = function(recommendation, user) {
 	UScenario.findOne({'_device': recommendation.deviceId, 'name': "Recommendations"}, function(err, scenario) {
 		if (err) {
         	console.log(err);
@@ -53,7 +64,8 @@ var createScenario = function(recommendation) {
                 id: uuid.v1(),
                 name: "Recommendations",
                 enabled: true,
-                _device: recommendation.deviceId
+                _device: recommendation.deviceId,
+                _user: user._id
             });
             scenario.save(function(err, s) {
                 if (err) {
@@ -61,37 +73,41 @@ var createScenario = function(recommendation) {
                 	return;
                 }
 
-                // emit Scenario
-                createElseTask(s);
-                createTask(s, recommendation);
+                UScenario.emit('create', user, s);
+                createElseTask(s, user);
+                createTask(s, recommendation, user);
             });
 		} else {
-			createTask(scenario, recommendation);
+			createTask(scenario, recommendation, user);
 		}
 	});
 };
 
-var createElseTask = function(scenario) {
+var createElseTask = function(scenario, user) {
 	var elseTask = new UTask({
 		id: uuid.v1(),
 		value: '0',
 		enabled: true,
-		_scenario: scenario._id
+		_scenario: scenario._id,
+		_user: user._id
 	});
 
-	elseTask.save(function(err, s) {
-        if (err)
+	elseTask.save(function(err, t) {
+        if (err) {
         	console.log(err);
-        // emit Task
+        	return;
+        }
+        UTask.emit('create', user, t);
     });
 };
 
-var createTask = function(scenario, recommendation) {
+var createTask = function(scenario, recommendation, user) {
 	var task = new UTask({
 		id: uuid.v1(),
 		value: recommendation.taskValue,
 		enabled: true,
-		_scenario: scenario._id
+		_scenario: scenario._id,
+		_user: user._id
 	});
 
 	task.save(function(err, t) {
@@ -99,20 +115,23 @@ var createTask = function(scenario, recommendation) {
         	console.log(err);
         	return;
         }
-        // emit Task
+        console.log("Task: ", t);
+        UTask.emit('create', user, t);
 
-        createCondition(t, recommendation);
+        createCondition(t, recommendation, user);
     });
 };
 
-var createCondition = function(task, recommendation) {
-	var condition = new UCondtion({
+var createCondition = function(task, recommendation, user) {
+	var condition = new UCondition({
 		id: uuid.v1(),
 		type: recommendation.conditionType,
 		comparisonType: recommendation.conditionComparisonType,
 		beginValue: recommendation.conditionBeginValue,
 		endValue: recommendation.conditionEndValue,
-		deviceId: recommendation.conditionDeviceId
+		deviceId: recommendation.conditionDeviceId,
+		_task: task._id,
+		_user: user._id
 	});
 
 	condition.save(function(err, c) {
@@ -120,6 +139,6 @@ var createCondition = function(task, recommendation) {
         	console.log(err);
         	return;
         }
-        // emit Condition
+        UCondition.emit('create', user, c);
     });
 };

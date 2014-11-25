@@ -5,6 +5,7 @@ var _ = require('lodash'),
 	uuid = require('node-uuid'),
 	ninjacrawler = require('../apis/ninjacrawler.js'),
 	ninjablocks = require('../apis/ninjablocks.js'),
+	recommendationsFinder = require('../apis/recommendationsFinder.js'),
 	User = mongoose.model('User');
 	
 exports.create = function(req, res) {
@@ -47,6 +48,8 @@ exports.create = function(req, res) {
 		// Start Ninja Blocks crawling
 		new ninjacrawler({ user: user, userAccessToken: user.ninjablocks.userAccessToken }).fetchAll( function(err, result) {
 			console.log("--NinjaCrawler : done 'fetchAll'");
+
+			recommendationsFinder.start(user);
 		});	
 
 		return res.json({
