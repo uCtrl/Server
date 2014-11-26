@@ -3,8 +3,12 @@
 var _ = require('lodash'),
 	mongoose = require('mongoose'),
 	uuid = require('node-uuid'),
+	request = require('request'),
+	tasksController = require(__base + 'app/controllers/tasks.js'),
 	UDevice = mongoose.model('UDevice'),
-	UScenario = mongoose.model('UScenario');
+	UScenario = mongoose.model('UScenario'),
+	UTask = mongoose.model('UTask'),
+	UCondition = mongoose.model('UCondition');
 
 exports.all = function(req, res) {
 	var deviceId = req.params.deviceId;
@@ -31,6 +35,7 @@ exports.all = function(req, res) {
 exports.create = function(req, res) {
 	var deviceId = req.params.deviceId;
 	var scenario = new UScenario(req.body);
+	var tasks = req.body.tasks;
 
 	UDevice.findOne({ id: deviceId }).exec(function(err, device) {
 		if (err) {
@@ -51,13 +56,50 @@ exports.create = function(req, res) {
 			}
 			
 			UScenario.emit('create', req.user, scenario);
+			
+			if (tasks) {
+				var tasksSize = tasks.length;
+				var tasksIt = 0;
+				
+				_(tasks).forEach(function(taskObj, taskIndex) {
+					tasksIt++;
+					var conditions = taskObj.conditions;
+					var task = new UTask(taskObj);
+					
+					task["id"] = uuid.v1();
+					task["_scenario"] = scenario._id;
+					task["_user"] = req.user._id;
+					task.save(function(err) {
+						if (err) console.log("Error: ", err)
+						UTask.emit('create', req.user, task);
+						
+						if (conditions) {
+							var conditionsSize = conditions.length;
+							var conditionsIt = 0;
+							
+							_(conditions).forEach(function(conditionObj, conditionIndex) {
+								conditionsIt++;
+								var condition = new UCondition(conditionObj);
+								
+								condition["id"] = uuid.v1();
+								condition["_task"] = task._id;
+								condition["_user"] = req.user._id;
+								condition.save(function(err) {
+									if (err) console.log("Error: ", err)
+									UCondition.emit('create', req.user, condition);
+								});
+							});
+						}
+					});
+				});
+			}
+			
 			res.json({
 				status: true,
 				error: null,
 				scenario: scenario
 			});
 		});
-
 	});
 };
 
