@@ -1,2 +1,7 @@
 #!/bin/bash
-mongo uCtrl-dev --eval "db.dropDatabase()"
+mongo uCtrl-dev --eval "db.uconditions.drop();"
+mongo uCtrl-dev --eval "db.udevices.drop();"
+mongo uCtrl-dev --eval "db.uplatforms.drop();"
+mongo uCtrl-dev --eval "db.uscenarios.drop();"
+mongo uCtrl-dev --eval "db.users.drop();"
+mongo uCtrl-dev --eval "db.utasks.drop();"
