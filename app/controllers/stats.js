@@ -47,7 +47,7 @@ exports.read = function(req, res) {
 				count: result.toString()
 			});
 		} else if (!result.length) {
-			return res.json({
+			res.json({
 				status: !err,
 				error: err
 			});
@@ -91,15 +91,5 @@ exports.read = function(req, res) {
 				statistics: s
 			});
 		}
-	});
-};
-
-exports.lastUpdated = function(req, res) {
-	var request = Stats.findOne({},{},{ sort: { 'timestamp' : -1 } });
-	if (req.params.deviceId) request = request.where('id').equals(req.params.deviceId);
-
-	request.exec(function(err, results) {
-		console.log(results);
-		res.json("yah");
 	});
 };

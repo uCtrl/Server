@@ -116,7 +116,7 @@ var UEType = {
 		enabled: false
 	},
 	1007 : {
-		model : 'Ninja Ninas Eyes',
+		model : 'Ninja\'s Eyes',
 		maxValue : 'FFFFFF',
 		minValue : '000000',
 		precision: '1',
