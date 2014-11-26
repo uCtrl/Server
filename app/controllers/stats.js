@@ -5,6 +5,21 @@ var Stats = mongoose.model('Stats');
 var _ = require('lodash');
 
 exports.read = function(req, res) {
+	if (req.query.fn == "lastUpdated") {
+		var request = Stats.findOne({},{}, { sort: { 'timestamp' : -1 } });
+		if (req.params.deviceId) request = request.where('id').equals(req.params.deviceId);
+
+		request.exec(function(err, results) {
+			if (err) res = res.status(500);
+			res.json({
+				status: !err,
+				error: err,
+				lastUpdated: results.timestamp
+			});
+		});
+		return;
+	} 
+
 	var columns = 'id data type timestamp';
 
 	if (req.query.fn == "count") {
@@ -34,7 +49,7 @@ exports.read = function(req, res) {
 				res.json({
 					status: !err,
 					error: err,
-					mean: mean
+					mean: mean.toString()
 				});
 			} 
 			else if (req.query.fn == "max") {
@@ -42,7 +57,7 @@ exports.read = function(req, res) {
 				res.json({
 					status: !err,
 					error: err,
-					max: max.data
+					max: max.data.toString()
 				});
 			} 
 			else if (req.query.fn == "min") {
@@ -50,21 +65,36 @@ exports.read = function(req, res) {
 				res.json({
 					status: !err,
 					error: err,
-					min: min.data
+					min: min.data.toString()
 				});
 			} else if (req.query.fn == "count") {
 				res.json({
 					status: !err,
 					error: err,
-					count: result
+					count: result.toString()
 				});
 			} else {
+				var s = _.map(result, function(obj) {
+					obj.data = obj.data.toString();
+					return obj;
+				})
+
 				res.json({
 					status: !err,
 					error: err,
-					statistics: result
+					statistics: s
 				});
 			}
 		}
+	});
+};
+
+exports.lastUpdated = function(req, res) {
+	var request = Stats.findOne({},{},{ sort: { 'timestamp' : -1 } });
+	if (req.params.deviceId) request = request.where('id').equals(req.params.deviceId);
+
+	request.exec(function(err, results) {
+		console.log(results);
+		res.json("yah");
 	});
 };
