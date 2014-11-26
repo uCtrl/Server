@@ -43,63 +43,66 @@ exports.create = function(req, res) {
 				status: false,
 				error: err
 			});
-	    }		
-		scenario["id"] = uuid.v1();
-		scenario["_device"] = device._id;
-		scenario["_user"] = req.user._id;
-		scenario.save(function(err) {
-			if (err) {
-				return res.status(500).json({
-					status: false,
-					error: err
-				});
-			}
-			
-			UScenario.emit('create', req.user, scenario);
-			
-			if (tasks) {
-				var tasksSize = tasks.length;
-				var tasksIt = 0;
-				
-				_(tasks).forEach(function(taskObj, taskIndex) {
-					tasksIt++;
-					var conditions = taskObj.conditions;
-					var task = new UTask(taskObj);
-					
-					task["id"] = uuid.v1();
-					task["_scenario"] = scenario._id;
-					task["_user"] = req.user._id;
-					task.save(function(err) {
-						if (err) console.log("Error: ", err)
-						UTask.emit('create', req.user, task);
-						
-						if (conditions) {
-							var conditionsSize = conditions.length;
-							var conditionsIt = 0;
-							
-							_(conditions).forEach(function(conditionObj, conditionIndex) {
-								conditionsIt++;
-								var condition = new UCondition(conditionObj);
-								
-								condition["id"] = uuid.v1();
-								condition["_task"] = task._id;
-								condition["_user"] = req.user._id;
-								condition.save(function(err) {
-									if (err) console.log("Error: ", err)
-									UCondition.emit('create', req.user, condition);
-								});
-							});
-						}
+	    }
+
+		if (device) {
+			scenario["id"] = uuid.v1();
+			scenario["_device"] = device._id;
+			scenario["_user"] = req.user._id;
+			scenario.save(function(err) {
+				if (err) {
+					return res.status(500).json({
+						status: false,
+						error: err
 					});
+				}
+				
+				UScenario.emit('create', req.user, scenario);
+				
+				if (tasks) {
+					var tasksSize = tasks.length;
+					var tasksIt = 0;
+					
+					_(tasks).forEach(function(taskObj, taskIndex) {
+						tasksIt++;
+						var conditions = taskObj.conditions;
+						var task = new UTask(taskObj);
+						
+						task["id"] = uuid.v1();
+						task["_scenario"] = scenario._id;
+						task["_user"] = req.user._id;
+						task.save(function(err) {
+							if (err) console.log("Error: ", err)
+							UTask.emit('create', req.user, task);
+							
+							if (conditions) {
+								var conditionsSize = conditions.length;
+								var conditionsIt = 0;
+								
+								_(conditions).forEach(function(conditionObj, conditionIndex) {
+									conditionsIt++;
+									var condition = new UCondition(conditionObj);
+									
+									condition["id"] = uuid.v1();
+									condition["_task"] = task._id;
+									condition["_user"] = req.user._id;
+									condition.save(function(err) {
+										if (err) console.log("Error: ", err)
+										UCondition.emit('create', req.user, condition);
+									});
+								});
+							}
+						});
+					});
+				}
+				
+				res.json({
+					status: true,
+					error: null,
+					scenario: scenario
 				});
-			}
-			
-			res.json({
-				status: true,
-				error: null,
-				scenario: scenario
 			});
-		});
+		}
 	});
 };
 

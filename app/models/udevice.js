@@ -17,7 +17,8 @@ var UEType = {
 		minValue : null,
 		precision: null,
 		unitLabel: null,
-		enabled: true
+		hidden: true,
+		enabled: false
 	},
 	1 : {
 		model : 'Ninja PowerSocketSwitch',
@@ -25,6 +26,7 @@ var UEType = {
 		minValue : 0,
 		precision: null,
 		unitLabel: null,
+		hidden: false,
 		enabled: true
 	},
 	5 : {
@@ -33,6 +35,7 @@ var UEType = {
 		minValue : null,
 		precision: null,
 		unitLabel: null,
+		hidden: false,
 		enabled: true
 	},
 	6 : {
@@ -41,6 +44,7 @@ var UEType = {
 		minValue : null,
 		precision: null,
 		unitLabel: null,
+		hidden: false,
 		enabled: true
 	},
 	7 : {
@@ -49,6 +53,7 @@ var UEType = {
 		minValue : 8,
 		precision: null,
 		unitLabel: 'm',
+		hidden: false,
 		enabled: true
 	},
 	11 : {
@@ -57,6 +62,7 @@ var UEType = {
 		minValue : null,
 		precision: null,
 		unitLabel: null,
+		hidden: true,
 		enabled: true
 	},
 	30 : {
@@ -65,6 +71,7 @@ var UEType = {
 		minValue : '0',
 		precision: '1',
 		unitLabel: '%',
+		hidden: false,
 		enabled: true
 	},
 	31 : {
@@ -73,6 +80,7 @@ var UEType = {
 		minValue : '-25.0',
 		precision: '0.1',
 		unitLabel: '°C',
+		hidden: false,
 		enabled: true
 	},
 	206 : {
@@ -81,6 +89,7 @@ var UEType = {
 		minValue : null,
 		precision: null,
 		unitLabel: null,
+		hidden: false,
 		enabled: true
 	},
 	219 : {
@@ -89,6 +98,7 @@ var UEType = {
 		minValue : null,
 		precision: null,
 		unitLabel: null,
+		hidden: false,
 		enabled: true
 	},
 	233 : {
@@ -97,6 +107,7 @@ var UEType = {
 		minValue : null,
 		precision: null,
 		unitLabel: null,
+		hidden: false,
 		enabled: true
 	},
 	999 : {
@@ -105,6 +116,7 @@ var UEType = {
 		minValue : '000000',
 		precision: '1',
 		unitLabel: null,
+		hidden: true,
 		enabled: false
 	},
 	1000 : {
@@ -113,6 +125,7 @@ var UEType = {
 		minValue : '000000',
 		precision: '1',
 		unitLabel: null,
+		hidden: true,
 		enabled: false
 	},
 	1007 : {
@@ -121,6 +134,7 @@ var UEType = {
 		minValue : '000000',
 		precision: '1',
 		unitLabel: null,
+		hidden: false,
 		enabled: true
 	},
 	1009 : {
@@ -129,38 +143,43 @@ var UEType = {
 		minValue : null,
 		precision: null,
 		unitLabel: null,
+		hidden: false,
 		enabled: true
 	},
-	1011 : {//TODO : Special case of multiple variables (on, hue, bri, sat)
+	1011 : {
 		model : 'LimitlessLED - Group all (rgbw)',
 		maxValue : '254',
 		minValue : '0',
 		precision: '1',
 		unitLabel: 'brightness',
+		hidden: false,
 		enabled: true
 	},
-	1012 : {//TODO : Special case of multiple variables (on, hue, bri, sat)
+	1012 : {
 		model : 'LimitlessLED - Group all (white)',
 		maxValue : '254',
 		minValue : '0',
 		precision: '1',
 		unitLabel: 'brightness',
+		hidden: false,
 		enabled: true
 	},
-	1013 : {//TODO : Special case of multiple variables (on, hue, bri, sat)
+	1013 : {
 		model : 'LimitlessLED - Group all (rgbw)',
 		maxValue : '254',
 		minValue : '0',
 		precision: '1',
 		unitLabel: 'brightness',
+		hidden: false,
 		enabled: true
 	},
-	9990 : {//TODO : Door sensor type?
+	9990 : {
 		model : 'Ninja Door captor',
 		maxValue : null,
 		minValue : null,
 		precision: null,
 		unitLabel: null,
+		hidden: false,
 		enabled: true
 	}
 	//...
@@ -215,6 +234,7 @@ var UDeviceSchema = new Schema({
 	precision: Number,
 	status: Number,
 	unitLabel: String,
+	hidden: Boolean,
 	enabled: Boolean,
 	lastUpdated: Number, 
 	_platform: {
@@ -298,6 +318,7 @@ UDeviceSchema.statics.fromNinjaBlocks = function (ninjaDevice, ninjaDeviceId, ni
 		precision : getDeviceInfo(ninjaDevice.did).precision,
 		status : UEStatus.OK,
 		unitLabel : getDeviceInfo(ninjaDevice.did).unitLabel,
+		hidden : getDeviceInfo(ninjaDevice.did).hidden,
 		enabled : getDeviceInfo(ninjaDevice.did).enabled,
 		lastUpdated : ninjaDevice.last_data.timestamp
 	});
@@ -311,6 +332,7 @@ UDeviceSchema.statics.fromNinjaBlocks = function (ninjaDevice, ninjaDeviceId, ni
 		device.maxValue = getDeviceInfo(UESubdeviceType[ninjaSubdevice.data]).maxValue;
 		device.minValue = getDeviceInfo(UESubdeviceType[ninjaSubdevice.data]).minValue;
 		device.value = ninjaSubdevice.data;
+		device.hidden = getDeviceInfo(UESubdeviceType[ninjaSubdevice.data]).hidden;
 		device.enabled = getDeviceInfo(UESubdeviceType[ninjaSubdevice.data]).enabled;
 	}
 	cb(device);
