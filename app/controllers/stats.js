@@ -33,58 +33,63 @@ exports.read = function(req, res) {
 
 	request.exec(function (err, result) {
 		if (err) {
-			res.status(500).json({
+			return res.json({
 				status: !err,
 				error: err,
 				statistics: result
 			});
+		}
+		
+		if (req.query.fn == "count") {
+			res.json({
+				status: !err,
+				error: err,
+				count: result.toString()
+			});
+		} else if (!result.length) {
+			return res.json({
+				status: !err,
+				error: err
+			});
+		} else if (req.query.fn == "mean") {
+			var datas = _.pluck(result, 'data');
+			var mean = _.reduce(datas, function(sum, num) {
+				return sum + num;
+			});
+			mean /= result.length;
+
+			res.json({
+				status: !err,
+				error: err,
+				mean: mean.toString()
+			});
+		} 
+		else if (req.query.fn == "max") {
+			var max = _.max(result, 'data');
+			res.json({
+				status: !err,
+				error: err,
+				max: max.data.toString()
+			});
+		} 
+		else if (req.query.fn == "min") {
+			var min = _.min(result, 'data');
+			res.json({
+				status: !err,
+				error: err,
+				min: min.data.toString()
+			});
 		} else {
-			if (req.query.fn == "mean") {
-				var datas = _.pluck(result, 'data');
-				var mean = _.reduce(datas, function(sum, num) {
-					return sum + num;
-				});
-				mean /= result.length;
+			var s = _.map(result, function(obj) {
+				obj.data = obj.data.toString();
+				return obj;
+			})
 
-				res.json({
-					status: !err,
-					error: err,
-					mean: mean.toString()
-				});
-			} 
-			else if (req.query.fn == "max") {
-				var max = _.max(result, 'data');
-				res.json({
-					status: !err,
-					error: err,
-					max: max.data.toString()
-				});
-			} 
-			else if (req.query.fn == "min") {
-				var min = _.min(result, 'data');
-				res.json({
-					status: !err,
-					error: err,
-					min: min.data.toString()
-				});
-			} else if (req.query.fn == "count") {
-				res.json({
-					status: !err,
-					error: err,
-					count: result.toString()
-				});
-			} else {
-				var s = _.map(result, function(obj) {
-					obj.data = obj.data.toString();
-					return obj;
-				})
-
-				res.json({
-					status: !err,
-					error: err,
-					statistics: s
-				});
-			}
+			res.json({
+				status: !err,
+				error: err,
+				statistics: s
+			});
 		}
 	});
 };
