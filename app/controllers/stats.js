@@ -98,7 +98,7 @@ exports.read = function(req, res) {
 	var getMean = function(results) {
 		var sum = _.reduce(results, function(s, data) {
 			return s + Number(data);
-		});
+		}, 0);
 		return sum / results.length;
 	};
 
