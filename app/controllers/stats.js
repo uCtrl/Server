@@ -5,91 +5,191 @@ var Stats = mongoose.model('Stats');
 var _ = require('lodash');
 
 exports.read = function(req, res) {
-	if (req.query.fn == "lastUpdated") {
-		var request = Stats.findOne({},{}, { sort: { 'timestamp' : -1 } });
-		if (req.params.deviceId) request = request.where('id').equals(req.params.deviceId);
+	var reduceByInterval = function(results, interval) {
+		if (!results || !interval || !/\d+/.test(interval))
+			return results;
 
-		request.exec(function(err, results) {
-			if (err) res = res.status(500);
-			res.json({
-				status: !err,
-				error: err,
-				lastUpdated: results.timestamp
-			});
-		});
-		return;
-	} 
+		var nbInterval = interval.match(/\d+/g)[0];
 
-	var columns = 'id data type timestamp';
-
-	if (req.query.fn == "count") {
-		var request = Stats.count();
-	} else {
-		var request = Stats.find();
-	}
-	request.where({ timestamp: { "$gte": req.query.from || 0, "$lt": req.query.to || Date.now() }});
-	if (req.params.deviceId) request = request.where('id').equals(req.params.deviceId);
-	if (req.query.fn != "count") request = request.select(columns);
-
-	request.exec(function (err, result) {
-		if (err) {
-			return res.json({
-				status: !err,
-				error: err,
-				statistics: result
-			});
+		switch(true) {
+			case /min/.test(interval):
+				nbInterval *= nbInterval * 60;
+				break;
+			case /hour/.test(interval): 
+				nbInterval *= nbInterval * 3600;
+				break;
+			case /day/.test(interval): 
+				nbInterval *= nbInterval * 86400;
+				break;
+			case /week/.test(interval): 
+				nbInterval *= nbInterval * 604800;
+				break;
+			case /month/.test(interval): 
+				nbInterval *= nbInterval * 18144000;
+				break;
+			case /year/.test(interval): 
+				nbInterval *= nbInterval * 217728000;
+				break;
 		}
-		
-		if (req.query.fn == "count") {
-			res.json({
-				status: !err,
-				error: err,
-				count: result.toString()
-			});
-		} else if (!result.length) {
-			res.json({
+
+		nbInterval *= 1000;
+
+		var fromTimestamp = results[0].timestamp;
+
+		var reducedResults = _.reduce(results, function(dict, stat) {
+			var key = Math.floor((stat.timestamp - fromTimestamp) / nbInterval);		
+			dict[key] = dict[key] || [];
+			dict[key].push(stat.data);
+
+			return dict;
+		}, {});
+
+		var keys = _.keys(reducedResults);
+		_.forEach(keys, function(key) {
+			var ts = intervalToTimestamp(interval, key, fromTimestamp);
+			reducedResults[ts] = reducedResults[key];
+			delete reducedResults[key];
+		});
+
+		return reducedResults;
+	};
+
+	var intervalToTimestamp = function(type, interval, fromTimestamp) {
+		switch(true) {
+			case /min/.test(type):
+				interval *= 60;
+				break;
+			case /hour/.test(type): 
+				interval * 3600;
+				break;
+			case /day/.test(type): 
+				interval * 86400;
+				break;
+			case /week/.test(type): 
+				interval * 604800;
+				break;
+			case /month/.test(type): 
+				interval * 18144000;
+				break;
+			case /year/.test(type): 
+				interval * 217728000;
+				break;
+		}
+
+		return fromTimestamp + (interval * 1000);
+	};
+
+	var getCount = function(results) {
+		return results.length;
+	};
+
+	var getMax = function(results) {
+		return _.max(results);
+	};
+
+	var getMin = function(results) {
+		return _.min(results);
+	};
+
+	var getMean = function(results) {
+		var sum = _.reduce(results, function(s, data) {
+			return s + data;
+		});
+		return sum / results.length;
+	};
+
+	var sendStatistic = function(result) {
+		res.json({
+			status: true,
+			error: null,
+			data: String(Math.round(result * 100) / 100)
+		});
+	};
+
+	var sendStatistics = function(results) {
+		var s = _.map(results, function(obj) {
+			obj.data = String(Math.round(obj.data * 100) / 100);
+			delete obj["id"];
+			delete obj["type"];
+			return obj;
+		});
+
+		res.json({
+			status: true,
+			error: null,
+			data: s
+		});
+	};
+
+	var option = {};
+
+	// If we want the stats for a specifid device
+	if (req.params.deviceId) 
+		option["id"] = req.params.deviceId;
+
+	if (req.query.from) {
+		option["timestamp"] = option["timestamp"] || {};
+		option["timestamp"]["$gte"] = req.query.from;
+	}
+
+	if (req.query.to) {
+		option["timestamp"] = option["timestamp"] || {};
+		option["timestamp"]["$lte"] = req.query.to;
+	}
+
+	Stats.find(option).sort({timestamp: 'ascending'}).exec(function(err, results) {
+		if (err) {
+			res.status(500).json({
 				status: !err,
 				error: err
 			});
-		} else if (req.query.fn == "mean") {
-			var datas = _.pluck(result, 'data');
-			var mean = _.reduce(datas, function(sum, num) {
-				return sum + num;
-			});
-			mean /= result.length;
-
-			res.json({
-				status: !err,
-				error: err,
-				mean: mean.toString()
-			});
-		} 
-		else if (req.query.fn == "max") {
-			var max = _.max(result, 'data');
-			res.json({
-				status: !err,
-				error: err,
-				max: max.data.toString()
-			});
-		} 
-		else if (req.query.fn == "min") {
-			var min = _.min(result, 'data');
-			res.json({
-				status: !err,
-				error: err,
-				min: min.data.toString()
-			});
-		} else {
-			var s = _.map(result, function(obj) {
-				obj.data = obj.data.toString();
-				return obj;
-			})
-
-			res.json({
-				status: !err,
-				error: err,
-				statistics: s
-			});
+			return;
 		}
+
+		if (req.query.interval) {
+			results = reduceByInterval(results, req.query.interval);
+
+			results = _.forEach(results, function(val, key) {
+				if (req.query.fn == "max") {
+					results[key] = getMax(val);
+				} else if (req.query.fn == "min") {
+					results[key] = getMin(val);
+				} else if (req.query.fn == "count") {
+					results[key] = getCount(val);
+				} else { // MEAN
+					results[key] = getMean(val);
+				}
+			});
+
+			results = _.reduce(results, function (arr, val, key) {
+				arr.push({
+					"data": val,
+					"timestamp": key
+				});
+				return arr;
+			}, []);
+
+			sendStatistics(results);
+			return;
+		}
+
+		// Not interval -> with function
+		if (req.query.fn) {
+			results = _.pluck(results, 'data');
+			if (req.query.fn == "max") {
+				sendStatistic(getMax(results));
+			} else if (req.query.fn == "min") {
+				sendStatistic(getMin(results));
+			} else if (req.query.fn == "mean") {
+				sendStatistic(getMean(results));
+			} else if (req.query.fn == "count") {
+				sendStatistic(getCount(results));
+			}
+			return;
+		}
+
+		// No parameters
+		sendStatistics(results);
+		return;
 	});
 };
