@@ -148,7 +148,7 @@ var UEType = {
 	},
 	1011 : {
 		model : 'LimitlessLED - Group all (rgbw)',
-		maxValue : '254',
+		maxValue : '1',
 		minValue : '0',
 		precision: '1',
 		unitLabel: 'brightness',
@@ -157,7 +157,7 @@ var UEType = {
 	},
 	1012 : {
 		model : 'LimitlessLED - Group all (white)',
-		maxValue : '254',
+		maxValue : '1',
 		minValue : '0',
 		precision: '1',
 		unitLabel: 'brightness',
@@ -166,7 +166,7 @@ var UEType = {
 	},
 	1013 : {
 		model : 'LimitlessLED - Group all (rgbw)',
-		maxValue : '254',
+		maxValue : '1',
 		minValue : '0',
 		precision: '1',
 		unitLabel: 'brightness',
@@ -344,32 +344,16 @@ UDeviceSchema.statics.fromNinjaBlocks = function (ninjaDevice, ninjaDeviceId, ni
  * Note that µCtrl's device can be a Ninja's subdevices
  */
 UDeviceSchema.statics.toNinjaBlocks = function (device, cb) {
-	// Mapping uCtrl to NinjaBlocks
-	// Post : Can post a subdevice ONLY.
-	// Put : shortName and DA can be send.
-	// Delete : Delete all informations about the specified device.
+	//shortName and DA can be send.
+	var deviceTpIdSplit = device.tpId.split(":");
 	var ninjaDevice = {
-		guid : device.tpId,
+		guid : deviceTpIdSplit[0],
 		//default_name : device.name,
-		shortName : device.name,//can be updated
+		//shortName : device.name,//can be updated
 		DA : device.value,//when sending command
 		//unit : device.unitLabel,
 	}
-	var ninjaSubdevice = null;
-	
-	// If it's a subdevice mapping (RF433)
-	if (device.type == 11) {
-		var deviceTpIdSplit = device.tpId.split(":");//subdevice data stored into tpId.
-		ninjaDevice.guid = deviceTpIdSplit[0];
-		ninjaSubdevice = {
-			guid : deviceTpIdSplit[0],
-			category : "rf",//allowed: "rf", "webhook", "sms"
-			type : device.subdeviceType,//allowed: "actuator" or "sensor" 
-			shortName : device.name,
-			data : deviceTpIdSplit[1],									
-		}
-	}
-	cb(ninjaDevice, ninjaSubdevice);
+	cb(ninjaDevice);
 };
 
 UDeviceSchema.plugin(cleanJson);

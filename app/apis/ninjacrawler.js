@@ -46,17 +46,10 @@ UDevice.on('create', defaultEvent);
 
 UDevice.on('update', function(uCtrl_User, deviceObj) {
 	var nb = new ninjablocks({userAccessToken : uCtrl_User.ninjablocks.userAccessToken});
-	
-	UDevice.toNinjaBlocks(deviceObj, function(ninjaDevice, ninjaSubdevice){
-		if (ninjaSubdevice) {//if it's a subdevice
-			console.log("There is a subdevice that should be updated on ninjablock.", ninjaSubdevice);
-			//defaultEvent();
-		}
-		else {
-			nb.device(ninjaDevice.guid).update(ninjaDevice, function(err, result){
-				console.log('--event : NinjaBlock device ' + ninjaDevice.guid + ' updated.');
-			});
-		}
+	UDevice.toNinjaBlocks(deviceObj, function(ninjaDevice){
+		nb.device(ninjaDevice.guid).update(ninjaDevice, function(err, result){
+			console.log('--event : NinjaBlock device ' + ninjaDevice.guid + ' updated.');
+		});
 	});
 });
 UDevice.on('destroy', defaultEvent);
@@ -268,33 +261,28 @@ function ninjaCrawler(options) {
 						if (deviceId.split("_")[0] == platform.tpId) {
 							if (deviceObj.has_subdevice_count) {
 								// if it contains subdevices
-								
-								UDevice.fromNinjaBlocks(deviceObj, deviceId, null, null, function(device) {//rf433Mhz
-									device['parentId'] = platform.id;
-									device['enabled'] = false;
-									arrObjectsToSave.push(device);
-									
-									var processed_switches = [];
+								var processed_switches = [];
 
-									_(deviceObj.subDevices).forEach(function (subdeviceObj, subdeviceId) {
+								_(deviceObj.subDevices).forEach(function (subdeviceObj, subdeviceId) {
 
-										// Check if it's a on/off switch
-										if (UDevice.isSwitch(subdeviceObj.data)) {
-											var id = (parseInt(subdeviceObj.data,2) & 0x7).toString(2);
-											// Only save the device if it's a new switch, not the counter part of one.
-											if (!_.contains(processed_switches, id)){
-												var device_name = /(.+)(off|on)/i.exec(subdeviceObj.shortName);
-												if (device_name) {
-													subdeviceObj.shortName = device_name[1] + "switch";
-												}
-												processed_switches.push(id);
-												subdeviceObj.data = UDevice.switchOff(subdeviceObj.data);
-											} else {
-												return;
+									// Check if it's a on/off switch
+									if (UDevice.isSwitch(subdeviceObj.data)) {
+										var id = (parseInt(subdeviceObj.data,2) & 0x7).toString(2);
+										// Only save the device if it's a new switch, not the counter part of one.
+										if (!_.contains(processed_switches, id)){
+											var device_name = /(.+)(off|on)/i.exec(subdeviceObj.shortName);
+											if (device_name) {
+												subdeviceObj.shortName = device_name[1] + "switch";
 											}
+											processed_switches.push(id);
+											subdeviceObj.data = UDevice.switchOff(subdeviceObj.data);
+										} else {
+											return;
 										}
+									}
 
-										UDevice.fromNinjaBlocks(deviceObj, deviceId, subdeviceObj, subdeviceObj.data, function(device){
+									UDevice.fromNinjaBlocks(deviceObj, deviceId, subdeviceObj, subdeviceObj.data, function(device){
+										if (!device.hidden) {
 											device['parentId'] = platform.id;
 											arrObjectsToSave.push(device);
 											// create a default scenario under this subdevice
@@ -322,7 +310,7 @@ function ninjaCrawler(options) {
 													}
 												});
 											});
-										});
+										}
 									});
 								});
 							}
@@ -330,31 +318,33 @@ function ninjaCrawler(options) {
 							
 								// if no subdevice
 								UDevice.fromNinjaBlocks(deviceObj, deviceId, null, null, function(device) {
-									device['parentId'] = platform.id;
-									arrObjectsToSave.push(device);
-									// create a default scenario under this subdevice
-									UScenario.createDefault(function(scenario) {
-										scenario['parentId'] = device.id;
-										arrObjectsToSave.push(scenario);
-										// create tasks under this scenario
-										_(self._fromNinjaBlocks.rules).forEach(function(ruleObj, ruleId) {
-											if (ruleObj.actions[0].params.guid == deviceId) {
-												UTask.fromNinjaBlocks(ruleObj, ruleObj.rid, function(task){
-													task['parentId'] = scenario.id;
-													arrObjectsToSave.push(task);
-													// create conditions under this task
-													_(ruleObj.preconditions).forEach(function(preconditionObj, preconditionId) {
-														UCondition.fromNinjaBlocks(preconditionObj, task.tpId + ':' + preconditionId, function(lstCondition){
-															_(lstCondition).forEach(function(condition){
-																condition['parentId'] = task.id;
-																arrObjectsToSave.push(condition);
+									if (!device.hidden) {
+										device['parentId'] = platform.id;
+										arrObjectsToSave.push(device);
+										// create a default scenario under this subdevice
+										UScenario.createDefault(function(scenario) {
+											scenario['parentId'] = device.id;
+											arrObjectsToSave.push(scenario);
+											// create tasks under this scenario
+											_(self._fromNinjaBlocks.rules).forEach(function(ruleObj, ruleId) {
+												if (ruleObj.actions[0].params.guid == deviceId) {
+													UTask.fromNinjaBlocks(ruleObj, ruleObj.rid, function(task){
+														task['parentId'] = scenario.id;
+														arrObjectsToSave.push(task);
+														// create conditions under this task
+														_(ruleObj.preconditions).forEach(function(preconditionObj, preconditionId) {
+															UCondition.fromNinjaBlocks(preconditionObj, task.tpId + ':' + preconditionId, function(lstCondition){
+																_(lstCondition).forEach(function(condition){
+																	condition['parentId'] = task.id;
+																	arrObjectsToSave.push(condition);
+																});
 															});
 														});
 													});
-												});
-											}
+												}
+											});
 										});
-									});
+									}
 								});
 							}
 						}
