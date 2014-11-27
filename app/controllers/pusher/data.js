@@ -32,6 +32,10 @@ exports.save = function(data) {
 				device.value = UDevice.switchValue(data.DA);
 			}
 			break;
+			case 1012:
+			var obj = JSON.parse(data.DA);
+			device.value = obj.on ? obj.bri : 0 ;
+			break;
 			default:
 			device.value = data.DA;
 		}
@@ -42,7 +46,7 @@ exports.save = function(data) {
 		var o = new Stats({
 			// Ninja equivalents
 			id: device.id,
-			data: data.DA,
+			data: device.value,
 			type: data.D,
 
 			// Custom fields
