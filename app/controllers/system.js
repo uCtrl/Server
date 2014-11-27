@@ -70,6 +70,7 @@ exports.all = function(req, res) {
 					if (err) sendError(err);
 
 					for (var i = 0; i < platforms.length; i++) {
+						platforms[i]._devices = _.sortBy(platforms[i]._devices, 'name');
 						platforms[i] = platforms[i].toObject();
 					}
 					
