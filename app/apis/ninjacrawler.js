@@ -481,16 +481,47 @@ function ninjaCrawler(options) {
 						var count = _(conditions).size();
 						if (count >=1 ) {
 							_(conditions).forEach(function(conditionObj) {
-								if (conditionObj.deviceTpId != null) {
-									UDevice.findOne({ tpId : conditionObj.deviceTpId }, function(err, deviceObj) {
-										if (deviceObj) {
-											conditionObj.deviceId = deviceObj.id;
-											conditionObj.save(function(err){
-												count--;
-												if (count==0) callback(null, 'bind condition step 2 done');
+
+								if (conditionObj.deviceTpId) { // if condition type is Device...
+
+									// if condition is on a switch subdevice
+									if (UDevice.isSwitch(conditionObj.deviceValue)) {
+										var m = /(.*):(.*)/g.exec(conditionObj.deviceTpId);
+
+										if (m) {
+											var RFID = m[1];
+											var switchID = m[2];
+											var newTpId = RFID + ':' + UDevice.switchOff(switchID);
+
+											UDevice.findOne({ tpId : newTpId }, function(err, deviceObj) {
+												if (deviceObj) {
+													conditionObj.deviceId = deviceObj.id;
+													conditionObj.deviceValue = UDevice.switchValue(conditionObj.deviceValue);
+													conditionObj.deviceTpId = deviceObj.tpId;
+													conditionObj.save(function(err){
+														console.log(conditionObj);
+														count--;
+														if (count==0) callback(null, 'bind condition step 2 done');
+													});
+												}
 											});
+										} else {
+											console.log("supposed to be a switch, but I cannot find the switch ID format...");
+											count--;
+											if (count==0) callback(null, 'bind condition step 2 done');
 										}
-									});
+
+									} else {
+										UDevice.findOne({ tpId : conditionObj.deviceTpId }, function(err, deviceObj) {
+											if (deviceObj) {
+												conditionObj.deviceId = deviceObj.id;
+												conditionObj.save(function(err){
+													count--;
+													if (count==0) callback(null, 'bind condition step 2 done');
+												});
+											}
+										});
+									}
 								}
 							});
 						}

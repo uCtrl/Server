@@ -265,6 +265,10 @@ UDeviceSchema.post('remove', function (device) {
 UDeviceSchema.statics.isSwitch = function(d) {
 	return UESubdeviceType[d] == 1;
 }
+
+UDeviceSchema.statics.switchValue = function(d) {
+	return ((parseInt(d,2) >> 3) & 0x01).toString(2);
+}
 UDeviceSchema.statics.switchOff = function(d) {
 	return (parseInt(d,2) & 0xFFFFF7).toString(2);
 }
