@@ -180,7 +180,7 @@ UConditionSchema.statics.fromNinjaBlocks = function (ninjaPrecondition, ninjaPre
 				deviceTpId : null,
 				deviceValue : null,
 				enabled : true,
-				lastUpdated : null,
+				lastUpdated : null
 			});
 			switch (ninjaPrecondition.handler) {
 				//when condition includes a rf subdevice.
@@ -328,11 +328,16 @@ UConditionSchema.statics.toNinjaBlocks = function (condition, cb) {
 				if(device) {
 					var deviceTpIdSplit = device.tpId.split(":");//subdevice id, if one, is stored into id.
 					ninjaPrecondition.params.guid = deviceTpIdSplit[0];
+					if (deviceTpIdSplit.length > 1) { // is a subdevice
+						if (UDevice.isSwitch(deviceTpIdSplit[1])){
+							condition.deviceValue = (condition.deviceValue == '1') ? UDevice.switchOn(deviceTpIdSplit[1]) : UDevice.switchOff(deviceTpIdSplit[1])
+						}
+					}
 					switch (condition.comparisonType) {
 						case ENUMCOMPARISONTYPE.None :
 							ninjaPrecondition.handler = 'ninjaChange';
 							ninjaPrecondition.params.to	= condition.deviceValue;
-							ninjaPrecondition.params.shortName	= condition.deviceValue;
+							ninjaPrecondition.params.shortName	= UDevice.isSwitch(condition.deviceValue) ? UDevice.switchTinyId(condition.deviceValue): condition.deviceValue;
 							break;
 						case ENUMCOMPARISONTYPE.GreaterThan :
 							ninjaPrecondition.handler = 'ninjaThreshold';//can be ninjaEquality

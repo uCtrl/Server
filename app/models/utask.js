@@ -111,16 +111,26 @@ UTaskSchema.statics.toNinjaBlocks = function (task, cb) {
 			params: { 
 				guid : null,//mapped below
 				da : task.value,
-				shortName : task.value
+				shortName : task.name
 			} 
 		}]
 	}
+
 	
 	UScenario.findById(task._scenario, function(err, scenario){
 		UDevice.findById(scenario._device, function(err, device){
 			var deviceTpIdSplit = device.tpId.split(":");//subdevice data, if one, is stored into id.
 			ninjaRule.actions[0].params.guid = deviceTpIdSplit[0];
-			ninjaRule.actions[0].params.da = UDevice.toSpecialCase(device.type, task.value);
+
+			// if device is a subdevice
+			if (deviceTpIdSplit.length > 1) {
+				if (UDevice.isSwitch(deviceTpIdSplit[1])){
+					var da = ninjaRule.actions[0].params.da;
+					da = (da == '1')  ? UDevice.switchOn(deviceTpIdSplit[1]) : UDevice.switchOff(deviceTpIdSplit[1]);
+					ninjaRule.actions[0].params.shortName = UDevice.switchTinyId(da);
+					ninjaRule.actions[0].params.da = da;
+				}
+			} else ninjaRule.actions[0].params.da = UDevice.toSpecialCase(device.type, task.value);
 	
 			//mapping conditions here
 			//all times preconditions for a rule need to be mapped in only one precondition
