@@ -155,8 +155,10 @@ exports.read = function(req, res) {
 			return;
 		}
 		
-		if (!_.isArray(results) || results.length === 0)
+		if (!_.isArray(results) || results.length === 0) {
 			sendNull(results);
+			return;
+		}
 
 		if (req.query.interval) {
 			results = reduceByInterval(results, req.query.interval);
