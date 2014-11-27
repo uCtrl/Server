@@ -5,39 +5,40 @@ var Stats = mongoose.model('Stats');
 var _ = require('lodash');
 
 exports.read = function(req, res) {
+
 	var reduceByInterval = function(results, interval) {
 		if (!results || !interval || !/\d+/.test(interval))
 			return results;
 
 		var nbInterval = interval.match(/\d+/g)[0];
-
+		var step = 0;
 		switch(true) {
 			case /min/.test(interval):
-				nbInterval *= nbInterval * 60;
+				step = nbInterval * 60;
 				break;
 			case /hour/.test(interval): 
-				nbInterval *= nbInterval * 3600;
+				step = nbInterval * 3600;
 				break;
 			case /day/.test(interval): 
-				nbInterval *= nbInterval * 86400;
+				step = nbInterval * 86400;
 				break;
 			case /week/.test(interval): 
-				nbInterval *= nbInterval * 604800;
+				step = nbInterval * 604800;
 				break;
 			case /month/.test(interval): 
-				nbInterval *= nbInterval * 18144000;
+				step = nbInterval * 18144000;
 				break;
 			case /year/.test(interval): 
-				nbInterval *= nbInterval * 217728000;
+				step = nbInterval * 217728000;
 				break;
 		}
 
-		nbInterval *= 1000;
+		step *= 1000;
 
 		var fromTimestamp = results[0].timestamp;
 
 		var reducedResults = _.reduce(results, function(dict, stat) {
-			var key = Math.floor((stat.timestamp - fromTimestamp) / nbInterval);		
+			var key = Math.floor((stat.timestamp - fromTimestamp) / step);		
 			dict[key] = dict[key] || [];
 			dict[key].push(stat.data);
 
@@ -45,8 +46,9 @@ exports.read = function(req, res) {
 		}, {});
 
 		var keys = _.keys(reducedResults);
+
 		_.forEach(keys, function(key) {
-			var ts = intervalToTimestamp(interval, key, fromTimestamp);
+			var ts = intervalToTimestamp(interval, key, nbInterval, fromTimestamp);
 			reducedResults[ts] = reducedResults[key];
 			delete reducedResults[key];
 		});
@@ -54,29 +56,28 @@ exports.read = function(req, res) {
 		return reducedResults;
 	};
 
-	var intervalToTimestamp = function(type, interval, fromTimestamp) {
+	var intervalToTimestamp = function(type, interval, nbInterval, fromTimestamp) {
 		switch(true) {
 			case /min/.test(type):
 				interval *= 60;
 				break;
 			case /hour/.test(type): 
-				interval * 3600;
+				interval *= 3600;
 				break;
 			case /day/.test(type): 
-				interval * 86400;
+				interval *= 86400;
 				break;
 			case /week/.test(type): 
-				interval * 604800;
+				interval *= 604800;
 				break;
 			case /month/.test(type): 
-				interval * 18144000;
+				interval *= 18144000;
 				break;
 			case /year/.test(type): 
-				interval * 217728000;
+				interval *= 217728000;
 				break;
 		}
-
-		return fromTimestamp + (interval * 1000);
+		return fromTimestamp + (interval * 1000 * nbInterval);
 	};
 
 	var getCount = function(results) {
