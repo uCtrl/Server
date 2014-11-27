@@ -88,16 +88,16 @@ exports.read = function(req, res) {
 	};
 
 	var getMax = function(results) {
-		return _.max(results);
+		return _.max(results, function(num) { return Number(num); });
 	};
 
 	var getMin = function(results) {
-		return _.min(results);
+		return _.min(results, function(num) { return Number(num); });
 	};
 
 	var getMean = function(results) {
 		var sum = _.reduce(results, function(s, data) {
-			return s + data;
+			return s + Number(data);
 		});
 		return sum / results.length;
 	};
