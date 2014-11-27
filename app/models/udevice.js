@@ -375,11 +375,6 @@ UDeviceSchema.statics.fromNinjaBlocks = function (ninjaDevice, ninjaDeviceId, ni
 		}
 	}
 
-	if (device.type == 1012) {
-		var obj = JSON.parse(device.value);
-		device.value = obj.on ? obj.bri : 0 ;
-	}
-
 	cb(device);
 };
 

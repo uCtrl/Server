@@ -524,7 +524,6 @@ function ninjaCrawler(options) {
 													conditionObj.deviceValue = UDevice.switchValue(conditionObj.deviceValue);
 													conditionObj.deviceTpId = deviceObj.tpId;
 													conditionObj.save(function(err){
-														console.log(conditionObj);
 														count--;
 														if (count==0) callback(null, 'bind condition step 2 done');
 													});
