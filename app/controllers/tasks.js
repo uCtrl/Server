@@ -4,7 +4,8 @@ var _ = require('lodash'),
 	mongoose = require('mongoose'),
 	uuid = require('node-uuid'),
 	UScenario = mongoose.model('UScenario'),
-	UTask = mongoose.model('UTask');
+	UTask = mongoose.model('UTask'),
+	UCondition = mongoose.model('UCondition');
 		
 exports.all = function(req, res) {
 	var scenarioId = req.params.scenarioId;
@@ -31,6 +32,7 @@ exports.all = function(req, res) {
 exports.create = function(req, res) {
 	var scenarioId = req.params.scenarioId;
 	var task = new UTask(req.body);
+	var conditions = req.body.conditions;
 
 	UScenario.findOne({ id: scenarioId }).exec(function(err, scenario) {
 		if (err) {
@@ -38,25 +40,47 @@ exports.create = function(req, res) {
 				status: false,
 				error: err
 			});
-	    }		
-		task["id"] = uuid.v1();
-		task["_scenario"] = scenario._id;
-		task["_user"] = req.user._id;
-		task.save(function(err) {
-			if (err) {
-				return res.status(500).json({
-					status: false,
-					error: err
+	    }
+		
+		if (scenario) {
+			task["id"] = uuid.v1();
+			task["_scenario"] = scenario._id;
+			task["_user"] = req.user._id;
+			task.save(function(err) {
+				if (err) {
+					return res.status(500).json({
+						status: false,
+						error: err
+					});
+				}
+				
+				UTask.emit('create', req.user, task);
+				
+				if (conditions) {
+					var conditionsSize = conditions.length;
+					var conditionsIt = 0;
+					
+					_(conditions).forEach(function(conditionObj, conditionIndex) {
+						conditionsIt++;
+						var condition = new UCondition(conditionObj);
+						
+						condition["id"] = uuid.v1();
+						condition["_task"] = task._id;
+						condition["_user"] = req.user._id;
+						condition.save(function(err) {
+							if (err) console.log("Error: ", err)
+							UCondition.emit('create', req.user, condition);
+						});
+					});
+				}
+
+				res.json({
+					status: true,
+					error: null,
+					task: task
 				});
-			}
-			
-			UTask.emit('create', req.user, task);
-			res.json({
-				status: true,
-				error: null,
-				task: task
 			});
-		});
+		}
 	});
 };
 

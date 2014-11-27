@@ -325,7 +325,7 @@ UConditionSchema.statics.toNinjaBlocks = function (condition, cb) {
 		case ENUMCONDITIONTYPE.Device :
 			UDevice.findOne({ id: condition.deviceId }).exec(function(err, device) {
 				if(err) console.log('--ERROR : ' + err);
-				else{
+				if(device) {
 					var deviceTpIdSplit = device.tpId.split(":");//subdevice id, if one, is stored into id.
 					ninjaPrecondition.params.guid = deviceTpIdSplit[0];
 					switch (condition.comparisonType) {
