@@ -370,6 +370,12 @@ UDeviceSchema.statics.fromNinjaBlocks = function (ninjaDevice, ninjaDeviceId, ni
 			device.value = UDevice.switchValue(ninjaSubdevice.data);
 		}
 	}
+
+	if (device.type == 1012) {
+		var obj = JSON.parse(data.DA);
+		device.value = obj.on ? obj.bri : 0 ;
+	}
+
 	cb(device);
 };
 
