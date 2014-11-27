@@ -152,7 +152,6 @@ exports.read = function(req, res) {
 		
 		if (req.query.interval) {
 			results = reduceByInterval(results, req.query.interval);
-			console.log(results);
 			results = _.forEach(results, function(val, key) {
 				if (req.query.fn == "max") {
 					results[key] = getMax(val);
