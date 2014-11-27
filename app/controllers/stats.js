@@ -7,7 +7,7 @@ var _ = require('lodash');
 exports.read = function(req, res) {
 
 	var reduceByInterval = function(results, interval) {
-		if (!results || !interval || !/\d+/.test(interval))
+		if (!results || !interval || !/\d+/.test(interval) || !results[0])
 			return results;
 
 		var nbInterval = interval.match(/\d+/g)[0];
@@ -165,10 +165,11 @@ exports.read = function(req, res) {
 			results = _.reduce(results, function (arr, val, key) {
 				arr.push({
 					"data": val,
-					"timestamp": key
+					"timestamp": Number(key)
 				});
 				return arr;
 			}, []);
+
 
 			sendStatistics(results);
 			return;
