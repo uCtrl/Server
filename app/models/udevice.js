@@ -151,7 +151,7 @@ var UEType = {
 		maxValue : '1',
 		minValue : '0',
 		precision: '1',
-		unitLabel: 'brightness',
+		unitLabel: '%',
 		hidden: false,
 		enabled: true
 	},
@@ -160,7 +160,7 @@ var UEType = {
 		maxValue : '1',
 		minValue : '0',
 		precision: '1',
-		unitLabel: 'brightness',
+		unitLabel: '%',
 		hidden: false,
 		enabled: true
 	},
@@ -169,7 +169,7 @@ var UEType = {
 		maxValue : '1',
 		minValue : '0',
 		precision: '1',
-		unitLabel: 'brightness',
+		unitLabel: '%',
 		hidden: false,
 		enabled: true
 	},
@@ -291,6 +291,33 @@ UDeviceSchema.statics.switchOff = function(d) {
 UDeviceSchema.statics.switchOn = function(d) {
 	return (parseInt(d,2) | 0x8).toString(2);
 }
+UDeviceSchema.statics.fromSpecialCase = function(type, value) {
+	var r = value;
+	switch(type){
+		case 1011:
+		case 1012:
+		case 1013://limitlessLED
+			var tmp = JSON.parse(value);
+			r = tmp["on"] ? parseInt(tmp["bri"])/254 : 0;
+			break;
+	}
+	return r;
+}
+UDeviceSchema.statics.toSpecialCase = function(type, value) {
+	var r = value;
+	switch(type){
+		case 1011:
+		case 1012:
+		case 1013://limitlessLED
+			var tmp = {
+				"on" : value > 0 ? true : false,
+				"bri" : value * 254
+			};
+			r = JSON.stringify(tmp);
+			break;
+	}	
+	return r;
+}
 
 /*
  * Receives the device (from NB) and will call the cb when mapped.
@@ -304,7 +331,7 @@ UDeviceSchema.statics.fromNinjaBlocks = function (ninjaDevice, ninjaDeviceId, ni
 		return UEType[did] != undefined ? UEType[did] : UEType[0];
 	}
 	
-	// Mapping NinjaBlocks to uCtrl  
+	//mapping NinjaBlocks to uCtrl  
 	var device = new UDevice({
 		id : uuid.v1(),
 		tpId : ninjaDeviceId,
@@ -314,7 +341,7 @@ UDeviceSchema.statics.fromNinjaBlocks = function (ninjaDevice, ninjaDeviceId, ni
 		description : null,
 		maxValue : getDeviceInfo(ninjaDevice.did).maxValue,
 		minValue : getDeviceInfo(ninjaDevice.did).minValue,
-		value : ninjaDevice.last_data.DA != undefined ? ninjaDevice.last_data.DA : null,
+		value : ninjaDevice.last_data.DA != undefined ? UDevice.fromSpecialCase(ninjaDevice.did, ninjaDevice.last_data.DA) : null,
 		precision : getDeviceInfo(ninjaDevice.did).precision,
 		status : UEStatus.OK,
 		unitLabel : getDeviceInfo(ninjaDevice.did).unitLabel,
@@ -322,7 +349,7 @@ UDeviceSchema.statics.fromNinjaBlocks = function (ninjaDevice, ninjaDeviceId, ni
 		enabled : getDeviceInfo(ninjaDevice.did).enabled,
 		lastUpdated : ninjaDevice.last_data.timestamp
 	});
-	// If it's a subdevice mapping
+	//if it's a subdevice mapping
 	if (ninjaSubdevice != null) {
 		device.tpId = device.tpId + ':' + ninjaSubdeviceId;//id = deviceGUID:subdeviceID
 		device.name = ninjaSubdevice.shortName;
@@ -331,7 +358,7 @@ UDeviceSchema.statics.fromNinjaBlocks = function (ninjaDevice, ninjaDeviceId, ni
 		device.model = getDeviceInfo(UESubdeviceType[ninjaSubdevice.data]).model;
 		device.maxValue = getDeviceInfo(UESubdeviceType[ninjaSubdevice.data]).maxValue;
 		device.minValue = getDeviceInfo(UESubdeviceType[ninjaSubdevice.data]).minValue;
-		device.value = ninjaSubdevice.data;
+		device.value = UDevice.fromSpecialCase(UESubdeviceType[ninjaSubdevice.data], ninjaSubdevice.data);
 		device.hidden = getDeviceInfo(UESubdeviceType[ninjaSubdevice.data]).hidden;
 		device.enabled = getDeviceInfo(UESubdeviceType[ninjaSubdevice.data]).enabled;
 	}
@@ -344,17 +371,18 @@ UDeviceSchema.statics.fromNinjaBlocks = function (ninjaDevice, ninjaDeviceId, ni
  * Note that µCtrl's device can be a Ninja's subdevices
  */
 UDeviceSchema.statics.toNinjaBlocks = function (device, cb) {
+	var UDevice = mongoose.model('UDevice');
 	//shortName and DA can be send.
 	var deviceTpIdSplit = device.tpId.split(":");
 	var ninjaDevice = {
 		guid : deviceTpIdSplit[0],
-		//default_name : device.name,
 		//shortName : device.name,//can be updated
-		DA : device.value,//when sending command
-		//unit : device.unitLabel,
+		DA : UDevice.toSpecialCase(device.type, device.value),//when sending command
 	}
 	cb(ninjaDevice);
 };
+
+
 
 UDeviceSchema.plugin(cleanJson);
 mongoose.model('UDevice', UDeviceSchema);

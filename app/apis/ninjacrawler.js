@@ -454,6 +454,32 @@ function ninjaCrawler(options) {
 					});
 				},
 				function(callback){
+					UTask.find({}, function(err, tasks) {
+						var count = _(tasks).size();
+						if (count >=1 ) {
+							_(tasks).forEach(function(taskObj) {
+								UScenario.findOne({ id : taskObj.parentId }, function(err, scenarioObj) {
+									if (scenarioObj) {
+										UDevice.findOne({ id : scenarioObj.parentId }, function(err, deviceObj) {
+											if (deviceObj) {
+												console.log("bob" + taskObj.value);
+												taskObj.value = UDevice.fromSpecialCase(deviceObj.type, taskObj.value);
+												console.log("bob" + deviceObj.type);
+												console.log("bob" + taskObj.value);
+												taskObj.save(function(err){
+													count--;
+													if (count==0) callback(null, 'bind tasks special cases done');
+												});
+											}
+										});
+									}
+								});
+							});
+						}
+						else callback(null, 'bind tasks special cases done');
+					});
+				},
+				function(callback){
 					UCondition.find({}, function(err, conditions) {
 						var count = _(conditions).size();
 						if (count >=1 ) {
