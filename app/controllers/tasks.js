@@ -56,7 +56,7 @@ exports.create = function(req, res) {
 				
 				UTask.emit('create', req.user, task);
 				
-				if (conditions) {
+				if (_.isArray(conditions)) {
 					var conditionsSize = conditions.length;
 					var conditionsIt = 0;
 					
