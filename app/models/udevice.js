@@ -129,7 +129,7 @@ var UEType = {
 		enabled: false
 	},
 	1007 : {
-		model : 'Ninja Ninas Eyes',
+		model : 'Ninja\'s Eyes',
 		maxValue : 'FFFFFF',
 		minValue : '000000',
 		precision: '1',
@@ -285,6 +285,10 @@ UDeviceSchema.post('remove', function (device) {
 UDeviceSchema.statics.isSwitch = function(d) {
 	return UESubdeviceType[d] == 1;
 }
+
+UDeviceSchema.statics.switchValue = function(d) {
+	return ((parseInt(d,2) >> 3) & 0x01).toString(2);
+}
 UDeviceSchema.statics.switchOff = function(d) {
 	return (parseInt(d,2) & 0xFFFFF7).toString(2);
 }
@@ -349,8 +353,9 @@ UDeviceSchema.statics.fromNinjaBlocks = function (ninjaDevice, ninjaDeviceId, ni
 		enabled : getDeviceInfo(ninjaDevice.did).enabled,
 		lastUpdated : ninjaDevice.last_data.timestamp
 	});
-	//if it's a subdevice mapping
-	if (ninjaSubdevice != null) {
+
+	// If it's a subdevice mapping
+	if (ninjaSubdevice) {
 		device.tpId = device.tpId + ':' + ninjaSubdeviceId;//id = deviceGUID:subdeviceID
 		device.name = ninjaSubdevice.shortName;
 		device.subdeviceType = ninjaSubdevice.type;//allowed: "actuator" or "sensor" 
@@ -358,9 +363,12 @@ UDeviceSchema.statics.fromNinjaBlocks = function (ninjaDevice, ninjaDeviceId, ni
 		device.model = getDeviceInfo(UESubdeviceType[ninjaSubdevice.data]).model;
 		device.maxValue = getDeviceInfo(UESubdeviceType[ninjaSubdevice.data]).maxValue;
 		device.minValue = getDeviceInfo(UESubdeviceType[ninjaSubdevice.data]).minValue;
-		device.value = UDevice.fromSpecialCase(UESubdeviceType[ninjaSubdevice.data], ninjaSubdevice.data);
 		device.hidden = getDeviceInfo(UESubdeviceType[ninjaSubdevice.data]).hidden;
 		device.enabled = getDeviceInfo(UESubdeviceType[ninjaSubdevice.data]).enabled;
+		device.value = UDevice.fromSpecialCase(UESubdeviceType[ninjaSubdevice.data], ninjaSubdevice.data);
+		if (UDevice.isSwitch(ninjaSubdevice.data)){
+			device.value = UDevice.switchValue(ninjaSubdevice.data);
+		}
 	}
 	cb(device);
 };
@@ -381,8 +389,6 @@ UDeviceSchema.statics.toNinjaBlocks = function (device, cb) {
 	}
 	cb(ninjaDevice);
 };
-
-
 
 UDeviceSchema.plugin(cleanJson);
 mongoose.model('UDevice', UDeviceSchema);
