@@ -23,22 +23,9 @@ exports.save = function(data) {
 			return;
 		}
 		
-		console.log("DATA from " + device.name + "  ("+deviceID+")"); 
+		console.log("DATA from " + device.name + "  (" + deviceID + ")"); 
 
-
-		switch (data.D) {
-			case 11:
-			if (UDevice.isSwitch(data.DA)){
-				device.value = UDevice.switchValue(data.DA);
-			}
-			break;
-			case 1012:
-			var obj = JSON.parse(data.DA);
-			device.value = obj.on ? obj.bri : 0 ;
-			break;
-			default:
-			device.value = data.DA;
-		}
+		device.value = UDevice.fromSpecialCase(device.type, data.DA);
 		
 		device.lastUpdated = Date.now();
 		device.save();
