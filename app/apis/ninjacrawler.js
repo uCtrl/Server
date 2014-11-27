@@ -74,11 +74,13 @@ UScenario.on('update', function(uCtrl_User, scenarioObj) {
 
 UScenario.on('destroy', function(uCtrl_User, scenarioObj) {
 	var nb = new ninjablocks({userAccessToken : uCtrl_User.ninjablocks.userAccessToken});
-	_(scenarioObj._tasks).forEach(function(taskId, taskIndex) {
-		UTask.findById(taskId, function(err, taskObj) {
-			UTask.emit('destroy', uCtrl_User, taskObj);
+	if(scenarioObj) {
+		_(scenarioObj._tasks).forEach(function(taskId, taskIndex) {
+			UTask.findById(taskId, function(err, taskObj) {
+				UTask.emit('destroy', uCtrl_User, taskObj);
+			});
 		});
-	});
+	}
 });
 
 UScenario.on('enable', function(uCtrl_User, scenarioObj) {
