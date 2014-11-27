@@ -441,6 +441,10 @@ function ninjaCrawler(options) {
 							_(tasks).forEach(function(taskObj) {
 								UScenario.findOne({ id : taskObj.parentId }, function(err, scenarioObj) {
 									if (scenarioObj) {
+										if (UDevice.isSwitch(taskObj.value)) {
+											taskObj.value = UDevice.switchValue(taskObj.value);
+										}
+
 										taskObj['_scenario'] = scenarioObj._id;
 										taskObj.save(function(err){
 											count--;

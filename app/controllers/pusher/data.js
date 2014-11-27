@@ -25,7 +25,17 @@ exports.save = function(data) {
 		
 		console.log("DATA from " + device.name + "  ("+deviceID+")"); 
 
-		device.value = data.DA;
+
+		switch (data.D) {
+			case 11:
+			if (UDevice.isSwitch(data.DA)){
+				device.value = UDevice.switchValue(data.DA);
+			}
+			break;
+			default:
+			device.value = data.DA;
+		}
+		
 		device.lastUpdated = Date.now();
 		device.save();
 
