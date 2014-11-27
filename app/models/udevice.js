@@ -326,8 +326,10 @@ UDeviceSchema.statics.fromNinjaBlocks = function (ninjaDevice, ninjaDeviceId, ni
 		enabled : getDeviceInfo(ninjaDevice.did).enabled,
 		lastUpdated : ninjaDevice.last_data.timestamp
 	});
+
 	// If it's a subdevice mapping
-	if (ninjaSubdevice != null) {
+	if (ninjaSubdevice) {
+
 		device.tpId = device.tpId + ':' + ninjaSubdeviceId;//id = deviceGUID:subdeviceID
 		device.name = ninjaSubdevice.shortName;
 		device.subdeviceType = ninjaSubdevice.type;//allowed: "actuator" or "sensor" 
@@ -335,9 +337,12 @@ UDeviceSchema.statics.fromNinjaBlocks = function (ninjaDevice, ninjaDeviceId, ni
 		device.model = getDeviceInfo(UESubdeviceType[ninjaSubdevice.data]).model;
 		device.maxValue = getDeviceInfo(UESubdeviceType[ninjaSubdevice.data]).maxValue;
 		device.minValue = getDeviceInfo(UESubdeviceType[ninjaSubdevice.data]).minValue;
-		device.value = ninjaSubdevice.data;
 		device.hidden = getDeviceInfo(UESubdeviceType[ninjaSubdevice.data]).hidden;
 		device.enabled = getDeviceInfo(UESubdeviceType[ninjaSubdevice.data]).enabled;
+		device.value = ninjaSubdevice.data;
+		if (UDevice.isSwitch(ninjaSubdevice.data)){
+			device.value = UDevice.switchValue(ninjaSubdevice.data);
+		}
 	}
 	cb(device);
 };
