@@ -76,6 +76,7 @@ UTaskSchema.post('remove', function (task) {
  */
 UTaskSchema.statics.fromNinjaBlocks = function (ninjaRule, ninjaRuleId, cb) {
 	var UTask = mongoose.model('UTask');
+	var UDevice = mongoose.model('UDevice');
 	// Mapping Ninja to uCtrl
 	// Limited to only one action by task when mapping to µCtrl.
 	var task = new UTask({
@@ -119,7 +120,8 @@ UTaskSchema.statics.toNinjaBlocks = function (task, cb) {
 		UDevice.findById(scenario._device, function(err, device){
 			var deviceTpIdSplit = device.tpId.split(":");//subdevice data, if one, is stored into id.
 			ninjaRule.actions[0].params.guid = deviceTpIdSplit[0];
-			
+			ninjaRule.actions[0].params.da = UDevice.toSpecialCase(device.type, task.value);
+	
 			//mapping conditions here
 			//all times preconditions for a rule need to be mapped in only one precondition
 			UCondition.find({_task : task._id}, function(err, conditions){
