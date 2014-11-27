@@ -3,8 +3,6 @@
 var _ = require('lodash'),
 	mongoose = require('mongoose'),
 	uuid = require('node-uuid'),
-	request = require('request'),
-	tasksController = require(__base + 'app/controllers/tasks.js'),
 	UDevice = mongoose.model('UDevice'),
 	UScenario = mongoose.model('UScenario'),
 	UTask = mongoose.model('UTask'),

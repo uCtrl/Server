@@ -74,11 +74,13 @@ UScenario.on('update', function(uCtrl_User, scenarioObj) {
 
 UScenario.on('destroy', function(uCtrl_User, scenarioObj) {
 	var nb = new ninjablocks({userAccessToken : uCtrl_User.ninjablocks.userAccessToken});
-	_(scenarioObj._tasks).forEach(function(taskId, taskIndex) {
-		UTask.findById(taskId, function(err, taskObj) {
-			UTask.emit('destroy', uCtrl_User, taskObj);
+	if(scenarioObj) {
+		_(scenarioObj._tasks).forEach(function(taskId, taskIndex) {
+			UTask.findById(taskId, function(err, taskObj) {
+				UTask.emit('destroy', uCtrl_User, taskObj);
+			});
 		});
-	});
+	}
 });
 
 UScenario.on('enable', function(uCtrl_User, scenarioObj) {
@@ -455,6 +457,29 @@ function ninjaCrawler(options) {
 							});
 						}
 						else callback(null, 'bind tasks done');
+					});
+				},
+				function(callback){
+					UTask.find({}, function(err, tasks) {
+						var count = _(tasks).size();
+						if (count >=1 ) {
+							_(tasks).forEach(function(taskObj) {
+								UScenario.findOne({ id : taskObj.parentId }, function(err, scenarioObj) {
+									if (scenarioObj) {
+										UDevice.findOne({ id : scenarioObj.parentId }, function(err, deviceObj) {
+											if (deviceObj) {
+												taskObj.value = UDevice.fromSpecialCase(deviceObj.type, taskObj.value);
+												taskObj.save(function(err){
+													count--;
+													if (count==0) callback(null, 'bind tasks special cases done');
+												});
+											}
+										});
+									}
+								});
+							});
+						}
+						else callback(null, 'bind tasks special cases done');
 					});
 				},
 				function(callback){
