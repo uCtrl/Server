@@ -145,9 +145,10 @@ UConditionSchema.statics.fromNinjaBlocks = function (ninjaPrecondition, ninjaPre
 				});
 				lstCondition.push(condition);
 			}
-			else {//if weekday periodic
+			else {//if weekday periodicTODOOO
 				for(var i = 0; i <= lstPeriodSize-2; i+=2) {
 					// Mapping Ninja to uCtrl
+					// /1800 on a le temps, après on check les jours
 					var weekcondition = new UCondition({
 						id : uuid.v1(),
 						tpId : ninjaPreconditionId + ':' + i,
@@ -251,37 +252,25 @@ UConditionSchema.statics.toNinjaBlocks = function (condition, cb) {
 		case ENUMCONDITIONTYPE.Day ://weekly periodic
 			ninjaPrecondition.handler = 'weeklyTimePeriod';
 			ninjaPrecondition.params.guid = "time";
-			ninjaPrecondition.params.timezone = "America/Montreal";
+			ninjaPrecondition.params.shortName = "Time";
+			ninjaPrecondition.params.timezone = "America/Montreal";//TODO
 			ninjaPrecondition.params.times = [];
-			switch (condition.comparisonType) {
-				case ENUMCOMPARISONTYPE.GreaterThan :
-					ninjaPrecondition.params.times.push(condition.beginValue);
-					ninjaPrecondition.params.times.push(WEEKSECONDS-1);//end of week
-					break;
-				case ENUMCOMPARISONTYPE.LesserThan :
-					ninjaPrecondition.params.times.push(0);//beginning of week
-					ninjaPrecondition.params.times.push(condition.endValue);
-					break;
-				case ENUMCOMPARISONTYPE.Not :
-					var beginVal = parseInt(condition.endValue) + 1;
-					var endVal = parseInt(condition.beginValue) - 1;
-					ninjaPrecondition.params.times.push(beginVal);
-					ninjaPrecondition.params.times.push(endVal);
-					break;
-				case ENUMCOMPARISONTYPE.None :
-				case ENUMCOMPARISONTYPE.InBetween :
-				case ENUMCOMPARISONTYPE.Equals :
-				default :
-					ninjaPrecondition.params.times.push(condition.beginValue);
-					ninjaPrecondition.params.times.push(condition.endValue);
-					break;
+			var days = parseInt(condition.beginValue);
+			for(var i=0; i<=6; i++) {
+				if (days & Math.pow(2, 6-i)) {
+					var beginTime = (6-i) * DAYSECONDS;
+					var endTime = DAYSECONDS + ((6-i) * DAYSECONDS) - 1;
+					ninjaPrecondition.params.times.push(beginTime);
+					ninjaPrecondition.params.times.push(endTime);
+				}
 			}
 			cb(ninjaPrecondition);
 			break;
 		case ENUMCONDITIONTYPE.Time ://daily periodic
 			ninjaPrecondition.handler = 'weeklyTimePeriod';
 			ninjaPrecondition.params.guid = "time";
-			ninjaPrecondition.params.timezone = "America/Montreal";
+			ninjaPrecondition.params.shortName = "Time";
+			ninjaPrecondition.params.timezone = "America/Montreal";//TODO
 			ninjaPrecondition.params.times = [];
 			switch (condition.comparisonType) {
 				case ENUMCOMPARISONTYPE.GreaterThan :
