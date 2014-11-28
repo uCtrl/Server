@@ -4,11 +4,15 @@ var mongoose = require('mongoose');
 var Schema = mongoose.Schema;
 
 var ENUMLOGTYPE = {
-    Action: 0,
-    Status: 1,
-    Condition: 2,
-    Update: 3,
-    Scenario: 4,
+    Action: 0, // commande manuelle
+    Status: 1, // never used.  changement de status
+    Condition: 2, // rule executed
+    Update: 3, /*   Genre name du plateforme
+                    Ou name du device
+                    ou maxValue du device
+                    tout sauf value
+                */
+    Scenario: 4, // tout changement par rapport aux scénarios, tasks, conditions 
     Other: 5
 };
 

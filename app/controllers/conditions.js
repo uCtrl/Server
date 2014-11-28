@@ -4,7 +4,8 @@ var _ = require('lodash'),
 	mongoose = require('mongoose'),
 	uuid = require('node-uuid'),
 	UTask = mongoose.model('UTask'),
-	UCondition = mongoose.model('UCondition');
+	UCondition = mongoose.model('UCondition'),
+	Logs = mongoose.model('Log');
 
 exports.all = function (req, res) {
 	var taskId = req.params.taskId;
@@ -31,6 +32,7 @@ exports.all = function (req, res) {
 exports.create = function(req, res) {
 	var taskId = req.params.taskId;
 	var condition = new UCondition(req.body);
+	console.log("CONDITION CREATE BODY:", req.body);
 
 	UTask.findOne({ id: taskId }).exec(function(err, task) {
 		if (err) {
@@ -76,13 +78,25 @@ exports.update = function(req, res) {
 			}
 			
 			UCondition.emit('update', req.user, condition);
+			var l = new Logs({
+				type: Logs.LOGTYPE.Scenario, 
+				severity: Logs.LOGSEVERITY.Normal,  
+				message: "Task '" + condition.shortName + "' was updated.",
+				id: condition.id,
+				timestamp: Date.now()
+			});
+
+			l.save(function(err) {
+				if (err) console.log("Error saving the cond update log");
+			});
+
 			res.json({
 				status: true,
 				error: null,
 				condition: condition 
 			});
 		}
-	);
+		);
 };
 
 exports.destroy = function(req, res) {
