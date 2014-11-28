@@ -25,7 +25,7 @@ exports.save = function(data) {
 				if (err) console.log("Error populating the scenario's device");
 
 				var l = new Logs({
-					type: Logs.LOGTYPE.Action, 
+					type: Logs.LOGTYPE.Condition, 
 					severity: Logs.LOGSEVERITY.Normal,  
 					message: "Task '" + task.name + "' was executed.",
 					id: t._device.id,
@@ -37,7 +37,7 @@ exports.save = function(data) {
 				})
 			});
 		} else {
-			console.log ("No task found");
+			console.log ("No task found, GOOD TIME TO DYNAMICALLY LOAD THE TASK HELL YEAH I LUV MYSELF, YOLO.");
 		}
 	});
 };

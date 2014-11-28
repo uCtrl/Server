@@ -4,6 +4,7 @@ var _ = require('lodash'),
 	mongoose = require('mongoose'),
 	uuid = require('node-uuid'),
 	UDevice = mongoose.model('UDevice'),
+	Logs = mongoose.model('Log'),
 	UScenario = mongoose.model('UScenario'),
 	UTask = mongoose.model('UTask'),
 	UCondition = mongoose.model('UCondition');
@@ -119,6 +120,18 @@ exports.update = function(req, res) {
 			}
 			
 			UScenario.emit('update', req.user, scenario);
+			var l = new Logs({
+				type: Logs.LOGTYPE.Scenario, 
+				severity: Logs.LOGSEVERITY.Normal,  
+				message: "Scenario '" + scenario.name + "' was updated.",
+				id: scenario.id,
+				timestamp: Date.now()
+			});
+
+			l.save(function(err) {
+				if (err) console.log("Error saving the scenario update log");
+			});
+
 			res.json({
 				status: true,
 				error: null,

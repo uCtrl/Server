@@ -92,3 +92,6 @@ UScenarioSchema.statics.createDefault = function (cb) {
 
 UScenarioSchema.plugin(cleanJson);
 mongoose.model('UScenario', UScenarioSchema);
+
+
+

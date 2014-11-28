@@ -468,7 +468,7 @@ function ninjaCrawler(options) {
 									if (scenarioObj) {
 										UDevice.findOne({ id : scenarioObj.parentId }, function(err, deviceObj) {
 											if (deviceObj) {
-												taskObj.value = UDevice.fromSpecialCase(deviceObj.type, taskObj.value);
+												taskObj.value = UDevice.fromSpecialCase(deviceObj.tpId, deviceObj.type, taskObj.value);
 												taskObj.save(function(err){
 													count--;
 													if (count==0) callback(null, 'bind tasks special cases done');

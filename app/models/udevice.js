@@ -299,9 +299,14 @@ UDeviceSchema.statics.switchOff = function(d) {
 UDeviceSchema.statics.switchOn = function(d) {
 	return (parseInt(d,2) | 0x8).toString(2);
 }
-UDeviceSchema.statics.fromSpecialCase = function(type, value) {
+UDeviceSchema.statics.fromSpecialCase = function(deviceTpId, type, value) {
 	var r = value;
 	switch(type){
+		case 1:
+
+		var UDevice = mongoose.model('UDevice', UDeviceSchema);
+		r = UDevice.switchValue(value);
+		break;
 		case 5://bell
 		case 7://motion
 		case 9990://door
@@ -319,6 +324,11 @@ UDeviceSchema.statics.fromSpecialCase = function(type, value) {
 UDeviceSchema.statics.toSpecialCase = function(deviceTpId, deviceType, value) {
 	var r = value;
 	switch(deviceType){
+		case 1:
+			var t = deviceTpId.split(':');
+			var UDevice = mongoose.model('UDevice', UDeviceSchema);
+			r = (value == '1') ? UDevice.switchOn(t[1]) : UDevice.switchOff(t[1]);
+		break;
 		case 5://bell
 		case 7://motion
 		case 9990://door
@@ -363,7 +373,7 @@ UDeviceSchema.statics.fromNinjaBlocks = function (ninjaDevice, ninjaDeviceId, ni
 		description : null,
 		maxValue : getDeviceInfo(ninjaDevice.did).maxValue,
 		minValue : getDeviceInfo(ninjaDevice.did).minValue,
-		value : ninjaDevice.last_data.DA != undefined ? UDevice.fromSpecialCase(ninjaDevice.did, ninjaDevice.last_data.DA) : null,
+		value : ninjaDevice.last_data.DA != undefined ? UDevice.fromSpecialCase(ninjaDeviceId, ninjaDevice.did, ninjaDevice.last_data.DA) : null,
 		precision : getDeviceInfo(ninjaDevice.did).precision,
 		status : UEStatus.OK,
 		unitLabel : getDeviceInfo(ninjaDevice.did).unitLabel,
@@ -383,10 +393,7 @@ UDeviceSchema.statics.fromNinjaBlocks = function (ninjaDevice, ninjaDeviceId, ni
 		device.minValue = getDeviceInfo(UESubdeviceType[ninjaSubdevice.data]).minValue;
 		device.hidden = getDeviceInfo(UESubdeviceType[ninjaSubdevice.data]).hidden;
 		device.enabled = getDeviceInfo(UESubdeviceType[ninjaSubdevice.data]).enabled;
-		device.value = UDevice.fromSpecialCase(UESubdeviceType[ninjaSubdevice.data], ninjaSubdevice.data);
-		if (UDevice.isSwitch(ninjaSubdevice.data)){
-			device.value = UDevice.switchValue(ninjaSubdevice.data);
-		}
+		device.value = UDevice.fromSpecialCase(device.tpId, UESubdeviceType[ninjaSubdevice.data], ninjaSubdevice.data);
 	}
 
 	cb(device);
