@@ -336,7 +336,7 @@ UConditionSchema.statics.toNinjaBlocks = function (condition, cb) {
 					switch (condition.comparisonType) {
 						case ENUMCOMPARISONTYPE.None :
 							ninjaPrecondition.handler = 'ninjaChange';
-							ninjaPrecondition.params.to	= condition.deviceValue;
+							ninjaPrecondition.params.to	= UDevice.toSpecialCase(device.tpId, device.type, condition.deviceValue);
 							ninjaPrecondition.params.shortName	= UDevice.isSwitch(condition.deviceValue) ? UDevice.switchTinyId(condition.deviceValue): condition.deviceValue;
 							break;
 						case ENUMCOMPARISONTYPE.GreaterThan :
