@@ -130,7 +130,7 @@ UTaskSchema.statics.toNinjaBlocks = function (task, cb) {
 					ninjaRule.actions[0].params.shortName = UDevice.switchTinyId(da);
 					ninjaRule.actions[0].params.da = da;
 				}
-			} else ninjaRule.actions[0].params.da = UDevice.toSpecialCase(device.type, task.value);
+			} else ninjaRule.actions[0].params.da = UDevice.toSpecialCase(device.tpId, device.type, task.value);
 	
 			//mapping conditions here
 			//all times preconditions for a rule need to be mapped in only one precondition
