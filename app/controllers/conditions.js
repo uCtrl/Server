@@ -32,7 +32,6 @@ exports.all = function (req, res) {
 exports.create = function(req, res) {
 	var taskId = req.params.taskId;
 	var condition = new UCondition(req.body);
-	console.log("CONDITION CREATE BODY:", req.body);
 
 	UTask.findOne({ id: taskId }).exec(function(err, task) {
 		if (err) {
@@ -78,16 +77,23 @@ exports.update = function(req, res) {
 			}
 			
 			UCondition.emit('update', req.user, condition);
-			var l = new Logs({
-				type: Logs.LOGTYPE.Scenario, 
-				severity: Logs.LOGSEVERITY.Normal,  
-				message: "Task '" + condition.shortName + "' was updated.",
-				id: condition.id,
-				timestamp: Date.now()
-			});
 
-			l.save(function(err) {
-				if (err) console.log("Error saving the cond update log");
+			UTask.find({id: condition._task}, function(err, task) {
+				UScenario.find({id: task._scenario}, function(err, scenario) {
+					UDevice.find({id: scenario._device}, function(err, device) {
+						var l = new Logs({
+							type: Logs.LOGTYPE.Scenario, 
+							severity: Logs.LOGSEVERITY.Normal,  
+							message: "A condition in task '" + task.name + "' was updated.",
+							id: device.id,
+							timestamp: Date.now()
+						});
+
+						l.save(function(err) {
+							if (err) console.log("Error saving the Task update log");
+						});
+					});
+				});
 			});
 
 			res.json({
@@ -96,7 +102,7 @@ exports.update = function(req, res) {
 				condition: condition 
 			});
 		}
-		);
+	);
 };
 
 exports.destroy = function(req, res) {
