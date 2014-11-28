@@ -49,10 +49,10 @@ var UEType = {
 	},
 	7 : {
 		model : 'Ninja PIRMotionSensor',
-		maxValue : 0,
-		minValue : 8,
+		maxValue : 1,
+		minValue : 1,
 		precision: null,
-		unitLabel: 'm',
+		unitLabel: null,
 		hidden: false,
 		enabled: true
 	},
