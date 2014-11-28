@@ -31,8 +31,8 @@ var UEType = {
 	},
 	5 : {
 		model : 'Ninja PushButton',
-		maxValue : null,
-		minValue : null,
+		maxValue : 1,
+		minValue : 1,
 		precision: null,
 		unitLabel: null,
 		hidden: false,
@@ -49,10 +49,10 @@ var UEType = {
 	},
 	7 : {
 		model : 'Ninja PIRMotionSensor',
-		maxValue : 0,
-		minValue : 8,
+		maxValue : 1,
+		minValue : 1,
 		precision: null,
-		unitLabel: 'm',
+		unitLabel: null,
 		hidden: false,
 		enabled: true
 	},
@@ -175,8 +175,8 @@ var UEType = {
 	},
 	9990 : {
 		model : 'Ninja Door captor',
-		maxValue : null,
-		minValue : null,
+		maxValue : 1,
+		minValue : 1,
 		precision: null,
 		unitLabel: null,
 		hidden: false,
@@ -302,6 +302,11 @@ UDeviceSchema.statics.switchOn = function(d) {
 UDeviceSchema.statics.fromSpecialCase = function(type, value) {
 	var r = value;
 	switch(type){
+		case 5://bell
+		case 7://motion
+		case 9990://door
+			r = 1;
+			break;
 		case 1011:
 		case 1012:
 		case 1013://limitlessLED
@@ -311,9 +316,18 @@ UDeviceSchema.statics.fromSpecialCase = function(type, value) {
 	}
 	return r;
 }
-UDeviceSchema.statics.toSpecialCase = function(type, value) {
+UDeviceSchema.statics.toSpecialCase = function(deviceTpId, deviceType, value) {
 	var r = value;
-	switch(type){
+	switch(deviceType){
+		case 5://bell
+		case 7://motion
+		case 9990://door
+			if (value) {
+				var deviceTpIdSplit = deviceTpId.split(":");
+				if (deviceTpIdSplit[1])//subdevice binary in id
+					r = deviceTpIdSplit[1];
+			}
+			break;
 		case 1011:
 		case 1012:
 		case 1013://limitlessLED
@@ -390,7 +404,7 @@ UDeviceSchema.statics.toNinjaBlocks = function (device, cb) {
 	var ninjaDevice = {
 		guid : deviceTpIdSplit[0],
 		//shortName : device.name,//can be updated
-		DA : UDevice.toSpecialCase(device.type, device.value),//when sending command
+		DA : UDevice.toSpecialCase(device.tpId, device.type, device.value),//when sending command
 	}
 	cb(ninjaDevice);
 };
