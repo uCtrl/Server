@@ -5,6 +5,7 @@ var _ = require('lodash'),
 	uuid = require('node-uuid'),
 	UScenario = mongoose.model('UScenario'),
 	UTask = mongoose.model('UTask'),
+	UDevice = mongoose.model('UDevice'),
 	UCondition = mongoose.model('UCondition'),
 	Logs = mongoose.model('Log');
 		
@@ -100,17 +101,25 @@ exports.update = function(req, res) {
 			}
 			
 			UTask.emit('update', req.user, task);
-			var l = new Logs({
-				type: Logs.LOGTYPE.Scenario, 
-				severity: Logs.LOGSEVERITY.Normal,  
-				message: "Task '" + task.name + "' was updated.",
-				id: task.id,
-				timestamp: Date.now()
-			});
 
-			l.save(function(err) {
-				if (err) console.log("Error saving the Task update log");
+
+
+			UScenario.find({_id: task._scenario}, function(err, scenario) {
+				UDevice.find({_id: scenario._device}, function(err, device) {
+					var l = new Logs({
+						type: Logs.LOGTYPE.Scenario, 
+						severity: Logs.LOGSEVERITY.Normal,  
+						message: "Task '" + task.name + "' was updated.",
+						id: device.id,
+						timestamp: Date.now()
+					});
+
+					l.save(function(err) {
+						if (err) console.log("Error saving the Task update log");
+					});
+				});
 			});
+			
 			res.json({
 				status: true,
 				error: null,

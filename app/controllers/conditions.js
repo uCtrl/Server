@@ -5,6 +5,8 @@ var _ = require('lodash'),
 	uuid = require('node-uuid'),
 	UTask = mongoose.model('UTask'),
 	UCondition = mongoose.model('UCondition'),
+	UDevice = mongoose.model('UDevice'),
+	UScenario = mongoose.model('UScenario'),
 	Logs = mongoose.model('Log');
 
 exports.all = function (req, res) {
@@ -78,9 +80,9 @@ exports.update = function(req, res) {
 			
 			UCondition.emit('update', req.user, condition);
 
-			UTask.find({id: condition._task}, function(err, task) {
-				UScenario.find({id: task._scenario}, function(err, scenario) {
-					UDevice.find({id: scenario._device}, function(err, device) {
+			UTask.find({_id: condition._task}, function(err, task) {
+				UScenario.find({_id: task._scenario}, function(err, scenario) {
+					UDevice.find({_id: scenario._device}, function(err, device) {
 						var l = new Logs({
 							type: Logs.LOGTYPE.Scenario, 
 							severity: Logs.LOGSEVERITY.Normal,  

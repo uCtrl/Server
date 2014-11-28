@@ -121,7 +121,9 @@ exports.update = function(req, res) {
 			
 			UScenario.emit('update', req.user, scenario);
 
-			UDevice.findOne({id: scenario._device}, function (err, device){
+			UDevice.findOne({_id: scenario._device}, function (err, device){
+				if (err) console.log("ERROR", err);
+
 				var l = new Logs({
 					type: Logs.LOGTYPE.Scenario, 
 					severity: Logs.LOGSEVERITY.Normal,  
