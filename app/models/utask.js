@@ -159,13 +159,15 @@ UTaskSchema.statics.toNinjaBlocks = function (task, cb) {
 								cb(ninjaRule);
 							}
 						});
-					});
-					
+					});	
 				}
 			});
 		});
 	});
 };
+
+
+
 
 UTaskSchema.plugin(cleanJson);
 mongoose.model('UTask', UTaskSchema);
