@@ -37,6 +37,10 @@ exports.create = function(req, res) {
 
 	function updateUser(user) {
 		//TODO: Update values of user from NB
+
+		// Refetch recommendations
+		recommendationsFinder.start(user);
+
 		res.json({
 			status: true,
 			error: null,
