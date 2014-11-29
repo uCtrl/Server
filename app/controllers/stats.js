@@ -110,8 +110,6 @@ exports.read = function(req, res) {
 	var sendStatistics = function(results) {
 		var s = _.map(results, function(obj) {
 			obj.data = String(Math.round(obj.data * 100) / 100);
-			delete obj["id"];
-			delete obj["type"];
 			return obj;
 		});
 
@@ -135,6 +133,9 @@ exports.read = function(req, res) {
 	// If we want the stats for a specifid device
 	if (req.params.deviceId) 
 		option["id"] = req.params.deviceId;
+
+	if (req.query.type)
+		option["type"] = req.query.type;
 
 	if (req.query.from) {
 		option["timestamp"] = option["timestamp"] || {};
@@ -181,7 +182,6 @@ exports.read = function(req, res) {
 				});
 				return arr;
 			}, []);
-
 
 			sendStatistics(results);
 			return;
