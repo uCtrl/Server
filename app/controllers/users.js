@@ -6,6 +6,7 @@ var _ = require('lodash'),
 	ninjacrawler = require('../apis/ninjacrawler.js'),
 	ninjablocks = require('../apis/ninjablocks.js'),
 	recommendationsFinder = require('../apis/recommendationsFinder.js'),
+	pusher = require('../controllers/pusher/ninja_pusher.js'),
 	User = mongoose.model('User');
 	
 exports.create = function(req, res) {
@@ -30,6 +31,7 @@ exports.create = function(req, res) {
 					}
 					User.emit('create', user);
 					startCrawler(user, userAccessToken)
+					pusher.startPusher(user);
 				});
 			});
 		});
