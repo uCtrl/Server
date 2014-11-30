@@ -135,16 +135,16 @@ exports.read = function(req, res) {
 		option["id"] = req.params.deviceId;
 
 	if (req.query.type)
-		option["type"] = req.query.type;
+		option["type"] = Number(req.query.type);
 
 	if (req.query.from) {
 		option["timestamp"] = option["timestamp"] || {};
-		option["timestamp"]["$gte"] = req.query.from;
+		option["timestamp"]["$gte"] = Number(req.query.from);
 	}
 
 	if (req.query.to) {
 		option["timestamp"] = option["timestamp"] || {};
-		option["timestamp"]["$lte"] = req.query.to;
+		option["timestamp"]["$lte"] = Number(req.query.to);
 	}
 
 	Stats.find(option).sort({timestamp: 'ascending'}).exec(function(err, results) {
