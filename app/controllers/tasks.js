@@ -62,7 +62,6 @@ exports.create = function(req, res) {
 					var conditionsIt = 0;
 					
 					_(conditions).forEach(function(conditionObj, conditionIndex) {
-						conditionsIt++;
 						var condition = new UCondition(conditionObj);
 						
 						condition["id"] = uuid.v1();
@@ -71,6 +70,13 @@ exports.create = function(req, res) {
 						condition.save(function(err) {
 							if (err) console.log("Error: ", err)
 							UCondition.emit('create', req.user, condition);
+						});
+						condition.save(function(err) {
+							if (err) console.log("Error: ", err)
+							conditionsIt++;
+							if (conditionsIt >= conditionsSize){
+								UCondition.emit('create', req.user, condition);
+							}
 						});
 					});
 				}

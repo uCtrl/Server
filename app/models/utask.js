@@ -137,30 +137,72 @@ UTaskSchema.statics.toNinjaBlocks = function (task, cb) {
 			//all times preconditions for a rule need to be mapped in only one precondition
 			UCondition.find({_task : task._id}, function(err, conditions){
 				var conditionsSize = conditions.length;
-				if (conditionsSize >= 1){
+				
+				if (conditionsSize >= 1) {
 					var i = 0;
-					var ninjaPreconditionOneForTime = null;
+					var dayCondition = null;
+					var timeCondition = null;
+					var deviceCondition = null;
+
 					_(conditions).forEach(function(conditionObj){
-						UCondition.toNinjaBlocks(conditionObj, function(ninjaPrecondition){
-							i++;
-							if (ninjaPrecondition.handler == 'weeklyTimePeriod') {
-								if (!ninjaPreconditionOneForTime)//instantiate the first one
-									ninjaPreconditionOneForTime = ninjaPrecondition;
-								else//add time elements. TODO : test this code.
-									ninjaPreconditionOneForTime.params.times.push.apply(ninjaPreconditionOneForTime.params.times, ninjaPrecondition.params.times);
-							}
-							else{
-								ninjaRule.preconditions.push(ninjaPrecondition);
-							}
-							if(i >= conditionsSize) {
-								if (ninjaPreconditionOneForTime != null) {
-									ninjaRule.preconditions.push(ninjaPreconditionOneForTime);
-								}
-								cb(ninjaRule);
-							}
-						});
+						switch (conditionObj.type) {
+							case 2 ://day
+								dayCondition = conditionObj;
+								break;
+							case 3 ://time
+								timeCondition = conditionObj;
+								break;
+							case 4 ://device
+								deviceCondition = conditionObj;
+								break;
+							case -1 : //none
+							case 1 : //date
+							default: //others
+								break;
+						}
 					});
 					
+					if(deviceCondition) {
+						UCondition.toNinjaBlocks(deviceCondition, function(ninjaPrecondition){
+							ninjaRule.preconditions.push(ninjaPrecondition);
+							i++;
+							if(i >= conditionsSize) 
+								cb(ninjaRule);
+						});
+					}
+					if(dayCondition && timeCondition) {
+						var days = parseInt(dayCondition.beginValue);
+						var times = [];
+						UCondition.toNinjaBlocks(timeCondition, function(ninjaPrecondition){
+							for(var i=0; i<=6; i++) {
+								if (days & Math.pow(2, i)) {
+									times.push(ninjaPrecondition.params.times[(i*2)]);
+									times.push(ninjaPrecondition.params.times[(i*2)+1]);
+								}
+							}
+							ninjaPrecondition.params.times = times;
+							ninjaRule.preconditions.push(ninjaPrecondition);
+							i+=2;
+							if(i >= conditionsSize) 
+								cb(ninjaRule);
+						});
+					}
+					else if(dayCondition) {
+						UCondition.toNinjaBlocks(dayCondition, function(ninjaPrecondition){
+							ninjaRule.preconditions.push(ninjaPrecondition);
+							i++;
+							if(i >= conditionsSize) 
+								cb(ninjaRule);
+						});
+					}
+					else if(timeCondition) {
+						UCondition.toNinjaBlocks(timeCondition, function(ninjaPrecondition){
+							ninjaRule.preconditions.push(ninjaPrecondition);
+							i++;
+							if(i >= conditionsSize) 
+								cb(ninjaRule);
+						});
+					}					
 				}
 			});
 		});

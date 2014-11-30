@@ -63,7 +63,7 @@ exports.create = function(req, res) {
 					var tasksIt = 0;
 					
 					_(tasks).forEach(function(taskObj, taskIndex) {
-						tasksIt++;
+						
 						var conditions = taskObj.conditions;
 						var task = new UTask(taskObj);
 						
@@ -72,14 +72,14 @@ exports.create = function(req, res) {
 						task["_user"] = req.user._id;
 						task.save(function(err) {
 							if (err) console.log("Error: ", err)
-							UTask.emit('create', req.user, task);
+							tasksIt++;
+							//UTask.emit('create', req.user, task);
 							
 							if (conditions) {
 								var conditionsSize = conditions.length;
 								var conditionsIt = 0;
 								
 								_(conditions).forEach(function(conditionObj, conditionIndex) {
-									conditionsIt++;
 									var condition = new UCondition(conditionObj);
 									
 									condition["id"] = uuid.v1();
@@ -87,7 +87,10 @@ exports.create = function(req, res) {
 									condition["_user"] = req.user._id;
 									condition.save(function(err) {
 										if (err) console.log("Error: ", err)
-										UCondition.emit('create', req.user, condition);
+										conditionsIt++;
+										if (conditionsIt >= conditionsSize){
+											UCondition.emit('create', req.user, condition);
+										}
 									});
 								});
 							}
