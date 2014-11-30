@@ -51,7 +51,6 @@ var UConditionSchema = new Schema({
 	endValue: String,
 	deviceId: String,
 	deviceTpId: String,
-	deviceValue: String,
 	enabled: Boolean,
 	lastUpdated: Number,
 	_user : {
@@ -187,7 +186,6 @@ UConditionSchema.statics.fromNinjaBlocks = function (ninjaPrecondition, ninjaPre
 				endValue : null,
 				deviceId : null,
 				deviceTpId : null,
-				deviceValue : null,
 				enabled : true,
 				lastUpdated : null
 			});
@@ -196,7 +194,7 @@ UConditionSchema.statics.fromNinjaBlocks = function (ninjaPrecondition, ninjaPre
 				case 'ninjaChange' : 	
 					condition.deviceTpId = ninjaPrecondition.params.guid + ':' + ninjaPrecondition.params.to;
 					condition.comparisonType = ENUMCOMPARISONTYPE.None;
-					condition.deviceValue = ninjaPrecondition.params.to;
+					condition.beginValue = ninjaPrecondition.params.to;
 					break;
 				case 'ninjaEquality' : 
 				case 'ninjaThreshold' : 
@@ -214,7 +212,7 @@ UConditionSchema.statics.fromNinjaBlocks = function (ninjaPrecondition, ninjaPre
 							condition.comparisonType = ENUMCOMPARISONTYPE.Equals;
 							break;
 					}
-					condition.deviceValue = ninjaPrecondition.params.value;
+					condition.beginValue = ninjaPrecondition.params.value;
 					break;
 				case 'ninjaRangeToggle' : 
 					condition.deviceTpId = ninjaPrecondition.params.guid;
@@ -327,29 +325,29 @@ UConditionSchema.statics.toNinjaBlocks = function (condition, cb) {
 					ninjaPrecondition.params.guid = deviceTpIdSplit[0];
 					if (deviceTpIdSplit.length > 1) { // is a subdevice
 						if (UDevice.isSwitch(deviceTpIdSplit[1])){
-							condition.deviceValue = (condition.deviceValue == '1') ? UDevice.switchOn(deviceTpIdSplit[1]) : UDevice.switchOff(deviceTpIdSplit[1])
+							condition.beginValue = (condition.beginValue == '1') ? UDevice.switchOn(deviceTpIdSplit[1]) : UDevice.switchOff(deviceTpIdSplit[1])
 						}
 					}
 					switch (condition.comparisonType) {
 						case ENUMCOMPARISONTYPE.None :
 							ninjaPrecondition.handler = 'ninjaChange';
-							ninjaPrecondition.params.to	= UDevice.toSpecialCase(device.tpId, device.type, condition.deviceValue);
-							ninjaPrecondition.params.shortName	= UDevice.isSwitch(condition.deviceValue) ? UDevice.switchTinyId(condition.deviceValue): condition.deviceValue;
+							ninjaPrecondition.params.to	= UDevice.toSpecialCase(device.tpId, device.type, condition.beginValue);
+							ninjaPrecondition.params.shortName	= UDevice.isSwitch(condition.beginValue) ? UDevice.switchTinyId(condition.beginValue): condition.beginValue;
 							break;
 						case ENUMCOMPARISONTYPE.GreaterThan :
 							ninjaPrecondition.handler = 'ninjaThreshold';//can be ninjaEquality
 							ninjaPrecondition.params.equality = 'GT';
-							ninjaPrecondition.params.value = condition.deviceValue;
+							ninjaPrecondition.params.value = condition.beginValue;
 							break;
 						case ENUMCOMPARISONTYPE.LesserThan :
 							ninjaPrecondition.handler = 'ninjaThreshold';//can be ninjaEquality
 							ninjaPrecondition.params.equality = 'LT';	
-							ninjaPrecondition.params.value = condition.deviceValue;
+							ninjaPrecondition.params.value = condition.beginValue;
 							break;
 						case ENUMCOMPARISONTYPE.Equals :
 							ninjaPrecondition.handler = 'ninjaThreshold';//can be ninjaEquality
 							ninjaPrecondition.params.equality = 'EQ';
-							ninjaPrecondition.params.value = condition.deviceValue;
+							ninjaPrecondition.params.value = condition.beginValue;
 							break;
 						case ENUMCOMPARISONTYPE.InBetween :
 							ninjaPrecondition.handler = 'ninjaRangeToggle';

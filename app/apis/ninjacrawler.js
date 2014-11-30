@@ -530,7 +530,7 @@ function ninjaCrawler(options) {
 								if (conditionObj.deviceTpId) { // if condition type is Device...
 
 									// if condition is on a switch subdevice
-									if (UDevice.isSwitch(conditionObj.deviceValue)) {
+									if (UDevice.isSwitch(conditionObj.beginValue)) {
 										var m = /(.*):(.*)/g.exec(conditionObj.deviceTpId);
 
 										if (m) {
@@ -541,7 +541,7 @@ function ninjaCrawler(options) {
 											UDevice.findOne({ tpId : newTpId }, function(err, deviceObj) {
 												if (deviceObj) {
 													conditionObj.deviceId = deviceObj.id;
-													conditionObj.deviceValue = UDevice.switchValue(conditionObj.deviceValue);
+													conditionObj.beginValue = UDevice.switchValue(conditionObj.beginValue);
 													conditionObj.deviceTpId = deviceObj.tpId;
 													conditionObj.save(function(err){
 														count--;
