@@ -83,7 +83,7 @@ UScenarioSchema.statics.createDefault = function (cb) {
 	var scenario = new UScenario({
 		id : uuid.v1(),
 		tpId : null, 
-		name : 'Default scenario ' + Date.now(),
+		name : 'Default scenario',
 		enabled : true,
 		lastUpdated : null,
 	});

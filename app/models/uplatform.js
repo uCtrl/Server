@@ -17,6 +17,7 @@ var UEStatus = {
 };
 
 var DEFAULT_FIRMWAREVERSION = '3.813';
+var DEFAULT_NAME = 'Ninja Blocks';
 var DEFAULT_IP = '192.168.X.X';
 var DEFAULT_PORT = 443;
 var DEFAULT_ROOM = 'Mon local';
@@ -92,7 +93,7 @@ UPlatformSchema.statics.fromNinjaBlocks = function (ninjaBlock, ninjaBlockId, cb
 		id : uuid.v1(),
 		tpId : ninjaBlockId,
 		firmwareVersion : DEFAULT_FIRMWAREVERSION,
-		name : ninjaBlock.short_name,
+		name : DEFAULT_NAME,
 		ip : DEFAULT_IP,
 		port : DEFAULT_PORT,
 		room : DEFAULT_ROOM,
