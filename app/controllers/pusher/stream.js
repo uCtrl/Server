@@ -38,7 +38,7 @@ exports.save = function (user) {
 
 					l.save(function(err) {
 						if (err) console.log("Error saving the task execution event log.");
-						else console.log("all good");
+						//else console.log("all good");
 					})
 				});
 			};
