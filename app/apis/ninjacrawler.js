@@ -85,23 +85,32 @@ UScenario.on('destroy', function(uCtrl_User, scenarioObj) {
 
 UScenario.on('enable', function(uCtrl_User, scenarioObj) {
 	var nb = new ninjablocks({userAccessToken : uCtrl_User.ninjablocks.userAccessToken});
+	
+	/*
 	//delete NB rules from the last active scenario(s)
 	UDevice.findById(scenarioObj._device, function(err, deviceObj) {
-		_(deviceObj._scenarios).forEach(function(scenarioId, scenarioIndex) {
-			UScenario.findById(scenarioId, function(err, scenarioObjToWork) {
-				_(scenarioObjToWork._tasks).forEach(function(taskId, taskIndex) {
-					UTask.findById(taskId, function(err, taskObj) {
-						nb.rule(taskObj.tpId).delete(function(err, result) {
-							taskObj.tpId = null;
-							taskObj.save(function(err) {
-								if(err) console.log('--ERROR : ' + err);
-								else console.log('--event : NinjaBlock rule ' + taskObj.tpId + ' deleted.');
+		if (deviceObj) {
+			var scenariosSize = deviceObj._scenarios.length;
+			_(deviceObj._scenarios).forEach(function(scenarioId, scenarioIndex) {
+				UScenario.findById(scenarioId, function(err, scenarioObjToWork) {
+					if (scenarioObjToWork) {
+						_(scenarioObjToWork._tasks).forEach(function(taskId, taskIndex) {
+							UTask.findById(taskId, function(err, taskObj) {
+								if(taskObj) {
+									nb.rule(taskObj.tpId).delete(function(err, result) {
+										taskObj.tpId = null;
+										taskObj.save(function(err) {
+											if(err) console.log('--ERROR : ' + err);
+											else console.log('--event : NinjaBlock rule ' + taskObj.tpId + ' deleted.');
+										});
+									});
+								}
 							});
 						});
-					});
+					}
 				});
 			});
-		});
+		}
 	});
 	//create/update NB rules for the current active scenario
 	_(scenarioObj._tasks).forEach(function(taskId, taskIndex) {
@@ -109,6 +118,44 @@ UScenario.on('enable', function(uCtrl_User, scenarioObj) {
 			UTask.emit('update', uCtrl_User, taskObj);
 		});
 	});
+	*/
+	
+	//delete NB rules from the last active scenario(s)
+	UDevice.findById(scenarioObj._device, function(err, deviceObj) {
+		if (deviceObj) {
+			async.forEach(deviceObj._scenarios, function(scenarioId, callback) {
+				UScenario.findById(scenarioId, function(err, scenarioObjToWork) {
+					if (scenarioObjToWork) {
+						async.forEach(scenarioObjToWork._tasks, function(taskId, callback) {
+							UTask.findById(taskId, function(err, taskObj) {
+								if(taskObj) {
+									nb.rule(taskObj.tpId).delete(function(err, result) {
+										taskObj.tpId = null;
+										taskObj.save(function(err) {
+											if(err) console.log('--ERROR : ' + err);
+											else console.log('--event : NinjaBlock rule ' + taskObj.tpId + ' deleted.');
+											callback();
+										});
+									});
+								}
+							});
+						}, function(err) {//all tasks are processed
+							callback();
+						});
+					}
+				});
+			}, function(err) {//all scenarios are processed
+				//create/update NB rules for the current active scenario
+				async.forEach(scenarioObj._tasks, function(taskId, taskIndex) {
+					UTask.findById(taskId, function(err, taskObj) {
+						UTask.emit('update', uCtrl_User, taskObj);
+					});
+				}, function(err) {//all tasks create are processed
+					//callback(undefined, true);//here the finished result	
+				});
+			});
+		}
+    });
 });
 
 /*

@@ -130,40 +130,48 @@ UConditionSchema.statics.fromNinjaBlocks = function (ninjaPrecondition, ninjaPre
 			
 			if (isDailyPeriodic(ninjaPrecondition.params.times)) {//if daily periodic
 				// Mapping Ninja to uCtrl
-				var condition = new UCondition({
+				var timeCondition = new UCondition({
 					id : uuid.v1(),
 					tpId : ninjaPreconditionId,
 					type : ENUMCONDITIONTYPE.Time,
 					comparisonType : ENUMCOMPARISONTYPE.InBetween,
 					beginValue : ninjaPrecondition.params.times[0],
 					endValue : ninjaPrecondition.params.times[1],
-					deviceId : null,
-					deviceTpId : null,
-					deviceValue : null,
-					enabled : true,
-					lastUpdated : null,
+					enabled : true
 				});
-				lstCondition.push(condition);
+				lstCondition.push(timeCondition);
 			}
 			else {//if weekday periodicTODOOO
+				var days = 0;
+				var timeBeginValue = 0;
+				var timeEndValue = 0;
+				
 				for(var i = 0; i <= lstPeriodSize-2; i+=2) {
-					// Mapping Ninja to uCtrl
-					// /1800 on a le temps, après on check les jours
-					var weekcondition = new UCondition({
-						id : uuid.v1(),
-						tpId : ninjaPreconditionId + ':' + i,
-						type : ENUMCONDITIONTYPE.Day,
-						comparisonType : ENUMCOMPARISONTYPE.InBetween,
-						beginValue : ninjaPrecondition.params.times[i],
-						endValue : ninjaPrecondition.params.times[i+1],
-						deviceId : null,
-						deviceTpId : null,
-						deviceValue : null,
-						enabled : true,
-						lastUpdated : null,
-					});
-					lstCondition.push(weekcondition);
+					var currDay = Math.floor(ninjaPrecondition.params.times[i] / DAYSECONDS);
+					days += Math.pow(2, currDay);
+					timeBeginValue = ninjaPrecondition.params.times[i] % DAYSECONDS;
+					timeEndValue = ninjaPrecondition.params.times[i+1] % DAYSECONDS;
 				}
+				var dayCondition = new UCondition({
+					id : uuid.v1(),
+					tpId : ninjaPreconditionId + ':' + 0,
+					type : ENUMCONDITIONTYPE.Day,
+					comparisonType : ENUMCOMPARISONTYPE.None,
+					beginValue : days,
+					endValue : days,
+					enabled : true
+				});
+				var timeCondition = new UCondition({
+					id : uuid.v1(),
+					tpId : ninjaPreconditionId + ':' + 1,
+					type : ENUMCONDITIONTYPE.Time,
+					comparisonType : ENUMCOMPARISONTYPE.InBetween,
+					beginValue : timeBeginValue,
+					endValue : timeEndValue,
+					enabled : true,
+				});
+				lstCondition.push(dayCondition);
+				lstCondition.push(timeCondition);
 			}
 			break;
 		case 'ninjaChange':
@@ -186,7 +194,7 @@ UConditionSchema.statics.fromNinjaBlocks = function (ninjaPrecondition, ninjaPre
 			switch (ninjaPrecondition.handler) {
 				//when condition includes a rf subdevice.
 				case 'ninjaChange' : 	
-					condition.deviceTpId = ninjaPrecondition.params.guid + ':' + ninjaPrecondition.params.to; //TODO don't have access to subdevice id
+					condition.deviceTpId = ninjaPrecondition.params.guid + ':' + ninjaPrecondition.params.to;
 					condition.comparisonType = ENUMCOMPARISONTYPE.None;
 					condition.deviceValue = ninjaPrecondition.params.to;
 					break;
