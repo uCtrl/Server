@@ -86,40 +86,6 @@ UScenario.on('destroy', function(uCtrl_User, scenarioObj) {
 UScenario.on('enable', function(uCtrl_User, scenarioObj) {
 	var nb = new ninjablocks({userAccessToken : uCtrl_User.ninjablocks.userAccessToken});
 	
-	/*
-	//delete NB rules from the last active scenario(s)
-	UDevice.findById(scenarioObj._device, function(err, deviceObj) {
-		if (deviceObj) {
-			var scenariosSize = deviceObj._scenarios.length;
-			_(deviceObj._scenarios).forEach(function(scenarioId, scenarioIndex) {
-				UScenario.findById(scenarioId, function(err, scenarioObjToWork) {
-					if (scenarioObjToWork) {
-						_(scenarioObjToWork._tasks).forEach(function(taskId, taskIndex) {
-							UTask.findById(taskId, function(err, taskObj) {
-								if(taskObj) {
-									nb.rule(taskObj.tpId).delete(function(err, result) {
-										taskObj.tpId = null;
-										taskObj.save(function(err) {
-											if(err) console.log('--ERROR : ' + err);
-											else console.log('--event : NinjaBlock rule ' + taskObj.tpId + ' deleted.');
-										});
-									});
-								}
-							});
-						});
-					}
-				});
-			});
-		}
-	});
-	//create/update NB rules for the current active scenario
-	_(scenarioObj._tasks).forEach(function(taskId, taskIndex) {
-		UTask.findById(taskId, function(err, taskObj) {
-			UTask.emit('update', uCtrl_User, taskObj);
-		});
-	});
-	*/
-	
 	//delete NB rules from the last active scenario(s)
 	UDevice.findById(scenarioObj._device, function(err, deviceObj) {
 		if (deviceObj) {
@@ -170,12 +136,19 @@ UTask.on('update', function(uCtrl_User, taskObj) {//TODO : review & test, condit
 	UTask.toNinjaBlocks(taskObj, function(ninjaRule) {
 		if (taskObj.tpId) {//if NB rule doesn't exist
 			nb.rule(taskObj.tpId).update(ninjaRule, function(err, result) {
+				if(err) {
+					console.log('--ERROR : ' + JSON.stringify(ninjaRule));
+					console.log('--ERROR : ' + err);
+				}
 				console.log('--event : NinjaBlock rule ' + taskObj.tpId + ' updated.');
 			});
 		}
 		else {
 			nb.rule().create(ninjaRule, function(err, result) {
-				if(err) console.log('--ERROR : ' + err);
+				if(err) {
+					console.log('--ERROR : ' + JSON.stringify(ninjaRule));
+					console.log('--ERROR : ' + err);
+				}
 				else {
 					taskObj.tpId = result.data.rid
 					taskObj.save(function(err) {
