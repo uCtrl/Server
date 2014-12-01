@@ -18,20 +18,19 @@ exports.save = function (user) {
 
 		UDevice.findOne({tpId: deviceID})
 		.exec(function (err, device) {
-			//console.log(device);
 			if (err || !device) { 
 				console.log ("data in from Pusher. Can't find the related device.");
 				return;
 			}
 
-			//console.log("DATA from " + device.name + "  (" + deviceID + ")"); 
+			console.log("DATA from " + device.name + "  (" + deviceID + ")"); 
 
 			device.value = UDevice.fromSpecialCase(deviceID, device.type, data.DA);
 
 			device.lastUpdated = Date.now();
 
 			device.save(function(err, d) {
-				if (!err) UDevice.emit('update', user, d);
+				if (!err) UDevice.emit('update', user, d, 'ninja');
 			});
 
 			var o = new Stats({

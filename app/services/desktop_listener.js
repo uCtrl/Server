@@ -119,8 +119,8 @@ function dealWithEvent(user, target, action, item) {
         action: action,
         item: item
     };
-    findParents(msg, target - 1, item, function(err, msg) {
-        sendUser(token, msg);
+    findParents(msg, target - 1, item, function(err, m) {
+        sendUser(token, m);
     });
 }
 
