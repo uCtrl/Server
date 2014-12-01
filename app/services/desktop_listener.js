@@ -38,8 +38,6 @@ module.exports = function(app, server) {
                 addSocket(message.token, ws);
             }
         });
-
-        ws.send('Hello there.');
     });
 } 
 
