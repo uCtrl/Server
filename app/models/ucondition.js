@@ -323,13 +323,6 @@ UConditionSchema.statics.toNinjaBlocks = function (condition, cb) {
 				if(device) {
 					var deviceTpIdSplit = device.tpId.split(":");//subdevice id, if one, is stored into id.
 					ninjaPrecondition.params.guid = deviceTpIdSplit[0];
-					/*
-					if (deviceTpIdSplit.length > 1) { // is a subdevice
-						if (UDevice.isSwitch(deviceTpIdSplit[1])){
-							condition.beginValue = (condition.beginValue == '1' || condition.beginValue == 'true' || condition.beginValue == true) ? UDevice.switchOn(deviceTpIdSplit[1]) : UDevice.switchOff(deviceTpIdSplit[1]);
-						}
-					}
-					*/
 					switch (condition.comparisonType) {
 						case ENUMCOMPARISONTYPE.None :
 							ninjaPrecondition.handler = 'ninjaChange';
