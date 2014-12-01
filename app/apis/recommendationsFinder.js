@@ -12,14 +12,15 @@ var _ = require('lodash'),
 	uuid = require('node-uuid');
 
 
-module.exports.start = function(user) {
+module.exports.start = function (user) {
 
-	var analyzePlatforms = function(platforms) {
-		var groupedPlatforms = _.groupBy(platforms, function(platform) { return platform.room; });
+	var analyzePlatforms = function (platforms) {
+		var groupedPlatforms = _.groupBy(platforms, function (platform) { return platform.room; });
 
-		_.forEach(groupedPlatforms, function(platforms, i) {
+		_.forEach(groupedPlatforms, function (platforms, i) {
 			var devices = [];
-			_.forEach(platforms, function(platform) {		
+			_.forEach(platforms, function (platform) {	
+
 				// For now, find only the switches
 				var filteredDevices = _.filter(platform._devices, function(device) {			
 					return _.contains([1], device.type);
@@ -31,11 +32,11 @@ module.exports.start = function(user) {
 		});
 	};
 
-	var analyzeDevices = function(devices) {
-		_.forEach(devices, function(device) {
+	var analyzeDevices = function (devices) {
+		_.forEach(devices, function (device) {
 			var conditions = _.chain(device._scenarios).pluck('_tasks').pluck('_conditions');
 
-			_.forEach(devices, function(otherDevice) {
+			_.forEach(devices, function (otherDevice) {
 				if (device._id == otherDevice._id) {
 					return;
 				}
@@ -55,10 +56,8 @@ module.exports.start = function(user) {
 		});
 	};
 
-	var createRecommendation = function(device, otherDevice, value) {
-		var rec = new Recommendations({
-			id: uuid.v1(),
-			description: ("Turn " + (value ? "on '" : "off '" ) + device.name + "' when device with name '" + otherDevice.name + "' is " + (value ? "on" : "off") + "."),
+	var createRecommendation = function (device, otherDevice, value) {
+		var recObj = {
 			deviceId: device._id,
 			taskValue: value,
 			conditionType: 4,
@@ -66,13 +65,23 @@ module.exports.start = function(user) {
 			conditionBeginValue: value,
 			conditionDeviceId: otherDevice.id,
 			_user: user._id
-		});
+		}
 
-		rec.save(function(err) {
-		    if (err) console.log(err);
+		Recommendations.findOne(recObj, function (err, recommendation) {
+			if (err || recommendation)
+				return;
+
+			recObj["id"] = uuid.v1();
+			recObj["description"] = ("Turn " + (value ? "on '" : "off '" ) + device.name + "' when device with name '" + otherDevice.name + "' is " + (value ? "on" : "off") + ".");
+
+
+			var rec = new Recommendations(recObj);
+			rec.save(function(err) {
+			    if (err) 
+			    	console.log(err);
+			});
 		});
 	};
-
 
 	helper.getPlatforms(analyzePlatforms, function (err) { 
 		console.log("Something went wrong when getting platforms...");

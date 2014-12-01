@@ -74,31 +74,12 @@ var createScenario = function(recommendation, user) {
                 }
 
                 UScenario.emit('create', user, s);
-                createElseTask(s, user);
                 createTask(s, recommendation, user);
             });
 		} else {
 			createTask(scenario, recommendation, user);
 		}
 	});
-};
-
-var createElseTask = function(scenario, user) {
-	var elseTask = new UTask({
-		id: uuid.v1(),
-		value: '0',
-		enabled: true,
-		_scenario: scenario._id,
-		_user: user._id
-	});
-
-	elseTask.save(function(err, t) {
-        if (err) {
-        	console.log(err);
-        	return;
-        }
-        UTask.emit('create', user, t);
-    });
 };
 
 var createTask = function(scenario, recommendation, user) {
