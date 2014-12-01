@@ -114,7 +114,7 @@ function findParents(msg, level, item, callback) {
 
 function dealWithEvent(user, target, action, item) {
     //console.log("dealWithEvent", arguments);
-    var token = user.ninjablocks.userAccessToken;
+    var token = user._id;
     var msg = {
         target: target,
         action: action,
@@ -127,13 +127,14 @@ function dealWithEvent(user, target, action, item) {
 }
 
 function sendUser(token, msg) {
-    _.forEach(_.find(sockets, {token: token}), function (a) {
+    _.forEach(sockets[token], function (a) {
         _.forEach(a, function (s) {
             s.send(msg, function (err) {
                 if (err) {
                     console.log ("Remote socket disconnected. Should flush it.");
 
                 }
+                console.log("actually sent something.");
             });
         });
     });

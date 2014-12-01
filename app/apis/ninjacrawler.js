@@ -48,7 +48,7 @@ UDevice.on('update', function(uCtrl_User, deviceObj) {
 	var nb = new ninjablocks({userAccessToken : uCtrl_User.ninjablocks.userAccessToken});
 	UDevice.toNinjaBlocks(deviceObj, function(ninjaDevice){
 		nb.device(ninjaDevice.guid).update(ninjaDevice, function(err, result){
-			console.log('--event : NinjaBlock device ' + ninjaDevice.guid + ' updated.');
+			//console.log('--event : NinjaBlock device ' + ninjaDevice.guid + ' updated.');
 		});
 	});
 });

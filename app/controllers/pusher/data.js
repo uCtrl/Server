@@ -24,12 +24,12 @@ exports.save = function (user) {
 				return;
 			}
 
-			console.log("DATA from " + device.name + "  (" + deviceID + ")"); 
+			//console.log("DATA from " + device.name + "  (" + deviceID + ")"); 
 
 			device.value = UDevice.fromSpecialCase(deviceID, device.type, data.DA);
 
 			device.lastUpdated = Date.now();
-			
+
 			device.save(function(err, d) {
 				if (!err) UDevice.emit('update', user, d);
 			});
