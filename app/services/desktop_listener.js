@@ -107,13 +107,12 @@ function findParents(msg, level, item, callback) {
         }], 
         function(err, result) {
             if (err) console.log("error finding parents");
-            callback(err, msg);
+            else callback(err, msg);
         }
     );
 };
 
 function dealWithEvent(user, target, action, item) {
-    //console.log("dealWithEvent", arguments);
     var token = user._id;
     var msg = {
         target: target,
@@ -121,21 +120,16 @@ function dealWithEvent(user, target, action, item) {
         item: item
     };
     findParents(msg, target - 1, item, function(err, msg) {
-        //console.log("sending msg to user:", msg);
         sendUser(token, msg);
     });
 }
 
 function sendUser(token, msg) {
-    _.forEach(sockets[token], function (a) {
-        _.forEach(a, function (s) {
-            s.send(msg, function (err) {
-                if (err) {
-                    console.log ("Remote socket disconnected. Should flush it.");
-
-                }
-                console.log("actually sent something.");
-            });
+    _.forEach(sockets[token], function (s) {
+        s.send(JSON.stringify(msg), function (err) {
+            if (err) {
+                console.log ("Remote socket disconnected. Should flush it.");
+            }
         });
     });
 }
