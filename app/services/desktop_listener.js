@@ -3,6 +3,7 @@
 var _ = require('lodash'),
     async = require('async'),
     WebSocketServer = require('ws').Server,
+    uuid = require('node-uuid'),
     sockets = {};
 
 var mongoose = require('mongoose');
@@ -23,11 +24,14 @@ module.exports = function(app, server) {
 
     function addSocket (token, s) {
         var a = sockets[token] || [];
-
-        if (!_.contains(a, s)) {
+        console.log(s.id);
+        //if (!_.contains(a, s)) {
+        if (!s.id) {
+            var id = uuid.v1();
+            s.id = id;
             a.push(s);
+            sockets[token] = a;
         }
-        sockets[token] = a;
     }
 
     wss.on('connection', function(ws) {
@@ -41,7 +45,6 @@ module.exports = function(app, server) {
         });
     });
 } 
-
 
 var EAction = {
     none: 0,
@@ -128,7 +131,10 @@ function sendUser(token, msg) {
     _.forEach(sockets[token], function (s) {
         s.send(JSON.stringify(msg), function (err) {
             if (err) {
-                console.log ("Remote socket disconnected. Should flush it.");
+                console.log ("Remote socket disconnected. Should flush it.", s.id);
+                sockets[token] = _.filter(sockets[token], function(socket) {
+                    return socket.id != s.id;
+                });
             }
         });
     });
