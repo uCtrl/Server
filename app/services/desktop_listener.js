@@ -62,44 +62,40 @@ var ETarget = {
 function findParents(msg, level, item, callback) {
     async.waterfall([
         function findTask(cb) {
-            if (level > EAction.task) {
+            if (level >= ETarget.task) {
                 var c = item;
                 UTask.findOne({_id: c._task}, function(err, t) {
                     if (err) return cb(err);
-
                     msg.taskId = t.id;
                     cb(null, t);
                 })
             } else cb(null, null) // no results yet
         },
         function findScenario(task, cb) {
-            if (level > EAction.scenario) {
+            if (level >= ETarget.scenario) {
                 var t = task || item;
                 UScenario.findOne({_id: t._scenario}, function(err, s) {
                     if (err) return cb(err);
-
                     msg.scenarioId = s.id;
                     cb(null, s);
                 })
             } else cb(null, null) // no results yet
         },
         function findDevice(scenario, cb) {
-            if (level > EAction.device) {
+            if (level >= ETarget.device) {
                 var s = scenario || item;
                 UDevice.findOne({_id: s._device}, function(err, d) {
                     if (err) return cb(err);
-
                     msg.deviceId = d.id;
                     cb(null, d);
                 })
             } else cb(null, null) // no results yet
         },
         function findPlatform(device, cb) {
-            if (level > EAction.platform) {
+            if (level >= ETarget.platform) {
                 var d = device || item;
                 UPlatform.findOne({_id: d._platform}, function(err, p) {
                     if (err) return cb(err);
-
                     msg.platformId = p.id;
                     cb(null, p);
                 })
@@ -113,12 +109,16 @@ function findParents(msg, level, item, callback) {
 };
 
 function dealWithEvent(user, target, action, item) {
+
     var token = user._id;
     var msg = {
         target: target,
         action: action,
         item: item
     };
+    var k = _.keys(ETarget)[target] + 'Id';
+    msg[k] = item.id;
+
     findParents(msg, target - 1, item, function(err, m) {
         sendUser(token, m);
     });
