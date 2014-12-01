@@ -303,9 +303,16 @@ UConditionSchema.statics.toNinjaBlocks = function (condition, cb) {
 						ninjaPrecondition.params.times.push(endVal);
 					}
 					break;
+				case ENUMCOMPARISONTYPE.Equals :
+					for (var i=0; i<=6; i++) {
+						var beginVal = parseInt(condition.beginValue) + (i * DAYSECONDS);
+						var endVal = parseInt(condition.beginValue) + 60 + (i * DAYSECONDS);
+						ninjaPrecondition.params.times.push(beginVal);
+						ninjaPrecondition.params.times.push(endVal);
+					}
+					break;
 				case ENUMCOMPARISONTYPE.None :
 				case ENUMCOMPARISONTYPE.InBetween :
-				case ENUMCOMPARISONTYPE.Equals :
 				default :
 					for (var i=0; i<=6; i++) {
 						var beginVal = parseInt(condition.beginValue) + (i * DAYSECONDS);
