@@ -86,28 +86,30 @@ function resolveTask(ruleName, user, callback) {
 			task.value = options.actionValue;
 			UDevice.findOne({tpId: options.actionDevice}, function(err, device) {
 				if (err) console.trace(err);
-				UScenario.findOne({_id:device._scenarios[0]}, function(err, scenario){
-					if (err) console.trace(err);
-					task['parentId'] = scenario.id;
-					task['_scenario'] = scenario._id;
-					task['_user'] = user._id;
+				if (device) {
+					UScenario.findOne({_id:device._scenarios[0]}, function(err, scenario){
+						if (err) console.trace(err);
+						task['parentId'] = scenario.id;
+						task['_scenario'] = scenario._id;
+						task['_user'] = user._id;
 
-					_(nbRule.preconditions).forEach(function(preconditionObj, preconditionId) {
-						UCondition.fromNinjaBlocks(preconditionObj, task.tpId + ':' + preconditionId, function(lstCondition){
-							task.save(function(err,t) {
-								if (err) console.log(err);
-								callback(task);
-								_.forEach(lstCondition, function(cond) {
-									cond['parentId'] = task.id;
-									cond['_user'] = user._id;
-									cond.save(function(err,c) {
-										if (err)console.log(err);
-									});
-								})
+						_(nbRule.preconditions).forEach(function(preconditionObj, preconditionId) {
+							UCondition.fromNinjaBlocks(preconditionObj, task.tpId + ':' + preconditionId, function(lstCondition){
+								task.save(function(err,t) {
+									if (err) console.log(err);
+									callback(task);
+									_.forEach(lstCondition, function(cond) {
+										cond['parentId'] = task.id;
+										cond['_user'] = user._id;
+										cond.save(function(err,c) {
+											if (err)console.log(err);
+										});
+									})
+								});
 							});
 						});
 					});
-				});
+				}
 			});
 		});
 	});
