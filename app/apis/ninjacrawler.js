@@ -44,13 +44,15 @@ UPlatform.on('destroy', defaultEvent);//TODO : unpair block and delete all devic
  */
 UDevice.on('create', defaultEvent);
 
-UDevice.on('update', function(uCtrl_User, deviceObj) {
-	var nb = new ninjablocks({userAccessToken : uCtrl_User.ninjablocks.userAccessToken});
-	UDevice.toNinjaBlocks(deviceObj, function(ninjaDevice){
-		nb.device(ninjaDevice.guid).update(ninjaDevice, function(err, result){
-			console.log('--event : NinjaBlock device ' + ninjaDevice.guid + ' updated.');
+UDevice.on('update', function(uCtrl_User, deviceObj, source) {
+	if (source != 'ninja') {
+		var nb = new ninjablocks({userAccessToken : uCtrl_User.ninjablocks.userAccessToken});
+		UDevice.toNinjaBlocks(deviceObj, function(ninjaDevice){
+			nb.device(ninjaDevice.guid).update(ninjaDevice, function(err, result){
+				console.log('--event : NinjaBlock device ' + ninjaDevice.guid + ' updated.');
+			});
 		});
-	});
+	}
 });
 UDevice.on('destroy', defaultEvent);
 
