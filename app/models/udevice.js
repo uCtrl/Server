@@ -327,7 +327,7 @@ UDeviceSchema.statics.toSpecialCase = function(deviceTpId, deviceType, value) {
 		case 1:
 			var t = deviceTpId.split(':');
 			var UDevice = mongoose.model('UDevice', UDeviceSchema);
-			r = (value == '1') ? UDevice.switchOn(t[1]) : UDevice.switchOff(t[1]);
+			r = (value == '1' || value == 'true' || value == true) ? UDevice.switchOn(t[1]) : UDevice.switchOff(t[1]);
 		break;
 		case 5://bell
 		case 7://motion
