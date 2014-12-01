@@ -59,17 +59,21 @@ UDevice.on('destroy', defaultEvent);
  */
 //TODO : review & test
 UScenario.on('create', function(uCtrl_User, scenarioObj) {
+	/*
 	if (scenarioObj.enabled) 
 		UScenario.emit('enable', uCtrl_User, scenarioObj);
 	else
 		console.log('--event : no NinjaBlock action to do.');
+	*/
 });
 
 UScenario.on('update', function(uCtrl_User, scenarioObj) {
+	/*
 	if (scenarioObj.enabled) 
 		UScenario.emit('enable', uCtrl_User, scenarioObj);
 	else
 		console.log('--event : no NinjaBlock action to do.');
+	*/
 });
 
 UScenario.on('destroy', function(uCtrl_User, scenarioObj) {
@@ -83,6 +87,7 @@ UScenario.on('destroy', function(uCtrl_User, scenarioObj) {
 	}
 });
 
+/* Scenario enable condition.
 UScenario.on('enable', function(uCtrl_User, scenarioObj) {
 	var nb = new ninjablocks({userAccessToken : uCtrl_User.ninjablocks.userAccessToken});
 	
@@ -123,6 +128,7 @@ UScenario.on('enable', function(uCtrl_User, scenarioObj) {
 		}
     });
 });
+*/
 
 /*
  * UTask events
