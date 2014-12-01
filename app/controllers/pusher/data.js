@@ -29,7 +29,10 @@ exports.save = function (user) {
 			device.value = UDevice.fromSpecialCase(deviceID, device.type, data.DA);
 
 			device.lastUpdated = Date.now();
-			device.save();
+			
+			device.save(function(err, d) {
+				if (!err) UDevice.emit('update', user, d);
+			});
 
 			var o = new Stats({
 				// Ninja equivalents

@@ -34,6 +34,7 @@ module.exports = function(app, server) {
         console.log("User connected.");
         
         ws.on('message', function(message) {
+            message = JSON.parse(message);
             if (message.token) {
                 addSocket(message.token, ws);
             }
@@ -60,9 +61,9 @@ var ETarget = {
 
 function findParents(msg, level, item, callback) {
     async.waterfall([
-        function findTask(cond, cb) {
+        function findTask(cb) {
             if (level > EAction.task) {
-                var c = cond || item;
+                var c = item;
                 UTask.findOne({_id: c._task}, function(err, t) {
                     if (err) return cb(err);
 
@@ -112,6 +113,7 @@ function findParents(msg, level, item, callback) {
 };
 
 function dealWithEvent(user, target, action, item) {
+    //console.log("dealWithEvent", arguments);
     var token = user.ninjablocks.userAccessToken;
     var msg = {
         target: target,
@@ -119,6 +121,7 @@ function dealWithEvent(user, target, action, item) {
         item: item
     };
     findParents(msg, target - 1, item, function(err, msg) {
+        //console.log("sending msg to user:", msg);
         sendUser(token, msg);
     });
 }
