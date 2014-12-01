@@ -103,7 +103,7 @@ UTaskSchema.statics.toNinjaBlocks = function (task, cb) {
 	
 	var ninjaRule = {
 		rid : task.tpId,
-		shortName : task.name,
+		shortName : task.id,
 		timeout : NB_TIMEOUT,
 		preconditions : [],//filled below if any
 		actions : [{ 
