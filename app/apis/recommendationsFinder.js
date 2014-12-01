@@ -61,7 +61,7 @@ module.exports.start = function (user) {
 			deviceId: device._id,
 			taskValue: value,
 			conditionType: 4,
-			conditionComparisonType: 4,
+			conditionComparisonType: 0,
 			conditionBeginValue: value,
 			conditionDeviceId: otherDevice.id,
 			_user: user._id
