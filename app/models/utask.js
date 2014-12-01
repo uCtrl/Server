@@ -5,6 +5,7 @@ var mongoose = require('mongoose'),
 	Schema   = mongoose.Schema,
 	cleanJson = require('./cleanJson.js'),
 	_ = require('lodash'),
+	async = require('async'),
 	uuid = require('node-uuid');
 
 /**
@@ -140,10 +141,9 @@ UTaskSchema.statics.toNinjaBlocks = function (task, cb) {
 				var conditionsSize = conditions.length;
 				
 				if (conditionsSize >= 1) {
-					var i = 0;
 					var dayCondition = null;
 					var timeCondition = null;
-					var deviceCondition = null;
+					var lstDeviceCondition = [];
 
 					_(conditions).forEach(function(conditionObj){
 						switch (conditionObj.type) {
@@ -154,7 +154,7 @@ UTaskSchema.statics.toNinjaBlocks = function (task, cb) {
 								timeCondition = conditionObj;
 								break;
 							case 4 ://device
-								deviceCondition = conditionObj;
+								lstDeviceCondition.push(conditionObj);
 								break;
 							case -1 : //none
 							case 1 : //date
@@ -163,47 +163,54 @@ UTaskSchema.statics.toNinjaBlocks = function (task, cb) {
 						}
 					});
 					
-					if(deviceCondition) {
-						UCondition.toNinjaBlocks(deviceCondition, function(ninjaPrecondition){
-							ninjaRule.preconditions.push(ninjaPrecondition);
-							i++;
-							if(i >= conditionsSize) 
-								cb(ninjaRule);
-						});
-					}
-					if(dayCondition && timeCondition) {
-						var days = parseInt(dayCondition.beginValue);
-						var times = [];
-						UCondition.toNinjaBlocks(timeCondition, function(ninjaPrecondition){
-							for(var i=0; i<=6; i++) {
-								if (days & Math.pow(2, i)) {
-									times.push(ninjaPrecondition.params.times[(i*2)]);
-									times.push(ninjaPrecondition.params.times[(i*2)+1]);
-								}
+					async.series([
+						function(callback) {
+							if(lstDeviceCondition.length >= 1) {
+								async.forEach(lstDeviceCondition, function(deviceConditionObj, callback) {
+									UCondition.toNinjaBlocks(deviceConditionObj, function(ninjaPrecondition){
+										ninjaRule.preconditions.push(ninjaPrecondition);
+										callback();
+									});
+								}, function(err) {
+									callback();
+								});
+								
 							}
-							ninjaPrecondition.params.times = times;
-							ninjaRule.preconditions.push(ninjaPrecondition);
-							i+=2;
-							if(i >= conditionsSize) 
-								cb(ninjaRule);
-						});
-					}
-					else if(dayCondition) {
-						UCondition.toNinjaBlocks(dayCondition, function(ninjaPrecondition){
-							ninjaRule.preconditions.push(ninjaPrecondition);
-							i++;
-							if(i >= conditionsSize) 
-								cb(ninjaRule);
-						});
-					}
-					else if(timeCondition) {
-						UCondition.toNinjaBlocks(timeCondition, function(ninjaPrecondition){
-							ninjaRule.preconditions.push(ninjaPrecondition);
-							i++;
-							if(i >= conditionsSize) 
-								cb(ninjaRule);
-						});
-					}					
+							else callback();
+						},
+						function(callback) {
+							if(dayCondition && timeCondition) {
+								var days = parseInt(dayCondition.beginValue);
+								var times = [];
+								UCondition.toNinjaBlocks(timeCondition, function(ninjaPrecondition){
+									for(var i=0; i<=6; i++) {
+										if (days & Math.pow(2, i)) {
+											times.push(ninjaPrecondition.params.times[(i*2)]);
+											times.push(ninjaPrecondition.params.times[(i*2)+1]);
+										}
+									}
+									ninjaPrecondition.params.times = times;
+									ninjaRule.preconditions.push(ninjaPrecondition);
+									callback();
+								});
+							}
+							else if(dayCondition) {
+								UCondition.toNinjaBlocks(dayCondition, function(ninjaPrecondition){
+									ninjaRule.preconditions.push(ninjaPrecondition);
+									callback();
+								});
+							}
+							else if(timeCondition) {
+								UCondition.toNinjaBlocks(timeCondition, function(ninjaPrecondition){
+									ninjaRule.preconditions.push(ninjaPrecondition);
+									callback();
+								});
+							}
+							else callback();
+						}
+					], function(err) {
+						cb(ninjaRule);
+					});
 				}
 			});
 		});
