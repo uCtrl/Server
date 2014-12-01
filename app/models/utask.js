@@ -104,7 +104,7 @@ UTaskSchema.statics.toNinjaBlocks = function (task, cb) {
 	
 	var ninjaRule = {
 		rid : task.tpId,
-		shortName : task.name,
+		shortName : task.id,
 		timeout : NB_TIMEOUT,
 		preconditions : [],//filled below if any
 		actions : [{ 
@@ -123,17 +123,6 @@ UTaskSchema.statics.toNinjaBlocks = function (task, cb) {
 			var deviceTpIdSplit = device.tpId.split(":");//subdevice data, if one, is stored into id.
 			ninjaRule.actions[0].params.guid = deviceTpIdSplit[0];
 			ninjaRule.actions[0].params.da = UDevice.toSpecialCase(device.tpId, device.type, task.value);
-			
-			// if device is a subdevice
-			//TODO to verify with Wrench.
-			/*if (deviceTpIdSplit.length > 1) {
-				if (UDevice.isSwitch(deviceTpIdSplit[1])){
-					var da = ninjaRule.actions[0].params.da;
-					da = (da == '1' || da == true)  ? UDevice.switchOn(deviceTpIdSplit[1]) : UDevice.switchOff(deviceTpIdSplit[1]);
-					ninjaRule.actions[0].params.shortName = UDevice.switchTinyId(da);
-					ninjaRule.actions[0].params.da = da;
-				}
-			}*/
 	
 			//mapping conditions here
 			//all times preconditions for a rule need to be mapped in only one precondition

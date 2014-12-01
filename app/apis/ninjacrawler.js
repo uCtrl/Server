@@ -35,15 +35,14 @@ User.on('destroy', defaultEvent);
 /*
  * UPlatform events
  */
-UPlatform.on('create', defaultEvent);//TODO : pair block?
+UPlatform.on('create', defaultEvent);
 UPlatform.on('update', defaultEvent);
-UPlatform.on('destroy', defaultEvent);//TODO : unpair block and delete all devices and rules related?
+UPlatform.on('destroy', defaultEvent);
 
 /*
  * UDevice events
  */
 UDevice.on('create', defaultEvent);
-
 UDevice.on('update', function(uCtrl_User, deviceObj, source) {
 	if (source != 'ninja') {
 		var nb = new ninjablocks({userAccessToken : uCtrl_User.ninjablocks.userAccessToken});
@@ -59,25 +58,8 @@ UDevice.on('destroy', defaultEvent);
 /*
  * UScenario events
  */
-//TODO : review & test
-UScenario.on('create', function(uCtrl_User, scenarioObj) {
-	/*
-	if (scenarioObj.enabled) 
-		UScenario.emit('enable', uCtrl_User, scenarioObj);
-	else
-		console.log('--event : no NinjaBlock action to do.');
-	*/
-});
-
-UScenario.on('update', function(uCtrl_User, scenarioObj) {
-	/*
-	if (scenarioObj.enabled) 
-		UScenario.emit('enable', uCtrl_User, scenarioObj);
-	else
-		console.log('--event : no NinjaBlock action to do.');
-	*/
-});
-
+UScenario.on('create', defaultEvent);
+UScenario.on('update', defaultEvent);
 UScenario.on('destroy', function(uCtrl_User, scenarioObj) {
 	var nb = new ninjablocks({userAccessToken : uCtrl_User.ninjablocks.userAccessToken});
 	if(scenarioObj) {
@@ -88,49 +70,7 @@ UScenario.on('destroy', function(uCtrl_User, scenarioObj) {
 		});
 	}
 });
-
-/* Scenario enable condition.
-UScenario.on('enable', function(uCtrl_User, scenarioObj) {
-	var nb = new ninjablocks({userAccessToken : uCtrl_User.ninjablocks.userAccessToken});
-	
-	//delete NB rules from the last active scenario(s)
-	UDevice.findById(scenarioObj._device, function(err, deviceObj) {
-		if (deviceObj) {
-			async.forEach(deviceObj._scenarios, function(scenarioId, callback) {
-				UScenario.findById(scenarioId, function(err, scenarioObjToWork) {
-					if (scenarioObjToWork) {
-						async.forEach(scenarioObjToWork._tasks, function(taskId, callback) {
-							UTask.findById(taskId, function(err, taskObj) {
-								if(taskObj) {
-									nb.rule(taskObj.tpId).delete(function(err, result) {
-										taskObj.tpId = null;
-										taskObj.save(function(err) {
-											if(err) console.log('--ERROR : ' + err);
-											else console.log('--event : NinjaBlock rule ' + taskObj.tpId + ' deleted.');
-											callback();
-										});
-									});
-								}
-							});
-						}, function(err) {//all tasks are processed
-							callback();
-						});
-					}
-				});
-			}, function(err) {//all scenarios are processed
-				//create/update NB rules for the current active scenario
-				async.forEach(scenarioObj._tasks, function(taskId, taskIndex) {
-					UTask.findById(taskId, function(err, taskObj) {
-						UTask.emit('update', uCtrl_User, taskObj);
-					});
-				}, function(err) {//all tasks create are processed
-					//callback(undefined, true);//here the finished result	
-				});
-			});
-		}
-    });
-});
-*/
+UScenario.on('enable', defaultEvent);
 
 /*
  * UTask events
@@ -179,23 +119,9 @@ UTask.on('destroy', function(uCtrl_User, taskObj) {//TODO : review & test
 /*
  * UCondition events
  */
-UCondition.on('create', function(uCtrl_User, conditionObj) {
-	/*UTask.findById(conditionObj._task, function(err, taskObj) {
-		UTask.emit('update', uCtrl_User, taskObj);
-	});*/
-});
-
-UCondition.on('update', function(uCtrl_User, conditionObj) {
-	/*UTask.findById(conditionObj._task, function(err, taskObj) {
-		UTask.emit('update', uCtrl_User, taskObj);
-	});*/
-});
-
-UCondition.on('destroy', function(uCtrl_User, conditionObj) {
-	/*UTask.findById(conditionObj._task, function(err, taskObj) {
-		UTask.emit('update', uCtrl_User, taskObj);
-	});*/
-});
+UCondition.on('create', defaultEvent);
+UCondition.on('update', defaultEvent);
+UCondition.on('destroy', defaultEvent);
 
 /*
  * NinjaCrawler
