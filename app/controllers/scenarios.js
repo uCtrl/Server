@@ -199,13 +199,14 @@ exports.enable = function(req, res) {
 			}
 			
 			UScenario.emit('enable', req.user, scenario);
+			/* Scenario enable condition.
 			UScenario.update(//set other scenarios to disabled
 				{ _device: scenario._device, _id: { $ne: scenario._id} }, 
 				{ $set: { enabled : false } }, 
 				{ safe: true },
 				function (err, num) { 
 					if (err) console.log("Error: ", err) });
-			
+			*/
 			res.json({
 				status: true,
 				error: null,

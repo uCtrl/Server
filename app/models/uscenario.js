@@ -39,7 +39,7 @@ UScenarioSchema.post('save', function (scenario) {
 	var UDevice = mongoose.model('UDevice');
 	var UScenario = mongoose.model('UScenario');
 	
-//TODO : test this code below
+	/* Scenario enable condition.
 	if (scenario.enabled) {//set other scenarios to disabled
 		UScenario.update(
 			{ _device: scenario._device, _id: { $ne: scenario._id} }, 
@@ -47,6 +47,7 @@ UScenarioSchema.post('save', function (scenario) {
 			{ safe: true },
 			function (err, num) { if (err) console.log("Error: ", err) });
 	}
+	*/
 	UDevice.update(
 		{ _id: scenario._device }, 
 		{ $addToSet: { _scenarios: scenario._id } }, 
