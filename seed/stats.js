@@ -133,6 +133,67 @@ module.exports = function() {
                     cb(err, devices);
                 });
 
+            }, function fillTemp(devices, cb) {
+
+                var ids = [
+                '1014BBBK6089_0101_0_31'];
+
+
+                async.each(ids, function(id, callback_id) {
+                    var temp = _.find(devices, {tpId: id });
+                    var values = [];
+
+                    var timestamps = _.map(days, function(d) {
+                        var temps = [17,17,18,18,18,18,19,19,20,21,22,23,22,21,20,20,20,19,20,19,18,18,17,17];
+
+                        _.forEach(temps, function (x) {
+                            values.push(x + _.random(0, 0.3));
+                            values.push(x + _.random(0, 0.3));
+                            values.push(x + _.random(0, 0.3));
+                            values.push(x + _.random(0, 0.3));
+                            values.push(x + _.random(0, 0.3));
+                            values.push(x + _.random(0, 0.3));
+                            values.push(x + _.random(0, 0.3));
+                            values.push(x + _.random(0, 0.3));
+                            values.push(x + _.random(0, 0.3));
+                        });
+
+                        return _.map(hours, function (x) {
+                            return [
+                                x + d + mins[0],
+                                x + d + mins[6],
+                                x + d + mins[13],
+                                x + d + mins[19],
+                                x + d + mins[26],
+                                x + d + mins[32],
+                                x + d + mins[38],
+                                x + d + mins[46],
+                                x + d + mins[52]];
+                        });
+                    });
+
+                    timestamps = _.sortBy(_.map(_.flatten(timestamps), function(x) {
+                        return now - x;
+                    }));
+
+                    async.each(timestamps, function(t, callback_t) {
+                        var index = _.indexOf(timestamps, t);
+                        var o = new Stats({
+                            id: temp.id,
+                            data: values[index],
+                            type: 1012,
+                            timestamp: t
+                        });
+                        o.save(function(err, o){
+                            callback_t(err);
+                        });
+                    }, function (err) {
+                        if (err) callback_id(err);
+                        callback_id(null);
+                    });
+                }, function(err) {
+                    cb(err, devices);
+                });
             }],
 
             function(err, results) {
