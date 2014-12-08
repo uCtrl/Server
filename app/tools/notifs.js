@@ -2,31 +2,31 @@
 
 // Singleton 
 module.exports.NotificationCenter = (function () {
-    var instance;
-    var callbacks = {};
+	var instance;
+	var callbacks = {};
 
-    function createInstance() {
-        return {
-            registerCallback: function (id, cb) {
-                callbacks[id] = cb;
-                return true;
-            },
+	function createInstance() {
+		return {
+			registerCallback: function (id, cb) {
+				callbacks[id] = cb;
+				return true;
+			},
 
-            triggerEvent: function(id, data) {
-                if (!callbacks[id])
-                    return false;
+			triggerEvent: function (id, data) {
+				if (!callbacks[id])
+					return false;
 
-                callbacks[id](data);
-            }
-        };
-    }
+				callbacks[id](data);
+			}
+		};
+	}
 
-    return {
-        getInstance: function () {
-            if (!instance) {
-                instance = createInstance();
-            }
-            return instance;
-        }
-    };
+	return {
+		getInstance: function () {
+			if (!instance) {
+				instance = createInstance();
+			}
+			return instance;
+		}
+	};
 })();

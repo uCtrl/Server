@@ -4,10 +4,10 @@ var mongoose = require('mongoose');
 var Schema = mongoose.Schema;
 
 var RecommendationsSchema = new Schema({
-	id: { type: String, required: true}, 
+	id: { type: String, required: true},
 	description: { type: String, required: true},
 	deviceId: {
-		type: Schema.Types.ObjectId, 
+		type: Schema.Types.ObjectId,
 		ref: 'UDevice',
 		required: true
 	},
@@ -18,8 +18,8 @@ var RecommendationsSchema = new Schema({
 	conditionEndValue: String,
 	conditionDeviceId: String,
 	accepted: Boolean,
-	_user : {
-		type: Schema.Types.ObjectId, 
+	_user: {
+		type: Schema.Types.ObjectId,
 		ref: 'User',
 		required: true
 	}

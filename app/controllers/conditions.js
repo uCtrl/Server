@@ -1,7 +1,6 @@
 'use strict';
 
-var _ = require('lodash'),
-	mongoose = require('mongoose'),
+var mongoose = require('mongoose'),
 	uuid = require('node-uuid'),
 	UTask = mongoose.model('UTask'),
 	UCondition = mongoose.model('UCondition'),
@@ -10,15 +9,15 @@ var _ = require('lodash'),
 exports.all = function (req, res) {
 	var taskId = req.params.taskId;
 
-	UTask.findOne({ id: taskId}, function(err, task) {
-		UCondition.find({ _task: task._id }, function(err, conditions) {
+	UTask.findOne({ id: taskId}, function (err, task) {
+		UCondition.find({ _task: task._id }, function (err, conditions) {
 			if (err) {
 				return res.status(500).json({
 					status: false,
 					error: err
 				});
 			}
-			
+
 			UCondition.emit('all', req.user, conditions);
 			res.json({
 				status: true,
@@ -29,30 +28,30 @@ exports.all = function (req, res) {
 	});
 };
 
-exports.create = function(req, res) {
+exports.create = function (req, res) {
 	var taskId = req.params.taskId;
 	var condition = new UCondition(req.body);
-	console.log("CONDITION CREATE BODY:", req.body);
+	console.log('CONDITION CREATE BODY:', req.body);
 
-	UTask.findOne({ id: taskId }).exec(function(err, task) {
+	UTask.findOne({ id: taskId }).exec(function (err, task) {
 		if (err) {
 			return res.status(500).json({
 				status: false,
 				error: err
 			});
-	    }
-		
-		condition["id"] = uuid.v1();
-		condition["_task"] = task._id;
-		condition["_user"] = req.user
-		condition.save(function(err) {
+		}
+
+		condition.id = uuid.v1();
+		condition._task = task._id;
+		condition._user = req.user;
+		condition.save(function (err) {
 			if (err) {
 				return res.status(500).json({
 					status: false,
 					error: err
 				});
 			}
-			
+
 			UCondition.emit('create', req.user, condition);
 			res.json({
 				status: true,
@@ -63,11 +62,11 @@ exports.create = function(req, res) {
 	});
 };
 
-exports.update = function(req, res) {
+exports.update = function (req, res) {
 	var conditionId = req.params.conditionId;
 
 	UCondition.findOneAndUpdate(
-		{ id: conditionId }, 
+		{ id: conditionId },
 		req.body,
 		function (err, condition) {
 			if (err) {
@@ -76,74 +75,74 @@ exports.update = function(req, res) {
 					error: err
 				});
 			}
-			
+
 			UCondition.emit('update', req.user, condition);
 			var l = new Logs({
-				type: Logs.LOGTYPE.Scenario, 
-				severity: Logs.LOGSEVERITY.Normal,  
-				message: "Task '" + condition.shortName + "' was updated.",
+				type: Logs.LOGTYPE.Scenario,
+				severity: Logs.LOGSEVERITY.Normal,
+				message: 'Task \'' + condition.shortName + '\' was updated.',
 				id: condition.id,
 				timestamp: Date.now()
 			});
 
-			l.save(function(err) {
-				if (err) console.log("Error saving the cond update log");
+			l.save(function (err) {
+				if (err) console.log('Error saving the cond update log');
 			});
 
 			res.json({
 				status: true,
 				error: null,
-				condition: condition 
+				condition: condition
 			});
 		}
-		);
+	);
 };
 
-exports.destroy = function(req, res) {
+exports.destroy = function (req, res) {
 	var conditionId = req.params.conditionId;
 
-	UCondition.findOne({ id: conditionId }, function(err, condition) {
+	UCondition.findOne({ id: conditionId }, function (err, condition) {
 		if (err) {
 			return res.status(500).json({
 				status: false,
 				error: err
 			});
 		}
-		
-		condition.remove(function(err, conditionObj) {
+
+		condition.remove(function (err, conditionObj) {
 			if (err) {
 				return res.status(500).json({
 					status: false,
 					error: err
 				});
 			}
-			
+
 			UCondition.emit('destroy', req.user, conditionObj);
 			res.json({
 				status: true,
 				error: null,
-				condition : conditionObj
+				condition: conditionObj
 			});
 		});
 	});
 };
 
-exports.show = function(req, res) {
+exports.show = function (req, res) {
 	var conditionId = req.params.conditionId;
 
-	UCondition.findOne({ id: conditionId }, function(err, condition) {
-	    if (err) {
+	UCondition.findOne({ id: conditionId }, function (err, condition) {
+		if (err) {
 			return res.status(500).json({
 				status: false,
 				error: err
 			});
 		}
-		
+
 		UCondition.emit('show', req.user, condition);
-	    res.json({
+		res.json({
 			status: true,
 			error: null,
-			condition: condition 
+			condition: condition
 		});
 	});
 };

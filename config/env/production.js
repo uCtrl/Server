@@ -1,5 +1,5 @@
 'use strict';
 
 module.exports = {
-    db: 'mongodb://localhost/uCtrl'
+	db: 'mongodb://localhost/uCtrl'
 };

@@ -1,7 +1,7 @@
 'use strict';
 
 var mongoose = require('mongoose'),
-	Schema   = mongoose.Schema,
+	Schema = mongoose.Schema,
 	cleanJson = require('./cleanJson.js'),
 	_ = require('lodash'),
 	uuid = require('node-uuid');
@@ -10,9 +10,9 @@ var mongoose = require('mongoose'),
  * Constants
  */
 var UEStatus = {
-	OK : 0,
-	Error : 1,
-	Disconnected : 2
+	OK: 0,
+	Error: 1,
+	Disconnected: 2
 	//...
 };
 
@@ -41,23 +41,27 @@ var UPlatformSchema = new Schema({
 	status: Number,
 	enabled: Boolean,
 	lastUpdated: Number,
-	_user : {
-		type: Schema.Types.ObjectId, 
+	_user: {
+		type: Schema.Types.ObjectId,
 		ref: 'User'
 	},
-	_devices : [{
-		type: Schema.Types.ObjectId, 
-		ref: 'UDevice'
-	}]
+	_devices: [
+		{
+			type: Schema.Types.ObjectId,
+			ref: 'UDevice'
+		}
+	]
 });
 
 UPlatformSchema.post('save', function (platform) {
 	var User = mongoose.model('User');
 	User.update(
-		{ _id: platform._user }, 
-		{ $addToSet: { _platforms: platform._id } }, 
+		{ _id: platform._user },
+		{ $addToSet: { _platforms: platform._id } },
 		{ safe: true },
-		function (err, num) { if (err) console.log("Error: ", err) });
+		function (err) {
+			if (err) console.log('Error: ', err);
+		});
 });
 
 // Can't use middleware on findAndUpdate functions
@@ -65,19 +69,23 @@ UPlatformSchema.post('save', function (platform) {
 UPlatformSchema.post('remove', function (platform) {
 	var User = mongoose.model('User');
 	var UDevice = mongoose.model('UDevice');
-	
+
 	User.update(
-		{ _id: platform._user }, 
-		{ $pull: { _platforms: platform._id } }, 
+		{ _id: platform._user },
+		{ $pull: { _platforms: platform._id } },
 		{ safe: true },
-		function (err, num) { if (err) console.log("Error: ", err) });
-		
-	UDevice.find({ _id: { $in: platform._devices } }, function(err, devices) {
+		function (err) {
+			if (err) console.log('Error: ', err);
+		});
+
+	UDevice.find({ _id: { $in: platform._devices } }, function (err, devices) {
 		if (err) {
-			console.log("Error: ", err);
+			console.log('Error: ', err);
 			return;
 		}
-		_(devices).forEach(function(device) { device.remove() } );
+		_(devices).forEach(function (device) {
+			device.remove();
+		});
 	});
 });
 
@@ -90,18 +98,18 @@ UPlatformSchema.statics.fromNinjaBlocks = function (ninjaBlock, ninjaBlockId, cb
 	// Mapping Ninja to uCtrl
 	// id : Have this info with all blocks GET request only. See examples of GET.
 	var platform = new UPlatform({
-		id : uuid.v1(),
-		tpId : ninjaBlockId,
-		firmwareVersion : DEFAULT_FIRMWAREVERSION,
-		name : DEFAULT_NAME,
-		ip : DEFAULT_IP,
-		port : DEFAULT_PORT,
-		room : DEFAULT_ROOM,
-		status : UEStatus.OK,
-		enabled : true,
-		lastUpdated : ninjaBlock.date_created,
+		id: uuid.v1(),
+		tpId: ninjaBlockId,
+		firmwareVersion: DEFAULT_FIRMWAREVERSION,
+		name: DEFAULT_NAME,
+		ip: DEFAULT_IP,
+		port: DEFAULT_PORT,
+		room: DEFAULT_ROOM,
+		status: UEStatus.OK,
+		enabled: true,
+		lastUpdated: ninjaBlock.date_created
 	});
-	
+
 	cb(platform);
 };
 
@@ -112,9 +120,9 @@ UPlatformSchema.statics.fromNinjaBlocks = function (ninjaBlock, ninjaBlockId, cb
 UPlatformSchema.statics.toNinjaBlocks = function (platform, cb) {
 	//Can't post a block. Can post a nodeid to activate the block only
 	var ninjaBlock = {
-		nodeid : platform.tpId,
-		short_name : platform.name
-	}
+		nodeid: platform.tpId,
+		short_name: platform.name
+	};
 	cb(ninjaBlock);
 };
 
