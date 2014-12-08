@@ -5,49 +5,47 @@ var _ = require('lodash'),
 	UPlatform = mongoose.model('UPlatform'),
 	UDevice = mongoose.model('UDevice'),
 	UScenario = mongoose.model('UScenario'),
-	UTask = mongoose.model('UTask'),
-	UCondition = mongoose.model('UCondition');
+	UTask = mongoose.model('UTask');
 
-
-exports.getPlatforms = function(cb, errCb) {
+exports.getPlatforms = function (cb, errCb) {
 	UPlatform.find().populate('_devices').sort('room').exec()
-	.onResolve(function(err, platforms) {
-		if (err) { 
-			errCb(err);
-			return;
-		}
-
-		var devices = _.flatten(_.pluck(platforms, '_devices'));
-		UDevice.populate(devices, { path: '_scenarios' })
-		.onResolve(function(err, devices) {
+		.onResolve(function (err, platforms) {
 			if (err) {
-				errCb(err);	
+				errCb(err);
 				return;
-			} 
+			}
 
-			var scenarios = _.flatten(_.pluck(devices, '_scenarios'));
-			UScenario.populate(scenarios, { path: '_tasks' })
-			.onResolve(function(err, scenarios) {
-				if (err) {
-					errCb(err);	
-					return;
-				} 
-
-				var tasks = _.flatten(_.pluck(scenarios, '_tasks'));
-				UTask.populate(tasks, { path: '_conditions' })
-				.onResolve(function(err, conditions) {
+			var devices = _.flatten(_.pluck(platforms, '_devices'));
+			UDevice.populate(devices, { path: '_scenarios' })
+				.onResolve(function (err, devices) {
 					if (err) {
-						errCb(err);	
+						errCb(err);
 						return;
-					} 
-
-					for (var i = 0; i < platforms.length; i++) {
-						platforms[i] = platforms[i].toObject();
 					}
-					
-					cb(platforms);
+
+					var scenarios = _.flatten(_.pluck(devices, '_scenarios'));
+					UScenario.populate(scenarios, { path: '_tasks' })
+						.onResolve(function (err, scenarios) {
+							if (err) {
+								errCb(err);
+								return;
+							}
+
+							var tasks = _.flatten(_.pluck(scenarios, '_tasks'));
+							UTask.populate(tasks, { path: '_conditions' })
+								.onResolve(function (err) {
+									if (err) {
+										errCb(err);
+										return;
+									}
+
+									for (var i = 0; i < platforms.length; i++) {
+										platforms[i] = platforms[i].toObject();
+									}
+
+									cb(platforms);
+								});
+						});
 				});
-			});
 		});
-	});
 };

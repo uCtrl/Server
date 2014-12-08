@@ -1,316 +1,316 @@
 {
-  "platforms":[
-    {
-      "id": "1",
-      "firmwareVersion": "1.0.0.0",
-            "name": "Plateforme du salon",
-      "ip": "10.0.0.1",
-      "port": 5001,
-      "status": 0,
-            "room": "Salon",
-      "enabled": true,
-      "lastUpdated": 1413843222,
-      "devices": [
-        {
-          "id": "100",
-          "name": "Température",
-          "type": 1,
-          "description": "Capteur de température du salon",
-          "maxValue": "100",
-          "minValue": "0",
-          "value": "21.2",
-          "precision": 1,
-          "status": 0,
-          "unitLabel": "°C",
-          "enabled": true,
-          "lastUpdated": 1413843222,
-          "scenarios": [ ]
-        },
-        {
-          "id": "101",
-          "name": "Lumière",
-          "type": 233,
-          "description": "Lumière principale du salon",
-          "maxValue": "1",
-          "minValue": "0",
-          "value": "0",
-          "precision": 0,
-          "status": 0,
-          "unitLabel": "",
-          "enabled": true,
-          "lastUpdated": 1413843222,
-          "scenarios": [
-            {
-              "id": "1000",
-              "name": "Semaine",
-              "enabled": true,
-              "lastUpdated": 1413843222,
-              "tasks": [
-                {
-                  "id": "10000",
-                  "value": "0",
-                  "enabled": true,
-                  "lastUpdated": 1413843222,
-                  "conditions": [
-                    {
-                      "id": "100000",
-                      "type": 4,
-                      "comparisonType": 1,
-                      "beginValue": "",
-                      "endValue": "20",
-                      "deviceId": "100",
-                      "enabled": true,
-                      "lastUpdated": 1413843222
-                    }
-                  ]
-                },
-                {
-                  "id": "10001",
-                  "value": "1",
-                  "enabled": true,
-                  "lastUpdated": 1413843222,
-                  "conditions": [ ]
-                }
-              ]
-            },
-            {
-              "id": "1001",
-              "name": "Fin de Semaine",
-              "enabled": true,
-              "lastUpdated": 1413843222,
-              "tasks": [
-                {
-                  "id": "10002",
-                  "value": "0",
-                  "enabled": true,
-                  "lastUpdated": 1413843222,
-                  "conditions": [ ]
-                }
-              ]
-            }
-          ]
-        },
-        {
-          "id": "103",
-          "name": "Humidité",
-          "type": 8,
-          "description": "Capteur d'humidité du salon",
-          "maxValue": "100",
-          "minValue": "0",
-          "value": "25.6",
-          "precision": 1,
-          "status": 0,
-          "unitLabel": "%",
-          "enabled": true,
-          "lastUpdated": 1413843222,
-          "scenarios": [ ]
-        }
-      ]
-    },
-    {
-      "id": "2",
-      "firmwareVersion": "1.0.0.0",
-            "name": "Plateforme de la cuisine",
-      "ip": "10.0.0.2",
-      "port": 5002,
-            "room": "Cusine",
-      "status": 0,
-      "enabled": true,
-      "lastUpdated": 1413843222,
-      "devices": [ 
-        {
-          "id": "200",
-          "name": "Humidité",
-          "type": 8,
-          "description": "Capteur d'humidité de la cuisine",
-          "maxValue": "100",
-          "minValue": "0",
-          "value": "21.2",
-          "precision": 1,
-          "status": 0,
-          "unitLabel": "%",
-          "enabled": true,
-          "lastUpdated": 1413843222,
-          "scenarios": [ ]
-        },
-        {
-          "id": "201",
-          "name": "Interrupteur",
-          "type": 206,
-          "description": "Interrupteur à côté de la porte en entrant",
-          "maxValue": "1",
-          "minValue": "0",
-          "value": "0",
-          "precision": 0,
-          "status": 0,
-          "unitLabel": "",
-          "enabled": true,
-          "lastUpdated": 1413843222,
-          "scenarios": [ 
-            {
-              "id": "2000",
-              "name": "En tout temps",
-              "enabled": true,
-              "lastUpdated": 1413843222,
-              "tasks": [
-                {
-                  "id": "20000",
-                  "value": "1",
-                  "enabled": true,
-                  "lastUpdated": 1413843222,
-                  "conditions": [
-                    {
-                      "id": "200000",
-                      "type": 3,
-                      "comparisonType": 8,
-                      "beginValue": "0:00",
-                      "endValue": "6:00",
-                      "enabled": true,
-                      "lastUpdated": 1413843222
-                    },
-                    {
-                      "id": "200001",
-                      "type": 3,
-                      "comparisonType": 8,
-                      "beginValue": "18:00",
-                      "endValue": "24:00",
-                      "enabled": true,
-                      "lastUpdated": 1413843222
-                    }
-                  ]
-                },
-                {
-                  "id": "20001",
-                  "value": "0",
-                  "enabled": true,
-                  "lastUpdated": 1413843222,
-                  "conditions": [ ]
-                }
-              ]
-            }
-          ]
-        }
-      ]
-    },
-    {
-      "id": "3",
-      "firmwareVersion": "1.0.0.0",
-            "name": "Plateforme extérieure",
-      "ip": "10.0.0.3",
-      "port": 5003,
-      "status": 0,
-            "room": "Porte arrière",
-      "enabled": true,
-      "lastUpdated": 1413843222,
-      "devices": [ 
-        {
-          "id": "300",
-          "name": "Capteur à Huard",
-          "type": 7,
-          "description": "Capteur pour détecter lorsque Huard entre en douce" ,
-          "maxValue": "1",
-          "minValue": "0",
-          "value": "0",
-          "precision": 0,
-          "status": 0,
-          "unitLabel": "",
-          "enabled": true,
-          "lastUpdated": 1413843222,
-          "scenarios": [ ]
-        },
-        {
-          "id": "301",
-          "name": "Capteur de lumière",
-          "type": 6,
-          "description": "Capteur pour détecter la luminosité de l'extérieur" ,
-          "maxValue": "1000",
-          "minValue": "0",
-          "value": "0",
-          "precision": 2,
-          "status": 0,
-          "unitLabel": "",
-          "enabled": false,
-          "lastUpdated": 1413843222,
-          "scenarios": [ ]
-        }
-      ]
-    },
-    {
-      "id": "4",
-      "firmwareVersion": "1.0.0.0",
-            "name": "Plateforme du bureau",
-      "ip": "10.0.0.4",
-      "port": 5004,
-            "status": 1,
-            "room": "Bureau au sous-sol",
-      "enabled": true,
-      "lastUpdated": 1413843222,
-      "devices": [ 
-        {
-          "id": "400",
-          "name": "Température",
-          "type": 1,
-          "description": "Capteur de température du bureau",
-          "maxValue": "100",
-          "minValue": "0",
-          "value": "25.2",
-          "precision": 1,
-          "status": 0,
-          "unitLabel": "°C",
-          "enabled": true,
-          "lastUpdated": 1413843222,
-          "scenarios": [ ]
-        },
-        {
-          "id": "401",
-          "name": "Interrupteur",
-          "type": 206,
-          "description": "Interrupteur pour le ventilateur du bureau",
-          "maxValue": "1",
-          "minValue": "0",
-          "value": "0",
-          "precision": 0,
-          "status": 0,
-          "unitLabel": "",
-          "enabled": true,
-          "lastUpdated": 1413843222,
-          "scenarios": [ 
-            {
-              "id": "4000",
-              "name": "En tout temps",
-              "enabled": true,
-              "lastUpdated": 1413843222,
-              "tasks": [
-                {
-                  "id": "40000",
-                  "value": "1",
-                  "enabled": true,
-                  "lastUpdated": 1413843222,
-                  "conditions": [
-                    {
-                      "id": "400000",
-                      "type": 4,
-                      "comparisonType": 1,
-                      "beginValue": "",
-                      "endValue": "22",
-                      "deviceId": "400",
-                      "enabled": true,
-                      "lastUpdated": 1413843222
-                    }
-                  ]
-                },
-                {
-                  "id": "40001",
-                  "value": "0",
-                  "enabled": true,
-                  "lastUpdated": 1413843222,
-                  "conditions": [ ]
-                }
-              ]
-            }
-          ]
-        }
-      ]
-    }
-  ] 
+	"platforms": [
+		{
+			"id": "1",
+			"firmwareVersion": "1.0.0.0",
+			"name": "Plateforme du salon",
+			"ip": "10.0.0.1",
+			"port": 5001,
+			"status": 0,
+			"room": "Salon",
+			"enabled": true,
+			"lastUpdated": 1413843222,
+			"devices": [
+				{
+					"id": "100",
+					"name": "Température",
+					"type": 1,
+					"description": "Capteur de température du salon",
+					"maxValue": "100",
+					"minValue": "0",
+					"value": "21.2",
+					"precision": 1,
+					"status": 0,
+					"unitLabel": "°C",
+					"enabled": true,
+					"lastUpdated": 1413843222,
+					"scenarios": [ ]
+				},
+				{
+					"id": "101",
+					"name": "Lumière",
+					"type": 233,
+					"description": "Lumière principale du salon",
+					"maxValue": "1",
+					"minValue": "0",
+					"value": "0",
+					"precision": 0,
+					"status": 0,
+					"unitLabel": "",
+					"enabled": true,
+					"lastUpdated": 1413843222,
+					"scenarios": [
+						{
+							"id": "1000",
+							"name": "Semaine",
+							"enabled": true,
+							"lastUpdated": 1413843222,
+							"tasks": [
+								{
+									"id": "10000",
+									"value": "0",
+									"enabled": true,
+									"lastUpdated": 1413843222,
+									"conditions": [
+										{
+											"id": "100000",
+											"type": 4,
+											"comparisonType": 1,
+											"beginValue": "",
+											"endValue": "20",
+											"deviceId": "100",
+											"enabled": true,
+											"lastUpdated": 1413843222
+										}
+									]
+								},
+								{
+									"id": "10001",
+									"value": "1",
+									"enabled": true,
+									"lastUpdated": 1413843222,
+									"conditions": [ ]
+								}
+							]
+						},
+						{
+							"id": "1001",
+							"name": "Fin de Semaine",
+							"enabled": true,
+							"lastUpdated": 1413843222,
+							"tasks": [
+								{
+									"id": "10002",
+									"value": "0",
+									"enabled": true,
+									"lastUpdated": 1413843222,
+									"conditions": [ ]
+								}
+							]
+						}
+					]
+				},
+				{
+					"id": "103",
+					"name": "Humidité",
+					"type": 8,
+					"description": "Capteur d'humidité du salon",
+					"maxValue": "100",
+					"minValue": "0",
+					"value": "25.6",
+					"precision": 1,
+					"status": 0,
+					"unitLabel": "%",
+					"enabled": true,
+					"lastUpdated": 1413843222,
+					"scenarios": [ ]
+				}
+			]
+		},
+		{
+			"id": "2",
+			"firmwareVersion": "1.0.0.0",
+			"name": "Plateforme de la cuisine",
+			"ip": "10.0.0.2",
+			"port": 5002,
+			"room": "Cusine",
+			"status": 0,
+			"enabled": true,
+			"lastUpdated": 1413843222,
+			"devices": [
+				{
+					"id": "200",
+					"name": "Humidité",
+					"type": 8,
+					"description": "Capteur d'humidité de la cuisine",
+					"maxValue": "100",
+					"minValue": "0",
+					"value": "21.2",
+					"precision": 1,
+					"status": 0,
+					"unitLabel": "%",
+					"enabled": true,
+					"lastUpdated": 1413843222,
+					"scenarios": [ ]
+				},
+				{
+					"id": "201",
+					"name": "Interrupteur",
+					"type": 206,
+					"description": "Interrupteur à côté de la porte en entrant",
+					"maxValue": "1",
+					"minValue": "0",
+					"value": "0",
+					"precision": 0,
+					"status": 0,
+					"unitLabel": "",
+					"enabled": true,
+					"lastUpdated": 1413843222,
+					"scenarios": [
+						{
+							"id": "2000",
+							"name": "En tout temps",
+							"enabled": true,
+							"lastUpdated": 1413843222,
+							"tasks": [
+								{
+									"id": "20000",
+									"value": "1",
+									"enabled": true,
+									"lastUpdated": 1413843222,
+									"conditions": [
+										{
+											"id": "200000",
+											"type": 3,
+											"comparisonType": 8,
+											"beginValue": "0:00",
+											"endValue": "6:00",
+											"enabled": true,
+											"lastUpdated": 1413843222
+										},
+										{
+											"id": "200001",
+											"type": 3,
+											"comparisonType": 8,
+											"beginValue": "18:00",
+											"endValue": "24:00",
+											"enabled": true,
+											"lastUpdated": 1413843222
+										}
+									]
+								},
+								{
+									"id": "20001",
+									"value": "0",
+									"enabled": true,
+									"lastUpdated": 1413843222,
+									"conditions": [ ]
+								}
+							]
+						}
+					]
+				}
+			]
+		},
+		{
+			"id": "3",
+			"firmwareVersion": "1.0.0.0",
+			"name": "Plateforme extérieure",
+			"ip": "10.0.0.3",
+			"port": 5003,
+			"status": 0,
+			"room": "Porte arrière",
+			"enabled": true,
+			"lastUpdated": 1413843222,
+			"devices": [
+				{
+					"id": "300",
+					"name": "Capteur à Huard",
+					"type": 7,
+					"description": "Capteur pour détecter lorsque Huard entre en douce",
+					"maxValue": "1",
+					"minValue": "0",
+					"value": "0",
+					"precision": 0,
+					"status": 0,
+					"unitLabel": "",
+					"enabled": true,
+					"lastUpdated": 1413843222,
+					"scenarios": [ ]
+				},
+				{
+					"id": "301",
+					"name": "Capteur de lumière",
+					"type": 6,
+					"description": "Capteur pour détecter la luminosité de l'extérieur",
+					"maxValue": "1000",
+					"minValue": "0",
+					"value": "0",
+					"precision": 2,
+					"status": 0,
+					"unitLabel": "",
+					"enabled": false,
+					"lastUpdated": 1413843222,
+					"scenarios": [ ]
+				}
+			]
+		},
+		{
+			"id": "4",
+			"firmwareVersion": "1.0.0.0",
+			"name": "Plateforme du bureau",
+			"ip": "10.0.0.4",
+			"port": 5004,
+			"status": 1,
+			"room": "Bureau au sous-sol",
+			"enabled": true,
+			"lastUpdated": 1413843222,
+			"devices": [
+				{
+					"id": "400",
+					"name": "Température",
+					"type": 1,
+					"description": "Capteur de température du bureau",
+					"maxValue": "100",
+					"minValue": "0",
+					"value": "25.2",
+					"precision": 1,
+					"status": 0,
+					"unitLabel": "°C",
+					"enabled": true,
+					"lastUpdated": 1413843222,
+					"scenarios": [ ]
+				},
+				{
+					"id": "401",
+					"name": "Interrupteur",
+					"type": 206,
+					"description": "Interrupteur pour le ventilateur du bureau",
+					"maxValue": "1",
+					"minValue": "0",
+					"value": "0",
+					"precision": 0,
+					"status": 0,
+					"unitLabel": "",
+					"enabled": true,
+					"lastUpdated": 1413843222,
+					"scenarios": [
+						{
+							"id": "4000",
+							"name": "En tout temps",
+							"enabled": true,
+							"lastUpdated": 1413843222,
+							"tasks": [
+								{
+									"id": "40000",
+									"value": "1",
+									"enabled": true,
+									"lastUpdated": 1413843222,
+									"conditions": [
+										{
+											"id": "400000",
+											"type": 4,
+											"comparisonType": 1,
+											"beginValue": "",
+											"endValue": "22",
+											"deviceId": "400",
+											"enabled": true,
+											"lastUpdated": 1413843222
+										}
+									]
+								},
+								{
+									"id": "40001",
+									"value": "0",
+									"enabled": true,
+									"lastUpdated": 1413843222,
+									"conditions": [ ]
+								}
+							]
+						}
+					]
+				}
+			]
+		}
+	]
 }

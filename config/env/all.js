@@ -23,18 +23,18 @@ global.uctrl.ninja.userAccessToken = "107f6f460bed2dbb10f0a93b994deea7fe07dad5";
 global.uctrl.ninja.pusherChannelToken = "0511a894f99712072bebefe21be4bf971c24888d";
 
 var models_path = __dirname + '/../../app/models';
-var walk = function(path) {
-    fs.readdirSync(path).forEach(function(file) {
-        var newPath = path + '/' + file;
-        var stat = fs.statSync(newPath);
-        if (stat.isFile()) {
-            if (/(.*)\.(js$)/.test(file)) {
-                require(newPath);
-            }
-        } else if (stat.isDirectory()) {
-            walk(newPath);
-        }
-    });
+var walk = function (path) {
+	fs.readdirSync(path).forEach(function (file) {
+		var newPath = path + '/' + file;
+		var stat = fs.statSync(newPath);
+		if (stat.isFile()) {
+			if (/(.*)\.(js$)/.test(file)) {
+				require(newPath);
+			}
+		} else if (stat.isDirectory()) {
+			walk(newPath);
+		}
+	});
 };
 walk(models_path);
 

@@ -2,27 +2,23 @@
 
 var _ = require('lodash'),
 	mongoose = require('mongoose'),
-	UPlatform = mongoose.model('UPlatform'),
-	UDevice = mongoose.model('UDevice'),
-	UScenario = mongoose.model('UScenario'),
-	UTask = mongoose.model('UTask'),
-	UCondition = mongoose.model('UCondition'),
 	Recommendations = mongoose.model('Recommendations'),
 	helper = require('../controllers/helper.js'),
 	uuid = require('node-uuid');
 
-
 module.exports.start = function (user) {
 
 	var analyzePlatforms = function (platforms) {
-		var groupedPlatforms = _.groupBy(platforms, function (platform) { return platform.room; });
+		var groupedPlatforms = _.groupBy(platforms, function (platform) {
+			return platform.room;
+		});
 
-		_.forEach(groupedPlatforms, function (platforms, i) {
+		_.forEach(groupedPlatforms, function (platforms) {
 			var devices = [];
-			_.forEach(platforms, function (platform) {	
+			_.forEach(platforms, function (platform) {
 
 				// For now, find only the switches
-				var filteredDevices = _.filter(platform._devices, function(device) {			
+				var filteredDevices = _.filter(platform._devices, function (device) {
 					return _.contains([1], device.type);
 				});
 
@@ -37,7 +33,7 @@ module.exports.start = function (user) {
 			var conditions = _.chain(device._scenarios).pluck('_tasks').pluck('_conditions');
 
 			_.forEach(devices, function (otherDevice) {
-				if (device._id == otherDevice._id) {
+				if (device._id === otherDevice._id) {
 					return;
 				}
 
@@ -65,25 +61,24 @@ module.exports.start = function (user) {
 			conditionBeginValue: value,
 			conditionDeviceId: otherDevice.id,
 			_user: user._id
-		}
+		};
 
 		Recommendations.findOne(recObj, function (err, recommendation) {
 			if (err || recommendation)
 				return;
 
-			recObj["id"] = uuid.v1();
-			recObj["description"] = ("Turn " + (value ? "on '" : "off '" ) + device.name + "' when device with name '" + otherDevice.name + "' is " + (value ? "on" : "off") + ".");
-
+			recObj.id = uuid.v1();
+			recObj.description = ('Turn ' + (value ? 'on \'' : 'off \'' ) + device.name + '\' when device with name \'' + otherDevice.name + '\' is ' + (value ? 'on' : 'off') + '.');
 
 			var rec = new Recommendations(recObj);
-			rec.save(function(err) {
-			    if (err) 
-			    	console.log(err);
+			rec.save(function (err) {
+				if (err)
+					console.log(err);
 			});
 		});
 	};
 
-	helper.getPlatforms(analyzePlatforms, function (err) { 
-		console.log("Something went wrong when getting platforms...");
+	helper.getPlatforms(analyzePlatforms, function () {
+		console.log('Something went wrong when getting platforms...');
 	});
 };

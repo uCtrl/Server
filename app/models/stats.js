@@ -9,7 +9,7 @@ var Schema = mongoose.Schema;
 
 var StatSchema = new Schema({
 	// Ninja equivalents
-	id: { type: String, required: true}, 
+	id: { type: String, required: true},
 	data: { type: String, required: true},
 	type: { type: Number, required: true},
 	timestamp: { type: Number, required: true}

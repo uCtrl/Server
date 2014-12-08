@@ -2,7 +2,7 @@
 'use strict';
 
 var mongoose = require('mongoose'),
-	Schema   = mongoose.Schema,
+	Schema = mongoose.Schema,
 	cleanJson = require('./cleanJson.js'),
 	_ = require('lodash'),
 	async = require('async'),
@@ -19,57 +19,65 @@ var UTaskSchema = new Schema({
 	},
 	parentId: String,
 	tpId: String,
-	name : String,
-	value : String,
-	enabled : Boolean,
+	name: String,
+	value: String,
+	enabled: Boolean,
 	lastUpdated: Number,
 	_scenario: {
-		type: Schema.Types.ObjectId, 
+		type: Schema.Types.ObjectId,
 		ref: 'UScenario'
 	},
-	_user : {
-		type: Schema.Types.ObjectId, 
+	_user: {
+		type: Schema.Types.ObjectId,
 		ref: 'User',
 		required: true
 	},
-	_conditions: [{
-		type: Schema.Types.ObjectId, 
-		ref: 'UCondition'
-	}] 
+	_conditions: [
+		{
+			type: Schema.Types.ObjectId,
+			ref: 'UCondition'
+		}
+	]
 });
 
-/** 
+/**
  * Middlewares
  */
 UTaskSchema.post('save', function (task) {
 	var UScenario = mongoose.model('UScenario');
 	UScenario.update(
-		{ _id: task._scenario }, 
-		{ $addToSet: { _tasks: task._id } }, 
+		{ _id: task._scenario },
+		{ $addToSet: { _tasks: task._id } },
 		{ safe: true },
-		function(err, num) { if (err) console.log("Error: ", err) });
-})
+		function (err) {
+			if (err) console.log('Error: ', err);
+		});
+});
 
 // Can't use middleware on findAndUpdate functions
 
 UTaskSchema.post('remove', function (task) {
-	var UScenario = mongoose.model('UScenario');
-	var UCondition = mongoose.model('UCondition');
+	var UScenario = mongoose.model('UScenario'),
+		UCondition = mongoose.model('UCondition');
 
 	UScenario.update(
-		{ _id: task._scenario }, 
-		{ $pull: { _tasks: task._id } }, 
+		{ _id: task._scenario },
+		{ $pull: { _tasks: task._id } },
 		{ safe: true },
-		function (err, num) { if (err) console.log("Error: ", err) });
+		function (err) {
+			if (err) console.log('Error: ', err);
+		});
 
-	UCondition.find({ _id: { $in: task._conditions } }, function(err, conditions) {
+	UCondition.find({ _id: { $in: task._conditions } }, function (err, conditions) {
 		if (err) {
-			console.log("Error: ", err);
+			console.log('Error: ', err);
 			return;
 		}
-		_(conditions).forEach(function(condition) { condition.remove() } );
+		_(conditions).forEach(function (condition) {
+			condition.remove();
+		});
 	});
-})
+});
 
 /*
  * Receives the block (from NB) and will call the cb when mapped.
@@ -77,16 +85,16 @@ UTaskSchema.post('remove', function (task) {
  */
 UTaskSchema.statics.fromNinjaBlocks = function (ninjaRule, ninjaRuleId, cb) {
 	var UTask = mongoose.model('UTask');
-	var UDevice = mongoose.model('UDevice');
+
 	// Mapping Ninja to uCtrl
 	// Limited to only one action by task when mapping to µCtrl.
 	var task = new UTask({
-		id : uuid.v1(),
-		tpId : ninjaRuleId,
-		name : ninjaRule.shortName,
-		value : _(ninjaRule.actions).first().params.da != undefined ? _(ninjaRule.actions).first().params.da : null,
-		enabled : !ninjaRule.suspended,
-		lastUpdated : null,
+		id: uuid.v1(),
+		tpId: ninjaRuleId,
+		name: ninjaRule.shortName,
+		value: _(ninjaRule.actions).first().params.da !== undefined ? _(ninjaRule.actions).first().params.da : null,
+		enabled: !ninjaRule.suspended,
+		lastUpdated: null
 	});
 	cb(task);
 };
@@ -96,45 +104,46 @@ UTaskSchema.statics.fromNinjaBlocks = function (ninjaRule, ninjaRuleId, cb) {
  * To logic here is only to do the mapping
  */
 UTaskSchema.statics.toNinjaBlocks = function (task, cb) {
-	var UScenario = mongoose.model('UScenario');
-	var UDevice = mongoose.model('UDevice');
-	var UCondition = mongoose.model('UCondition');
-	var NB_ACTIONHANDLER = "ninjaSendCommand";
-	var NB_TIMEOUT = 2;
-	
-	var ninjaRule = {
-		rid : task.tpId,
-		shortName : task.id,
-		timeout : NB_TIMEOUT,
-		preconditions : [],//filled below if any
-		actions : [{ 
-			handler: NB_ACTIONHANDLER, 
-			params: { 
-				guid : null,//mapped below
-				da : task.value,
-				shortName : task.value
-			} 
-		}]
-	}
+	var UScenario = mongoose.model('UScenario'),
+		UDevice = mongoose.model('UDevice'),
+		UCondition = mongoose.model('UCondition'),
+		NB_ACTIONHANDLER = 'ninjaSendCommand',
+		NB_TIMEOUT = 2;
 
-	
-	UScenario.findById(task._scenario, function(err, scenario){
-		UDevice.findById(scenario._device, function(err, device){
-			var deviceTpIdSplit = device.tpId.split(":");//subdevice data, if one, is stored into id.
+	var ninjaRule = {
+		rid: task.tpId,
+		shortName: task.id,
+		timeout: NB_TIMEOUT,
+		preconditions: [],//filled below if any
+		actions: [
+			{
+				handler: NB_ACTIONHANDLER,
+				params: {
+					guid: null,//mapped below
+					da: task.value,
+					shortName: task.value
+				}
+			}
+		]
+	};
+
+	UScenario.findById(task._scenario, function (err, scenario) {
+		UDevice.findById(scenario._device, function (err, device) {
+			var deviceTpIdSplit = device.tpId.split(':');//subdevice data, if one, is stored into id.
 			ninjaRule.actions[0].params.guid = deviceTpIdSplit[0];
 			ninjaRule.actions[0].params.da = UDevice.toSpecialCase(device.tpId, device.type, task.value);
-	
+
 			//mapping conditions here
 			//all times preconditions for a rule need to be mapped in only one precondition
-			UCondition.find({_task : task._id}, function(err, conditions){
+			UCondition.find({_task: task._id}, function (err, conditions) {
 				var conditionsSize = conditions.length;
-				
+
 				if (conditionsSize >= 1) {
 					var dayCondition = null;
 					var timeCondition = null;
 					var lstDeviceCondition = [];
 
-					_(conditions).forEach(function(conditionObj){
+					_(conditions).forEach(function (conditionObj) {
 						switch (conditionObj.type) {
 							case 2 ://day
 								dayCondition = conditionObj;
@@ -151,31 +160,31 @@ UTaskSchema.statics.toNinjaBlocks = function (task, cb) {
 								break;
 						}
 					});
-					
+
 					async.series([
-						function(callback) {
-							if(lstDeviceCondition.length >= 1) {
-								async.forEach(lstDeviceCondition, function(deviceConditionObj, callback) {
-									UCondition.toNinjaBlocks(deviceConditionObj, function(ninjaPrecondition){
+						function (callback) {
+							if (lstDeviceCondition.length >= 1) {
+								async.forEach(lstDeviceCondition, function (deviceConditionObj, callback) {
+									UCondition.toNinjaBlocks(deviceConditionObj, function (ninjaPrecondition) {
 										ninjaRule.preconditions.push(ninjaPrecondition);
 										callback();
 									});
-								}, function(err) {
+								}, function () {
 									callback();
 								});
-								
+
 							}
 							else callback();
 						},
-						function(callback) {
-							if(dayCondition && timeCondition) {
+						function (callback) {
+							if (dayCondition && timeCondition) {
 								var days = parseInt(dayCondition.beginValue);
 								var times = [];
-								UCondition.toNinjaBlocks(timeCondition, function(ninjaPrecondition){
-									for(var i=0; i<=6; i++) {
+								UCondition.toNinjaBlocks(timeCondition, function (ninjaPrecondition) {
+									for (var i = 0; i <= 6; i++) {
 										if (days & Math.pow(2, i)) {
-											times.push(ninjaPrecondition.params.times[(i*2)]);
-											times.push(ninjaPrecondition.params.times[(i*2)+1]);
+											times.push(ninjaPrecondition.params.times[(i * 2)]);
+											times.push(ninjaPrecondition.params.times[(i * 2) + 1]);
 										}
 									}
 									ninjaPrecondition.params.times = times;
@@ -183,21 +192,21 @@ UTaskSchema.statics.toNinjaBlocks = function (task, cb) {
 									callback();
 								});
 							}
-							else if(dayCondition) {
-								UCondition.toNinjaBlocks(dayCondition, function(ninjaPrecondition){
+							else if (dayCondition) {
+								UCondition.toNinjaBlocks(dayCondition, function (ninjaPrecondition) {
 									ninjaRule.preconditions.push(ninjaPrecondition);
 									callback();
 								});
 							}
-							else if(timeCondition) {
-								UCondition.toNinjaBlocks(timeCondition, function(ninjaPrecondition){
+							else if (timeCondition) {
+								UCondition.toNinjaBlocks(timeCondition, function (ninjaPrecondition) {
 									ninjaRule.preconditions.push(ninjaPrecondition);
 									callback();
 								});
 							}
 							else callback();
 						}
-					], function(err) {
+					], function () {
 						cb(ninjaRule);
 					});
 				}

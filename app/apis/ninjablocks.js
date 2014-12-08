@@ -7,588 +7,621 @@
 var request = require('request'),
 	_ = require('lodash'),
 	util = require('util'),
-    url = 'https://api.ninja.is/rest/v0/',
+	url = 'https://api.ninja.is/rest/v0/',
 	urlOAuth = 'https://api.ninja.is/oauth/';
 
 function ninjaBlocks(options) {
 
 	var self = this;
-  	this._options = options || {};
-  	this._qs = { "user_access_token" : options.userAccessToken };
+	this._options = options || {};
+	this._qs = { 'user_access_token': options.userAccessToken };
 
 	/**
 	 * For OAuth 2 protocol purposes.
 	 * Retrieve a third party's access code
-	 * @param  {Function} callback   Callback when request finished or error found
+	 *
+	 * @param clientId
+	 * @param redirectUri
+	 * @param callback {Function} Callback when request finished or error found
 	 */
-	this.logIn = function(clientId, redirectUri, callback) {
+	this.logIn = function (clientId, redirectUri, callback) {
 		request({
 			url: urlOAuth + 'authorize',
 			method: 'GET',
 			qs: {
-				client_id : clientId,
-				redirect_uri : redirectUri,
-				scope : 'all',
-				response_type : 'code',
-			},
-        }, function(error, response, body) {
+				client_id: clientId,
+				redirect_uri: redirectUri,
+				scope: 'all',
+				response_type: 'code'
+			}
+		}, function (error, response, body) {
 			callback(error, body);
 		});
 	};
-	
+
 	/**
 	 * For OAuth 2 protocol purposes.
 	 * Exchange the access code for a third party's access token
-	 * @param  {Function} callback   Callback when request finished or error found
+	 *
+	 * @param clientId
+	 * @param clientSecret
+	 * @param authCode
+	 * @param redirectUri
+	 * @param callback {Function} Callback when request finished or error found
 	 */
-	this.authenticate = function(clientId, clientSecret, authCode, redirectUri, callback) {
+	this.authenticate = function (clientId, clientSecret, authCode, redirectUri, callback) {
 		request({
 			url: urlOAuth + 'oauth/access_token',
 			method: 'POST',
 			qs: {
-				client_id : clientId,
-				client_secret : clientSecret,
-				code : authCode,
-				redirect_uri : redirectUri,
-				grant_type : 'authorization_code',
-			},
-        }, function(error, response, body) {
+				client_id: clientId,
+				client_secret: clientSecret,
+				code: authCode,
+				redirect_uri: redirectUri,
+				grant_type: 'authorization_code'
+			}
+		}, function (error, response, body) {
 			//return the access_token
 			callback(error, body);
 		});
 	};
-	
-  	/**
+
+	/**
 	 * Return information about the authenticated user.
+	 *
 	 * @param  {Function} callback   Callback when request finished or error found
 	 */
-  	this.user = function(callback) {
-  		request({
-          url: url + 'user',
-          method: 'GET',
-          qs: self._qs,
-          json: true
-        }, function(error, response, body) {
-        	callback(error, body);
-        });
-  	};
+	this.user = function (callback) {
+		request({
+			url: url + 'user',
+			method: 'GET',
+			qs: self._qs,
+			json: true
+		}, function (error, response, body) {
+			callback(error, body);
+		});
+	};
 
-  	/**
+	/**
 	 * Returns the 30 most recent entries in the authenticating user's activity stream.
+	 *
 	 * @param  {Function} callback   Callback when request finished or error found
 	 */
-  	this.user.stream = function(callback) {
-  		request({
-          url: url + 'user/stream',
-          method: 'GET',
-          qs: self._qs,
-          json: true
-        }, function(error, response, body) {
-        	callback(error, body);
-        });
-  	};
+	this.user.stream = function (callback) {
+		request({
+			url: url + 'user/stream',
+			method: 'GET',
+			qs: self._qs,
+			json: true
+		}, function (error, response, body) {
+			callback(error, body);
+		});
+	};
 
-  	/**
+	/**
 	 * Returns user's pusher channel key.
+	 *
 	 * @param  {Function} callback   Callback when request finished or error found
 	 */
-  	this.user.pusherChannel = function(callback) {
-  		getRequest('user/pusherchannel', callback);
-  	};
+	this.user.pusherChannel = function (callback) {
+		getRequest('user/pusherchannel', callback);
+	};
 
-  	/**
+	/**
 	 * Returns all the blocks paired to an account.
+	 *
 	 * @param  {Function} callback   Callback when request finished or error found
 	 */
-  	this.blocks = function(callback) {
-  		getRequest('block', callback);
-  	};
-
+	this.blocks = function (callback) {
+		getRequest('block', callback);
+	};
 
 	/**
 	 * Base definition for block.
-	 * @param  {String}   nodeId   Id of the block.  A nodeId should be a 12+ alphanumeric character identifier, 
-	 * 							   ideally a unique serial number.
+	 *
+	 * @param  {String}   nodeId   Id of the block.  A nodeId should be a 12+ alphanumeric character identifier, ideally a unique serial number.
 	 * @param  {Function} callback   Callback when request finished or error found
 	 */
-  	this.block = function(nodeId, callback) {
-  		
-  		/**
+	this.block = function (nodeId, callback) {
+
+		/**
 		 * Returns data about the specified block.
 		 * @param  {Function} callback   Callback when request finished or error found
 		 */
-  		if (callback) {
-  			getRequest(util.format('block/%s', nodeId), callback);
-  			return;
-  		}
+		if (callback) {
+			getRequest(util.format('block/%s', nodeId), callback);
+			return;
+		}
 
-  		return {
-  			
-  			/**
+		return {
+
+			/**
 			 * Attempt to claim an unclaimed block.
+			 *
 			 * @param  {Function} callback   Callback when request finished or error found
 			 */
-  			claim: function(callback) {
-  				postRequest('block', { "nodeid" : nodeId }, callback);
-  			},
-  			
-  			/**
+			claim: function (callback) {
+				postRequest('block', { 'nodeid': nodeId }, callback);
+			},
+
+			/**
 			 * Activate a block and return its token. This token should be used with all subsequent requests.
 			 * Your nodeId should be a 12+ alphanumeric character identifier, ideally a unique serial number.
+			 *
 			 * @param  {Function} callback   Callback when request finished or error found
 			 */
-  			activate: function(callback) {
-  				getRequest(util.format('block/%s/activate', nodeId), callback);
-  			},
+			activate: function (callback) {
+				getRequest(util.format('block/%s/activate', nodeId), callback);
+			},
 
-  			/**
+			/**
 			 * Unpair a block.
+			 *
 			 * @param  {Function} callback   Callback when request finished or error found
 			 */
-  			delete: function(callback) {
-  				deleteRequest(util.format('block/%s', nodeId), callback);
-  			}
-  		}
-  	};
+			delete: function (callback) {
+				deleteRequest(util.format('block/%s', nodeId), callback);
+			}
+		};
+	};
 
-  	/**
+	/**
 	 * Returns the list of devices associated with the authenticating user.
+	 *
 	 * @param  {Function} callback   Callback when request finished or error found
 	 */
-	this.devices = function(callback) {
-  		getRequest('devices', callback);
-  	};
+	this.devices = function (callback) {
+		getRequest('devices', callback);
+	};
 
-  	/**
+	/**
 	 * Base definition for device.
+	 *
 	 * @param  {String}   guid   Id of the device
 	 * @param  {Function} callback   Callback when request finished or error found
 	 */
-  	this.device = function(guid, callback) {
+	this.device = function (guid, callback) {
 
-  		/**
+		/**
 		 * Fetch metadata about the specified device.
 		 * @param  {Function} callback   Callback when request finished or error found
 		 */
-  		if (callback) {
-  			getRequest(util.format('device/%s', guid), callback);
-  			return;
-  		}
+		if (callback) {
+			getRequest(util.format('device/%s', guid), callback);
+			return;
+		}
 
-  		return {
+		return {
 
-  			/**
+			/**
 			 * Update a device, including sending a command.
-			 * Sending a command and updating the meta data are two distinct operations internally. 
-			 * If the response we send is in the affirmative, ie result = 1, then both have succeeded. 
+			 * Sending a command and updating the meta data are two distinct operations internally.
+			 * If the response we send is in the affirmative, ie result = 1, then both have succeeded.
 			 * However, if it is the negative, ie result = 0, then one or both of the operations failed, and you won't know which one.
 			 * We've implemented it this way for conceptual consistency. We recommend using two separate API calls if you need to handle errors.
-			 * 
+			 *
 			 * @param  {Object}   data   Data for the request
-			 * @param  {String=}  data.DA   The data value to send to the device. 
+			 * @param  {String=}  data.DA   The data value to send to the device.
 			 * @param  {String=}  data.shortName   The meta data title of the device to update.
 			 * @param  {Function} callback   Callback when request finished or error found
 			 */
-  			update: function(data, callback) {
-  				putRequest(util.format('device/%s', guid), data, callback);
-  			},
+			update: function (data, callback) {
+				putRequest(util.format('device/%s', guid), data, callback);
+			},
 
-  			/**
+			/**
 			 * Delete all data about the specified device.
+			 *
 			 * @param  {Function} callback   Callback when request finished or error found
 			 */
-  			delete: function(callback) {
-  				deleteRequest(util.format('device/%s', guid), callback);
-  			},
+			delete: function (callback) {
+				deleteRequest(util.format('device/%s', guid), callback);
+			},
 
-  			/**
+			/**
 			 * Return the last heartbeat for the specified device. i.e. its "current" or more accurately last reported value.
+			 *
 			 * @param  {Function} callback   Callback when request finished or error found
 			 */
-  			lastData: function(callback) {
-  				getRequest(util.format('device/%s/heartbeat', guid), callback);
-  			},
+			lastData: function (callback) {
+				getRequest(util.format('device/%s/heartbeat', guid), callback);
+			},
 
-  			/**
+			/**
 			 * Return the historical data for the specified device.
 			 *
 			 * @param  {Object}   parameters   Parameters for the request
-			 * @param  {Number=}  parameters.from   Timestamp representing the beginning of the period measurements are requested for.  
-			 * @param  {Number=}  parameters.to   Timestamp representing the end of the period measurements are requested for. 
-			 * @param  {String=}  parameters.interval   Intervals are specified by a number and a unit of time, i.e. 6hour or 1day. The supported time units are: 
-			 *										    * min - Minutes
-			 *										    * hour - Hours
-			 *										    * day - Days
-			 *										    * month - Months
-			 *										    * year - Years
-			 * @param  {String=}  parameters.fn   The folding function specifies how the datapoints are reduced within each interval. 
-			 *									  The default folding function is mean which returns the mean (average). The following folding functions are supported: 
-	 		 *										    * mean - Average of all datapoints
-			 *										    * sum - Sum of all datapoints
-			 *										    * min - Minimum value of all datapoints
-			 *										    * max - Maximum value of all datapoints
-			 *										    * stddev - Standard deviation of all datapoints
-			 *										    * ss - Sum of squares of all datapoints
-			 *										    * count - Total number of datapoints in the DataSet
+			 * @param  {Number=}  parameters.from   Timestamp representing the beginning of the period measurements are requested for.
+			 * @param  {Number=}  parameters.to   Timestamp representing the end of the period measurements are requested for.
+			 * @param  {String=}  parameters.interval   Intervals are specified by a number and a unit of time, i.e. 6hour or 1day. The supported time units are:
+			 *                                            * min - Minutes
+			 *                                            * hour - Hours
+			 *                                            * day - Days
+			 *                                            * month - Months
+			 *                                            * year - Years
+			 * @param  {String=}  parameters.fn   The folding function specifies how the datapoints are reduced within each interval.
+			 *                                      The default folding function is mean which returns the mean (average). The following folding functions are supported:
+			 *                                            * mean - Average of all datapoints
+			 *                                            * sum - Sum of all datapoints
+			 *                                            * min - Minimum value of all datapoints
+			 *                                            * max - Maximum value of all datapoints
+			 *                                            * stddev - Standard deviation of all datapoints
+			 *                                            * ss - Sum of squares of all datapoints
+			 *                                            * count - Total number of datapoints in the DataSet
 			 * @param  {Function} callback   Callback when request finished or error found
 			 */
-  			data: function(parameters, callback) {
-  				var queryString = _.clone(self._qs, false);
-  				parameters = parameters || {};
+			data: function (parameters, callback) {
+				var queryString = _.clone(self._qs, false);
+				parameters = parameters || {};
 
-  				if (parameters.from) queryString["from"] = parameters.from;
-  				if (parameters.to) queryString["to"] = parameters.to;
-  				if (parameters.interval) queryString["interval"] = parameters.interval;
-  				if (parameters.fn) queryString["fn"] = parameters.fn;
+				if (parameters.from) queryString.from = parameters.from;
+				if (parameters.to) queryString.to = parameters.to;
+				if (parameters.interval) queryString.interval = parameters.interval;
+				if (parameters.fn) queryString.fn = parameters.fn;
 
-  				request({
-		          url: url + util.format('device/%s/data', guid),
-		          method: 'GET',
-		          qs: queryString,
-		          json: true
-		        }, function(error, response, body) {
-		        	if (!error)
-		        		error = body.error;
+				request({
+					url: url + util.format('device/%s/data', guid),
+					method: 'GET',
+					qs: queryString,
+					json: true
+				}, function (error, response, body) {
+					if (!error)
+						error = body.error;
 
-		        	body = body.data;
+					body = body.data;
 
-		        	callback(error, body);
-		        });
-  			},
+					callback(error, body);
+				});
+			},
 
 			/**
 			 * Retrieve the current callback url registered against this device.
+			 *
 			 * @param  {Function} callback   Callback when request finished or error found
 			 */
-  			getCallback: function(callback) {
-  				getRequest(util.format('device/%s/callback', guid), callback);
-  			},
+			getCallback: function (callback) {
+				getRequest(util.format('device/%s/callback', guid), callback);
+			},
 
-  			/**
+			/**
 			 * Register a new callback against this device.
+			 *
 			 * @param  {Object}   data   Data for the request
-			 * @param  {String}   data.url   The URL you wish to register a callback against. 
+			 * @param  {String}   data.url   The URL you wish to register a callback against.
 			 * @param  {Function} callback   Callback when request finished or error found
 			 */
-  			registerCallback: function(data, callback) {
-  				postRequest(util.format('device/%s/callback', guid), data, callback);
-  			},
+			registerCallback: function (data, callback) {
+				postRequest(util.format('device/%s/callback', guid), data, callback);
+			},
 
 			/**
 			 * Update an existing callback against this device.
+			 *
 			 * @param  {Object}   data   Data for the request
-			 * @param  {String}   data.url   The URL you wish to register a callback against. 
+			 * @param  {String}   data.url   The URL you wish to register a callback against.
 			 * @param  {Function} callback   Callback when request finished or error found
 			 */
-  			updateCallback: function(data, callback) {
-  				putRequest(util.format('device/%s/callback', guid), data, callback);
-  			},
-  			
+			updateCallback: function (data, callback) {
+				putRequest(util.format('device/%s/callback', guid), data, callback);
+			},
+
 			/**
 			 * Delete an existing callback against this device.
+			 *
 			 * @param  {Function} callback   Callback when request finished or error found
 			 */
-  			unregisterCallback: function(callback) {
-  				deleteRequest(util.format('device/%s/callback', guid), callback);
-  			},
-  			
+			unregisterCallback: function (callback) {
+				deleteRequest(util.format('device/%s/callback', guid), callback);
+			},
+
 			/**
 			 * Returns the list of subdevices associated with this device.
+			 *
 			 * @param  {Function} callback   Callback when request finished or error found
 			 */
-			subdevices: function(callback) {
-				getRequest(util.format('device/%s', guid), function(err, deviceObj) {
+			subdevices: function (callback) {
+				getRequest(util.format('device/%s', guid), function (err, deviceObj) {
 					if (err) callback(err, null);
 					else {
-						if (deviceObj.has_subdevice_count >=1 ) callback(null, deviceObj.subDevices);
+						if (deviceObj.has_subdevice_count >= 1) callback(null, deviceObj.subDevices);
 						else callback('This device has no subdevices', null);
 					}
 				});
 			},
-			
-  			/**
+
+			/**
 			 * Base definition for subdevice.
-			 * @param  {String}   subdeviceId   Id of the subdevice
+			 *
+			 * @param subdeviceId {String}  Id of the subdevice
+			 * @param callback
 			 */
-  			subdevice: function(subdeviceId, callback) {
-  				/**
+			subdevice: function (subdeviceId, callback) {
+				/**
 				 * Fetch metadata about the specified subdevice.
+				 *
 				 * @param  {Function} callback   Callback when request finished or error found
 				 */
 				if (callback) {
-					getRequest(util.format('device/%s', guid), function(err, deviceObj) {
+					getRequest(util.format('device/%s', guid), function (err, deviceObj) {
 						if (err) callback(err, null);
 						else {
-							if (deviceObj.has_subdevice_count >=1 ) {
-								if (deviceObj.subDevices[subdeviceId] != undefined)
+							if (deviceObj.has_subdevice_count >= 1) {
+								if (deviceObj.subDevices[subdeviceId] !== undefined)
 									callback(null, deviceObj.subDevices[subdeviceId]);
 								else callback('This subdevice doesn\'t exist', null);
 							}
-							else{
+							else {
 								callback('This device has no subdevices', null);
 							}
 						}
 					});
 					return;
 				}
-				
+
 				return {
 
-  					/**
+					/**
 					 * Create a new sub-device associated with the specified device and return a unique ID within the device.
-					 * Sub-devices allow you to store different values against one device. For example, various mobile numbers against the SMS device, 
+					 * Sub-devices allow you to store different values against one device. For example, various mobile numbers against the SMS device,
 					 * different 'webhook' actuators against the 'webhook' device, and different RF binary values against the RF433MHz device.
-					 * Please note that the different categories of sub-devices may return different data. For example, the create 'webhook' 'sensor' 
+					 * Please note that the different categories of sub-devices may return different data. For example, the create 'webhook' 'sensor'
 					 * sub-device call will return a token that is used as part of the URL to 'tickle' it, whereas most others will just return the id of the sub-device.
 					 *
 					 * @param  {Object}   data   Data for the request
-					 * @param  {String}   data.category   The category of sub-device. Allowed: "rf", "webhook", "sms". 
-					 * 									  This determines the behavior associated with the sub-device, and MUST correspond to the type of device used against. 
-					 * @param  {String}   data.type   The type of sub-device, whether it is an actuator or a sensor. Allowed: "actuator" or "sensor" 
-					 * @param  {String}   data.shortName   The type of sub-device, whether it is an actuator or a sensor. Allowed: "actuator" or "sensor"  
-					 * @param  {String=}  data.data   Data to be stored in the sub-device  
-					 * @param  {String=}  data.url   URL to store in the sub-device in a webhook actuator (category must be 'webhook' and type must be 'actuator').  
+					 * @param  {String}   data.category   The category of sub-device. Allowed: "rf", "webhook", "sms".
+					 *                                      This determines the behavior associated with the sub-device, and MUST correspond to the type of device used against.
+					 * @param  {String}   data.type   The type of sub-device, whether it is an actuator or a sensor. Allowed: "actuator" or "sensor"
+					 * @param  {String}   data.shortName   The type of sub-device, whether it is an actuator or a sensor. Allowed: "actuator" or "sensor"
+					 * @param  {String=}  data.data   Data to be stored in the sub-device
+					 * @param  {String=}  data.url   URL to store in the sub-device in a webhook actuator (category must be 'webhook' and type must be 'actuator').
 					 * @param  {Function} callback   Callback when request finished or error found
 					 */
-  					create: function(data, callback) {
-  						postRequest(util.format('device/%s/subdevice', guid), data, callback);
-  					},
-  					
-  					/**
+					create: function (data, callback) {
+						postRequest(util.format('device/%s/subdevice', guid), data, callback);
+					},
+
+					/**
 					 * Update information about the specified sub-device.
 					 *
 					 * @param  {Object}   data   Data for the request
-					 * @param  {String=}  data.category   The category of sub-device. Allowed: "rf", "webhook", "sms". 
-					 * 									   This determines the behavior associated with the sub-device, and MUST correspond to the type of device used against. 
-					 * @param  {String=}  data.type   The type of sub-device, whether it is an actuator or a sensor. Allowed: "actuator" or "sensor" 
-					 * @param  {String=}  data.shortName   The type of sub-device, whether it is an actuator or a sensor. Allowed: "actuator" or "sensor"  
-					 * @param  {String=}  data.data   Data to be stored in the sub-device  
-					 * @param  {String=}  data.url   URL to store in the sub-device in a webhook actuator (category must be 'webhook' and type must be 'actuator').  
+					 * @param  {String=}  data.category   The category of sub-device. Allowed: "rf", "webhook", "sms".
+					 *                                       This determines the behavior associated with the sub-device, and MUST correspond to the type of device used against.
+					 * @param  {String=}  data.type   The type of sub-device, whether it is an actuator or a sensor. Allowed: "actuator" or "sensor"
+					 * @param  {String=}  data.shortName   The type of sub-device, whether it is an actuator or a sensor. Allowed: "actuator" or "sensor"
+					 * @param  {String=}  data.data   Data to be stored in the sub-device
+					 * @param  {String=}  data.url   URL to store in the sub-device in a webhook actuator (category must be 'webhook' and type must be 'actuator').
 					 * @param  {Function} callback   Callback when request finished or error found
 					 */
-  					update: function(data, callback) {
-  						putRequest(util.format('device/%s/subdevice/%s', guid, subdeviceId), data, callback);
-  					},
-  					
+					update: function (data, callback) {
+						putRequest(util.format('device/%s/subdevice/%s', guid, subdeviceId), data, callback);
+					},
+
 					/**
 					 * Delete the specified sub-device. Note that if there are any rules attached to this sub-device they will not be deleted, but instead become ineffectual.
+					 *
 					 * @param  {Function} callback   Callback when request finished or error found
 					 */
-  					delete: function(callback) {
-  						deleteRequest(util.format('device/%s/subdevice/%s', guid, subdeviceId), callback)
-  					},
-  					
-  					/**
+					delete: function (callback) {
+						deleteRequest(util.format('device/%s/subdevice/%s', guid, subdeviceId), callback);
+					},
+
+					/**
 					 * Fetch the count of the number of times the sub-device was actuated.
 					 *
 					 * @param  {Object}   parameters   Parameters for the request
-					 * @param  {Number=}  parameters.from   Timestamp representing the beginning of the period measurements are requested for.  
-					 * @param  {Number=}  parameters.to   Timestamp representing the end of the period measurements are requested for. 
-					 * @param  {String=}  parameters.interval   Intervals are specified by a number and a unit of time, i.e. 6hour or 1day. The supported time units are: 
-					 *										    * min - Minutes
-					 *										    * hour - Hours
-					 *										    * day - Days
-					 *										    * month - Months
-					 *										    * year - Years
+					 * @param  {Number=}  parameters.from   Timestamp representing the beginning of the period measurements are requested for.
+					 * @param  {Number=}  parameters.to   Timestamp representing the end of the period measurements are requested for.
+					 * @param  {String=}  parameters.interval   Intervals are specified by a number and a unit of time, i.e. 6hour or 1day. The supported time units are:
+					 *                                            * min - Minutes
+					 *                                            * hour - Hours
+					 *                                            * day - Days
+					 *                                            * month - Months
+					 *                                            * year - Years
 					 * @param  {Function} callback   Callback when request finished or error found
 					 */
-  					data: function(parameters, callback) {
-  						var queryString = _.clone(self._qs, false);
-  						parameters = parameters || {};
-  						
-		  				if (parameters.from) queryString["from"] = parameters.from;
-		  				if (parameters.to) queryString["to"] = parameters.to;
-		  				if (parameters.interval) queryString["interval"] = parameters.interval;
+					data: function (parameters, callback) {
+						var queryString = _.clone(self._qs, false);
+						parameters = parameters || {};
 
-		  				request({
-				          url: url + util.format('device/%s/subdevice/%s/data', guid, subdeviceId),
-				          method: 'GET',
-				          qs: queryString,
-				          json: true
-				        }, function(error, response, body) {
-				        	if (!error)
-				        		error = body.error;
+						if (parameters.from) queryString.from = parameters.from;
+						if (parameters.to) queryString.to = parameters.to;
+						if (parameters.interval) queryString.interval = parameters.interval;
 
-				        	body = body.data;
+						request({
+							url: url + util.format('device/%s/subdevice/%s/data', guid, subdeviceId),
+							method: 'GET',
+							qs: queryString,
+							json: true
+						}, function (error, response, body) {
+							if (!error)
+								error = body.error;
 
-				        	callback(error, body);
-				        });
-  					},
+							body = body.data;
 
-  					/**
+							callback(error, body);
+						});
+					},
+
+					/**
 					 * Delete the specified sub-device. Note that if there are any rules attached to this sub-device they will not be deleted, but instead become ineffectual.
+					 *
 					 * @param  {String}  token   The token in this instance in the token received when the create sub-device with category 'webhook' and type 'sensor' call is returned.
 					 * @param  {Function} callback   Callback when request finished or error found
 					 */
-  					tickle: function(token, callback) {
-  						postRequest(util.format('device/%s/subdevice/%s/tickle/%', guid, subdeviceId, token), null, callback);
-  					}
-  				}
-  			}
+					tickle: function (token, callback) {
+						postRequest(util.format('device/%s/subdevice/%s/tickle/%', guid, subdeviceId, token), null, callback);
+					}
+				};
+			}
+		};
+	};
 
-  		}
-  	};
-
-  	/**
+	/**
 	 * Fetch all of a users' rules.
+	 *
 	 * @param  {Function} callback   Callback when request finished or error found
 	 */
-  	this.rules = function(callback) {
-  		getRequest('rule', callback);
-  	}
+	this.rules = function (callback) {
+		getRequest('rule', callback);
+	};
 
-  	/**
+	/**
 	 * Base definition for rule.
+	 *
 	 * @param  {String}   ruleId   Id of the rule
 	 * @param  {Function} callback   Callback when request finished or error found
 	 */
-	this.rule = function(ruleId, callback) {
-		
+	this.rule = function (ruleId, callback) {
+
 		/**
 		 * Fetch the specified rule.
 		 * @param  {Function} callback   Callback when request finished or error found
 		 */
 		if (callback) {
-  			getRequest(util.format('rule/%s', ruleId), callback);
-  			return;
-  		}
+			getRequest(util.format('rule/%s', ruleId), callback);
+			return;
+		}
 
-  		return {
+		return {
 
 			/**
 			 * Returns the list of preconditions associated with this rule.
 			 * @param  {Function} callback   Callback when request finished or error found
 			 */
-			preconditions: function(callback) {
-				getRequest(util.format('rule/%s', ruleId), function(err, ruleObj) {
+			preconditions: function (callback) {
+				getRequest(util.format('rule/%s', ruleId), function (err, ruleObj) {
 					if (err) callback(err, null);
 					else {
-						if (ruleObj["preconditions"] != undefined) callback(null, ruleObj["preconditions"]);
+						if (ruleObj.preconditions !== undefined) callback(null, ruleObj.preconditions);
 						else callback('This rule has no preconditions', null);
 					}
 				});
 			},
-			
-  			/**
+
+			/**
 			 * Create a new rule.
 			 *
 			 * @param  {Object}   data   Data for the request
-			 * @param  {String}   data.shortName   The name of your rule. 
+			 * @param  {String}   data.shortName   The name of your rule.
 			 * @param  {String}   data.preconditions   Array of precondition handlers.
 			 * @param  {String}   data.actions   Array of action handlers.
-			 * @param  {String=}  data.timeout   Number of seconds to wait before executing this rule again.  
+			 * @param  {String=}  data.timeout   Number of seconds to wait before executing this rule again.
 			 * @param  {Function} callback   Callback when request finished or error found
 			 */
-  			create: function(data, callback) {
-  				postRequest('rule', data, callback);
-  			},
-  			
-  			/**
+			create: function (data, callback) {
+				postRequest('rule', data, callback);
+			},
+
+			/**
 			 * Update a rule.
 			 *
 			 * @param  {Object}   data   Data for the request
-			 * @param  {String}   data.shortName   The name of your rule. 
+			 * @param  {String}   data.shortName   The name of your rule.
 			 * @param  {String}   data.preconditions   Array of precondition handlers.
 			 * @param  {String}   data.actions   Array of action handlers.
-			 * @param  {String=}  data.timeout   Number of seconds to wait before executing this rule again.  
+			 * @param  {String=}  data.timeout   Number of seconds to wait before executing this rule again.
 			 * @param  {Function} callback   Callback when request finished or error found
 			 */
-  			update: function(data, callback) {
-  				putRequest(util.format('rule/%s', ruleId), data, callback);
-  			},
-  			
-  			/**
+			update: function (data, callback) {
+				putRequest(util.format('rule/%s', ruleId), data, callback);
+			},
+
+			/**
 			 * Delete a rule.
+			 *
 			 * @param  {Function} callback   Callback when request finished or error found
 			 */
-  			delete: function(callback) {
-  				deleteRequest(util.format('rule/%s', ruleId), callback);
-  			},
-  			
+			delete: function (callback) {
+				deleteRequest(util.format('rule/%s', ruleId), callback);
+			},
+
 			/**
 			 * Suspend a rule.
+			 *
 			 * @param  {Function} callback   Callback when request finished or error found
 			 */
-  			suspend: function(callback) {
-  				postRequest(util.format('rule/%s/suspend', ruleId), null, callback);
-  			},
-  			
-  			/**
-			 * Unsuspend a rule.
-			 * @param  {Function} callback   Callback when request finished or error found
-			 */
-  			unsuspend: function(callback) {
-  				deleteRequest(util.format('rule/%s/suspend', ruleId), callback);
-  			}
-  		}
-  	}
+			suspend: function (callback) {
+				postRequest(util.format('rule/%s/suspend', ruleId), null, callback);
+			},
 
-  	/**
+			/**
+			 * Unsuspend a rule.
+			 *
+			 * @param  {Function} callback   Callback when request finished or error found
+			 */
+			unsuspend: function (callback) {
+				deleteRequest(util.format('rule/%s/suspend', ruleId), callback);
+			}
+		};
+	};
+
+	/**
 	 * Helpers section
 	 */
-  	function getRequest(urn, callback) {
-  		request({
-          url: url + urn,
-          method: 'GET',
-          qs: self._qs,
-          json: true
-        }, function(error, response, body) {
-        	if (!error)
-        		error = body.error;
+	function getRequest(urn, callback) {
+		request({
+			url: url + urn,
+			method: 'GET',
+			qs: self._qs,
+			json: true
+		}, function (error, response, body) {
+			if (!error)
+				error = body.error;
 
-        	body = body.data;
+			body = body.data;
 
-        	callback(error, body);
-        });
+			callback(error, body);
+		});
 	}
 
-  	function postRequest(urn, data, callback) {
-  		request({
-          url: url + urn,
-          method: 'POST',
-          qs: self._qs,
-          json: true,
-          body: data
-        }, function(error, response, body) {
-        	if (!error)
-        		error = body.error;
-        	
-        	callback(error, body);
-        });
+	function postRequest(urn, data, callback) {
+		request({
+			url: url + urn,
+			method: 'POST',
+			qs: self._qs,
+			json: true,
+			body: data
+		}, function (error, response, body) {
+			if (!error)
+				error = body.error;
+
+			callback(error, body);
+		});
 	}
 
 	function putRequest(urn, data, callback) {
-  		request({
-          url: url + urn,
-          method: 'PUT',
-          qs: self._qs,
-          json: true,
-          body: data
-        }, function(error, response, body) {
-        	if (!error)
-        		error = body.error;
-        	
-        	callback(error, body);
-        });
+		request({
+			url: url + urn,
+			method: 'PUT',
+			qs: self._qs,
+			json: true,
+			body: data
+		}, function (error, response, body) {
+			if (!error)
+				error = body.error;
+
+			callback(error, body);
+		});
 	}
 
 	function deleteRequest(urn, callback) {
-  		request({
-          url: url + urn,
-          method: 'DELETE',
-          qs: self._qs,
-          json: true
-        }, function(error, response, body) {
-        	if (!error)
-        		error = body.error;
-        	
-        	callback(error, body);
-        });
+		request({
+			url: url + urn,
+			method: 'DELETE',
+			qs: self._qs,
+			json: true
+		}, function (error, response, body) {
+			if (!error)
+				error = body.error;
+
+			callback(error, body);
+		});
 	}
 }
 
 /**
  * Exports Ninjablocks object
- * @type Ninjablocks
+ *
+ * @type ninjaBlocks {object}
  */
 module.exports = ninjaBlocks;
