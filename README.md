@@ -2,7 +2,7 @@
 
 This repository contains the core components of the Server service released under the µCtrl source project. 
 
-For now, server will only collect statistics out the devices in µCtrl system.
+To know more about what this server does and how it's made, visit our [Jira Confluence][jiraConfluenceServer]
 
 ## Getting started
 
@@ -13,11 +13,12 @@ For now, server will only collect statistics out the devices in µCtrl system.
 
 ### Quick Install for Macintosh users
 
-There's a script in `script/bootstrap-mac`. It will make you have Homebrew, Node.js and MongoDB installed. If not, it will install them. After, it will install all dependencies, so the only command to run is `gulp`.
+There's a script in `script/bootstrap-mac`. It will make you have Homebrew, Node.js and MongoDB installed. If not, it will install them. After, it will install all dependencies, so the only command to run is `gulp`. *You might (or not) need to Download and Install [gulp][gulp] yourself.*
 
 ### Start the server
 
-The quickest way to get started with the project is to clone it and utilize it like this:
+Clone the repo:
+`git clone git@github.com:uCtrl/Server.git`
 
 Install dependencies:
 
@@ -27,7 +28,7 @@ Then you can gulp to start the server:
 
 `$ gulp`
 
-When not using gulp you can use:
+Gulp offers you file monitoring and other useful services, but you can start without it: 
 
 `$ node server.js`
 
@@ -38,3 +39,5 @@ Then open a browser and go to:
 [nodejs]: http://nodejs.org/
 [HowToInstallNode]: https://gist.github.com/isaacs/579814
 [mongodb]: http://www.mongodb.org/
+[jiraConfluenceServer]: https://curuba.atlassian.net/wiki/pages/viewpage.action?pageId=11796534
+[gulp]: https://github.com/gulpjs/gulp/
