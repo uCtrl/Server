@@ -18,6 +18,7 @@ There's a script in `script/bootstrap-mac`. It will make you have Homebrew, Node
 ### Start the server
 
 Clone the repo:
+
 `git clone git@github.com:uCtrl/Server.git`
 
 Install dependencies:
@@ -32,12 +33,27 @@ Gulp offers you file monitoring and other useful services, but you can start wit
 
 `$ node server.js`
 
-Then open a browser and go to:
+### Use/Interact with the server
 
-`http://localhost:3000`
+The server exposes routes to interact (CRUD) with the BD and handles the push/pull of data to [NinjaBlocks][NinjaBlocks].
+To test it, make an account on NinjaBlocks and get your API token. Then, make a POST Request on `http://localhost:3000/users` with the following JSON Data: 
+```JSON
+{
+  "ninjablocks" : { 
+    "userAccessToken": "107f6f460bed2dbb10f0a93b994deea7fe07dad5"
+  }
+}
+```
+
+Now that your user is created in the server, you can make a GET Request on the System: `http://localhost:3000/system`. 
+
+For more infos, either go on our [confluence][jiraConfluenceServer] or dig in this repo.
+
+Enjoy.
 
 [nodejs]: http://nodejs.org/
 [HowToInstallNode]: https://gist.github.com/isaacs/579814
 [mongodb]: http://www.mongodb.org/
 [jiraConfluenceServer]: https://curuba.atlassian.net/wiki/pages/viewpage.action?pageId=11796534
 [gulp]: https://github.com/gulpjs/gulp/
+[NinjaBlocks]: https://ninjablocks.com/#home/
