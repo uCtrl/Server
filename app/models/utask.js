@@ -128,7 +128,7 @@ UTaskSchema.statics.toNinjaBlocks = function (task, cb) {
 			//all times preconditions for a rule need to be mapped in only one precondition
 			UCondition.find({_task : task._id}, function(err, conditions){
 				var conditionsSize = conditions.length;
-				
+				console.log("conditions", conditions);
 				if (conditionsSize >= 1) {
 					var dayCondition = null;
 					var timeCondition = null;
