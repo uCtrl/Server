@@ -90,6 +90,7 @@ exports.update = function(req, res) {
 			var properties = ['name', 'description'];
 			async.each(properties, function(p, cb) {
 				if (old[p] != device[p]){
+
 					var l = new Logs({
 						type: Logs.LOGTYPE.Update, 
 						severity: Logs.LOGSEVERITY.Normal,  
@@ -97,7 +98,7 @@ exports.update = function(req, res) {
 						id: device.id,
 						timestamp: Date.now()
 					});
-
+					console.log(l);
 					l.save(function(err) {
 						cb(err);
 					});

@@ -82,11 +82,12 @@ UTask.on('create', function(uCtrl_User, taskObj) {
 UTask.on('update', function(uCtrl_User, taskObj) {//TODO : review & test, conditions..etc
 	var nb = new ninjablocks({userAccessToken : uCtrl_User.ninjablocks.userAccessToken});
 	UTask.toNinjaBlocks(taskObj, function(ninjaRule) {
+
 		if (taskObj.tpId) {//if NB rule doesn't exist
 			nb.rule(taskObj.tpId).update(ninjaRule, function(err, result) {
 				if(err) {
-					console.log('--ERROR : ' + JSON.stringify(ninjaRule));
-					console.log('--ERROR : ' + err);
+					console.log('--ERROR1 : ' + JSON.stringify(ninjaRule));
+					console.log('--ERROR1 : ' + err);
 				}
 				console.log('--event : NinjaBlock rule ' + taskObj.tpId + ' updated.');
 			});
@@ -94,8 +95,8 @@ UTask.on('update', function(uCtrl_User, taskObj) {//TODO : review & test, condit
 		else {
 			nb.rule().create(ninjaRule, function(err, result) {
 				if(err) {
-					console.log('--ERROR : ' + JSON.stringify(ninjaRule));
-					console.log('--ERROR : ' + err);
+					console.log('--ERROR2 : ' + JSON.stringify(ninjaRule));
+					console.log('--ERROR2 : ' + err);
 				}
 				else {
 					taskObj.tpId = result.data.rid

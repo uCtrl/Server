@@ -96,7 +96,7 @@ function findParents(msg, level, item, callback) {
             if (level >= ETarget.platform) {
                 var d = device || item;
                 UPlatform.findOne({_id: d._platform}, function(err, p) {
-                    if (err) return cb(err);
+                    if (err || !p) return cb(err);
                     msg.platformId = p.id;
                     cb(null, p);
                 })

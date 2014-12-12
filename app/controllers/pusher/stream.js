@@ -47,7 +47,7 @@ exports.save = function (user) {
 			if (task) {
 				logTask(task);
 			} else {
-				console.log ("No task found, GOOD TIME TO DYNAMICALLY LOAD THE TASK HELL YEAH I LUV MYSELF, YOLO.");
+				//console.log ("No task found, GOOD TIME TO DYNAMICALLY LOAD THE TASK HELL YEAH I LUV MYSELF, YOLO.");
 				/*resolveTask(name, user, function (task) {
 					task.populate('_scenario', function (err, t) {
 						logTask(t);
