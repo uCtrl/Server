@@ -31,7 +31,7 @@ exports.save = function (user) {
 					var l = new Logs({
 						type: Logs.LOGTYPE.Condition, 
 						severity: Logs.LOGSEVERITY.Normal,  
-						message: "Task '" + t.name + "' was executed.",
+						message: "Task set value to '" + scenario._device.value + "'",
 						id: scenario._device.id,
 						timestamp: Date.now()
 					});
