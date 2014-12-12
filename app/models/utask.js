@@ -147,13 +147,14 @@ UTaskSchema.statics.toNinjaBlocks = function (task, cb) {
 								break;
 							case -1 : //none
 							case 1 : //date
-							default: //others
-								break;
+							default: //others break;
 						}
 					});
+
 					
 					async.series([
 						function(callback) {
+							console.log("lstDeviceCondition.length = ", lstDeviceCondition.length);
 							if(lstDeviceCondition.length >= 1) {
 								async.forEach(lstDeviceCondition, function(deviceConditionObj, callback) {
 									UCondition.toNinjaBlocks(deviceConditionObj, function(ninjaPrecondition){
@@ -168,6 +169,8 @@ UTaskSchema.statics.toNinjaBlocks = function (task, cb) {
 							else callback();
 						},
 						function(callback) {
+							console.log("dayCondition", dayCondition);
+							console.log("timeCondition", timeCondition);
 							if(dayCondition && timeCondition) {
 								var days = parseInt(dayCondition.beginValue);
 								var times = [];
@@ -198,9 +201,10 @@ UTaskSchema.statics.toNinjaBlocks = function (task, cb) {
 							else callback();
 						}
 					], function(err) {
+						if (err) console.log("err???", err);
 						cb(ninjaRule);
 					});
-				}
+				} else console.log("else, wut?");
 			});
 		});
 	});

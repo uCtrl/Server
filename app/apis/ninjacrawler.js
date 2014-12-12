@@ -93,6 +93,7 @@ UTask.on('update', function(uCtrl_User, taskObj) {//TODO : review & test, condit
 			});
 		}
 		else {
+			console.log(ninjaRule);
 			nb.rule().create(ninjaRule, function(err, result) {
 				if(err) {
 					console.log('--ERROR2 : ' + JSON.stringify(ninjaRule));
