@@ -65,6 +65,7 @@ exports.create = function(req, res) {
 
 exports.update = function(req, res) {
 	var conditionId = req.params.conditionId;
+	console.log("CONDITION UPDATE BODY:", req.body);
 
 	UCondition.findOneAndUpdate(
 		{ id: conditionId }, 
